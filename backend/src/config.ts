@@ -1,3 +1,17 @@
+export interface AuthConfig {
+  passwordHash: string;
+  sessionSecret: string;
+  cookieSecure: boolean;
+  sessionDays: number;
+}
+
+export interface CoverConfig {
+  navidromeUrl: string;
+  navidromeUser: string;
+  navidromePassword: string;
+  cacheDir: string;
+}
+
 export interface Config {
   port: number;
   ingestSecret: string;
@@ -5,6 +19,8 @@ export interface Config {
   navidromeDbPath: string;
   sessionGapMinutes: number;
   defaultUser: string;
+  auth?: AuthConfig;
+  cover?: CoverConfig;
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
@@ -13,6 +29,29 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const navidromeDbPath = env.NAVIDROME_DB_PATH;
   if (!navidromeDbPath) throw new Error("NAVIDROME_DB_PATH is required");
 
+  let auth: AuthConfig | undefined;
+  const passwordHash = env.SPINDLE_PASSWORD_HASH;
+  if (passwordHash && env.AUTH_ENABLED !== "false") {
+    const sessionSecret = env.SESSION_SECRET;
+    if (!sessionSecret) throw new Error("SESSION_SECRET is required when SPINDLE_PASSWORD_HASH is set");
+    auth = {
+      passwordHash,
+      sessionSecret,
+      cookieSecure: (env.AUTH_COOKIE_SECURE ?? "true") !== "false",
+      sessionDays: Number(env.SESSION_DAYS ?? 30),
+    };
+  }
+
+  let cover: CoverConfig | undefined;
+  if (env.NAVIDROME_URL && env.NAVIDROME_USER && env.NAVIDROME_PASSWORD) {
+    cover = {
+      navidromeUrl: env.NAVIDROME_URL.replace(/\/+$/, ""),
+      navidromeUser: env.NAVIDROME_USER,
+      navidromePassword: env.NAVIDROME_PASSWORD,
+      cacheDir: env.COVER_CACHE_DIR ?? "./data/covers",
+    };
+  }
+
   return {
     port: Number(env.PORT ?? 3590),
     ingestSecret,
@@ -20,5 +59,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     navidromeDbPath,
     sessionGapMinutes: Number(env.SESSION_GAP_MINUTES ?? 30),
     defaultUser: env.DEFAULT_USER ?? "morose",
+    auth,
+    cover,
   };
 }
