@@ -29,6 +29,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const navidromeDbPath = env.NAVIDROME_DB_PATH;
   if (!navidromeDbPath) throw new Error("NAVIDROME_DB_PATH is required");
 
+  const sessionDays = env.SESSION_DAYS !== undefined ? Number(env.SESSION_DAYS) : 30;
+  if (!Number.isFinite(sessionDays) || sessionDays <= 0) throw new Error("SESSION_DAYS must be a positive number");
+
   let auth: AuthConfig | undefined;
   const passwordHash = env.SPINDLE_PASSWORD_HASH;
   if (passwordHash && env.AUTH_ENABLED !== "false") {
@@ -38,7 +41,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
       passwordHash,
       sessionSecret,
       cookieSecure: (env.AUTH_COOKIE_SECURE ?? "true") !== "false",
-      sessionDays: Number(env.SESSION_DAYS ?? 30),
+      sessionDays,
     };
   }
 
