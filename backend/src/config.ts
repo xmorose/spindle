@@ -19,6 +19,7 @@ export interface Config {
   navidromeDbPath: string;
   sessionGapMinutes: number;
   defaultUser: string;
+  trustProxy: boolean;
   auth?: AuthConfig;
   cover?: CoverConfig;
 }
@@ -62,6 +63,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     navidromeDbPath,
     sessionGapMinutes: Number(env.SESSION_GAP_MINUTES ?? 30),
     defaultUser: env.DEFAULT_USER ?? "morose",
+    trustProxy: env.TRUST_PROXY === "true",
     auth,
     cover,
   };

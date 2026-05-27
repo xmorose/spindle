@@ -15,12 +15,13 @@ export interface Deps {
   sessionGapMinutes: number;
   defaultUser?: string;
   nowProvider?: () => number;
+  trustProxy?: boolean;
   auth?: AuthConfig;
   cover?: CoverConfig;
 }
 
 export function buildApp(deps: Deps): FastifyInstance {
-  const app = Fastify({ logger: false });
+  const app = Fastify({ logger: false, trustProxy: deps.trustProxy ?? false });
   const store = new EventStore(deps.statsDb);
   const cache = new MemoCache();
   const defaultUser = deps.defaultUser ?? "morose";

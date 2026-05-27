@@ -24,6 +24,7 @@ export async function bootApp(env?: Record<string, string | undefined>): Promise
     ingestSecret: cfg.ingestSecret,
     sessionGapMinutes: cfg.sessionGapMinutes,
     defaultUser: cfg.defaultUser,
+    trustProxy: cfg.trustProxy,
     auth: cfg.auth,
     cover: cfg.cover,
   });
