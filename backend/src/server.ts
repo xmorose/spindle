@@ -8,6 +8,7 @@ import type { FastifyInstance } from "fastify";
 
 export async function bootApp(env?: Record<string, string | undefined>): Promise<FastifyInstance> {
   const cfg = loadConfig(env);
+  if (!cfg.auth) console.warn("[spindle] AUTH DISABLED — set SPINDLE_PASSWORD_HASH and SESSION_SECRET to require login");
   const statsDb = openStatsDb(cfg.statsDbPath);
   const reader =
     cfg.navidromeDbPath === ":memory:"
@@ -23,6 +24,8 @@ export async function bootApp(env?: Record<string, string | undefined>): Promise
     ingestSecret: cfg.ingestSecret,
     sessionGapMinutes: cfg.sessionGapMinutes,
     defaultUser: cfg.defaultUser,
+    auth: cfg.auth,
+    cover: cfg.cover,
   });
 }
 

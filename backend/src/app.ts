@@ -5,6 +5,8 @@ import { NavidromeReader } from "./db/navidrome-db.js";
 import { MemoCache } from "./cache.js";
 import { registerIngest } from "./routes/ingest.js";
 import { registerStats } from "./routes/stats.js";
+import { registerAuth } from "./auth/index.js";
+import type { AuthConfig, CoverConfig } from "./config.js";
 
 export interface Deps {
   statsDb: Database;
@@ -13,6 +15,8 @@ export interface Deps {
   sessionGapMinutes: number;
   defaultUser?: string;
   nowProvider?: () => number;
+  auth?: AuthConfig;
+  cover?: CoverConfig;
 }
 
 export function buildApp(deps: Deps): FastifyInstance {
@@ -21,10 +25,12 @@ export function buildApp(deps: Deps): FastifyInstance {
   const cache = new MemoCache();
   const defaultUser = deps.defaultUser ?? "morose";
 
+  const now = deps.nowProvider ?? (() => Math.floor(Date.now() / 1000));
+  if (deps.auth) registerAuth(app, deps.auth, now);
+
   app.get("/health", async () => ({ status: "ok" }));
   registerIngest(app, { store, cache, secret: deps.ingestSecret, defaultUser });
 
-  const now = deps.nowProvider ?? (() => Math.floor(Date.now() / 1000));
   registerStats(app, {
     statsDb: deps.statsDb,
     reader: deps.reader,
