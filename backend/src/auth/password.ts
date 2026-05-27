@@ -13,8 +13,9 @@ export function verifyPassword(plain: string, stored: string): boolean {
     const [scheme, saltHex, hashHex] = stored.split("$");
     if (scheme !== "scrypt" || !saltHex || !hashHex) return false;
     const expected = Buffer.from(hashHex, "hex");
-    const actual = scryptSync(plain, Buffer.from(saltHex, "hex"), expected.length);
-    return expected.length === actual.length && timingSafeEqual(expected, actual);
+    if (expected.length !== KEYLEN) return false;
+    const actual = scryptSync(plain, Buffer.from(saltHex, "hex"), KEYLEN);
+    return timingSafeEqual(expected, actual);
   } catch {
     return false;
   }
