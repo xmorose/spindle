@@ -6,6 +6,7 @@ import { MemoCache } from "./cache.js";
 import { registerIngest } from "./routes/ingest.js";
 import { registerStats } from "./routes/stats.js";
 import { registerAuth } from "./auth/index.js";
+import { registerCover } from "./routes/cover.js";
 import type { AuthConfig, CoverConfig } from "./config.js";
 
 export interface Deps {
@@ -40,6 +41,8 @@ export function buildApp(deps: Deps): FastifyInstance {
     sessionGapSeconds: deps.sessionGapMinutes * 60,
     defaultUser,
   });
+
+  if (deps.cover) registerCover(app, deps.cover);
 
   app.decorate("spindle", { store, cache, reader: deps.reader, statsDb: deps.statsDb, sessionGapMinutes: deps.sessionGapMinutes });
   return app;
