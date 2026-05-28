@@ -33,8 +33,8 @@ export function registerCover(app: FastifyInstance, cfg: CoverConfig): void {
     }
     const buf = Buffer.from(await res.arrayBuffer());
     await mkdir(cfg.cacheDir, { recursive: true });
-    await writeFile(file, buf);
     await writeFile(typeFile, type);
+    await writeFile(file, buf);
     return reply.header("content-type", type).header("cache-control", "public, max-age=604800").send(buf);
   });
 }
