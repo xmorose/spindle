@@ -7,6 +7,7 @@ import { registerIngest } from "./routes/ingest.js";
 import { registerStats } from "./routes/stats.js";
 import { registerAuth } from "./auth/index.js";
 import { registerCover } from "./routes/cover.js";
+import { registerEntity } from "./routes/entity.js";
 import type { AuthConfig, CoverConfig } from "./config.js";
 
 export interface Deps {
@@ -41,6 +42,8 @@ export function buildApp(deps: Deps): FastifyInstance {
     sessionGapSeconds: deps.sessionGapMinutes * 60,
     defaultUser,
   });
+
+  registerEntity(app, { statsDb: deps.statsDb, reader: deps.reader, cache, now, defaultUser });
 
   if (deps.cover) registerCover(app, deps.cover);
 
