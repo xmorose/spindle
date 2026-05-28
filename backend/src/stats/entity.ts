@@ -56,10 +56,11 @@ export function entityDetail(
   const sample = matched[0].meta;
   const name = kind === "artist" ? sample.artist : kind === "album" ? sample.album : sample.title;
 
-  let rank = 0;
-  if (kind === "artist") rank = topArtists(db, reader, tf, user, "plays", 100000).findIndex((a) => a.artistId === id) + 1;
-  else if (kind === "album") rank = topAlbums(db, reader, tf, user, "plays", 100000).findIndex((a) => a.albumId === id) + 1;
-  else rank = topTracks(db, reader, tf, user, "plays", 100000).findIndex((t) => t.id === id) + 1;
+  let idx: number;
+  if (kind === "artist") idx = topArtists(db, reader, tf, user, "plays", 100000).findIndex((a) => a.artistId === id);
+  else if (kind === "album") idx = topAlbums(db, reader, tf, user, "plays", 100000).findIndex((a) => a.albumId === id);
+  else idx = topTracks(db, reader, tf, user, "plays", 100000).findIndex((t) => t.id === id);
+  const rank = idx >= 0 ? idx + 1 : matched.length;
 
   const ids = matched.map((x) => x.meta.id);
   const ph = ids.map(() => "?").join(",");
