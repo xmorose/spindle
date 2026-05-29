@@ -13,3 +13,12 @@ export function formatDate(unixSeconds: number | null): string {
   if (!unixSeconds) return "—";
   return new Date(unixSeconds * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
+
+export function cleanArtist(name: string): string {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of name.split(",").map((s) => s.trim()).filter(Boolean)) {
+    if (!seen.has(part)) { seen.add(part); out.push(part); }
+  }
+  return out.join(", ");
+}
