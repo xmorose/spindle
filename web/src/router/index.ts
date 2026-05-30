@@ -9,7 +9,7 @@ const routes: RouteRecordRaw[] = [
     path: "/",
     component: AppShell,
     children: [
-      { path: "", name: "home", component: () => import("@/views/stubs/HomeView.vue") },
+      { path: "", name: "home", component: () => import("@/views/HomeView.vue") },
       { path: "tops", name: "tops", component: () => import("@/views/stubs/TopsView.vue") },
       { path: "all-time", name: "all-time", component: () => import("@/views/stubs/AllTimeView.vue") },
       { path: "artists", name: "artists", component: () => import("@/views/stubs/ArtistsView.vue") },
