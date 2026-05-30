@@ -22,6 +22,7 @@ const restTracks = computed(() => tracks.data.value?.slice(1) ?? []);
 const playValues = computed(() => (series.data.value ?? []).map((p) => p.plays));
 const hourly = computed(() => hourlyFromHeatmap(heat.data.value ?? []));
 const peak = computed(() => peakHour(hourly.value));
+const firstLoad = computed(() => totals.loading.value && totals.data.value === null);
 const isEmpty = computed(() => !totals.loading.value && (totals.data.value?.plays ?? 0) === 0);
 
 useCoverAccent(() => (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
@@ -29,7 +30,11 @@ useCoverAccent(() => (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
 
 <template>
   <div class="py-2">
-    <EmptyState v-if="isEmpty" title="No plays in this range yet"
+    <div v-if="firstLoad" class="grid min-h-[60vh] place-items-center">
+      <div class="h-10 w-10 animate-spin rounded-full border-2 border-line border-t-[var(--accent)]" />
+    </div>
+
+    <EmptyState v-else-if="isEmpty" title="No plays in this range yet"
       hint="Spindle started tracking recently, so recent windows fill in as you listen. Switch to All to see your full history." />
 
     <template v-else>
@@ -47,7 +52,7 @@ useCoverAccent(() => (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
         </div>
         <RouterLink v-if="topArtist" :to="`/artists/${topArtist.artistId}`"
           class="relative flex min-h-[260px] items-end overflow-hidden rounded-2xl">
-          <CoverArt :id="topTrack?.hasCoverArt ? topTrack.id : null" :name="topArtist.name" :size="600" class="absolute inset-0 h-full w-full" />
+          <CoverArt :id="topTrack?.hasCoverArt ? topTrack.id : null" :name="cleanArtist(topArtist.name)" :size="600" class="absolute inset-0 h-full w-full" />
           <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,oklch(0.12 0.02 40 / 0.78) 100%)" />
           <div class="relative p-7">
             <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Top artist</div>
