@@ -11,7 +11,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: "", name: "home", component: () => import("@/views/HomeView.vue") },
       { path: "tops", name: "tops", component: () => import("@/views/TopsView.vue") },
-      { path: "all-time", name: "all-time", component: () => import("@/views/AllTimeView.vue") },
+      { path: "all-time", name: "all-time", component: () => import("@/views/AllTimeView.vue"), meta: { fixedRange: "All-time" } },
       { path: "artists", name: "artists", component: () => import("@/views/ArtistsView.vue") },
       { path: "artists/:id", name: "artist", component: () => import("@/views/EntityDetailView.vue"), meta: { entityKind: "artist" } },
       { path: "albums", name: "albums", component: () => import("@/views/AlbumsView.vue") },
@@ -20,7 +20,7 @@ const routes: RouteRecordRaw[] = [
       { path: "tracks/:id", name: "track", component: () => import("@/views/EntityDetailView.vue"), meta: { entityKind: "track" } },
       { path: "pulse", name: "pulse", component: () => import("@/views/PulseView.vue") },
       { path: "sessions", name: "sessions", component: () => import("@/views/SessionsView.vue") },
-      { path: "wrapped", name: "wrapped", component: () => import("@/views/WrappedView.vue") },
+      { path: "wrapped", name: "wrapped", component: () => import("@/views/WrappedView.vue"), meta: { fixedRange: "This year" } },
     ],
   },
 ];
