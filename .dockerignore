@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+backend/data
+**/*.db
+**/*.db-shm
+**/*.db-wal
+.git
+.idea
+docs
+plugin
+**/.env
+**/*.test.ts
