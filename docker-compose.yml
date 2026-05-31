@@ -7,7 +7,7 @@
 services:
   spindle-backend:
     build: .
-    image: spindle-backend:0.2
+    image: spindle-backend:0.3
     container_name: spindle-backend
     restart: unless-stopped
     env_file:

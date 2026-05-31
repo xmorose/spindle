@@ -5,12 +5,12 @@ const KEYLEN = 32;
 export function hashPassword(plain: string): string {
   const salt = randomBytes(16);
   const hash = scryptSync(plain, salt, KEYLEN);
-  return `scrypt$${salt.toString("hex")}$${hash.toString("hex")}`;
+  return `scrypt:${salt.toString("hex")}:${hash.toString("hex")}`;
 }
 
 export function verifyPassword(plain: string, stored: string): boolean {
   try {
-    const [scheme, saltHex, hashHex] = stored.split("$");
+    const [scheme, saltHex, hashHex] = stored.split(":");
     if (scheme !== "scrypt" || !saltHex || !hashHex) return false;
     const expected = Buffer.from(hashHex, "hex");
     if (expected.length !== KEYLEN) return false;
