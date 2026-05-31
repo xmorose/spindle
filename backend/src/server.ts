@@ -27,6 +27,7 @@ export async function bootApp(env?: Record<string, string | undefined>): Promise
     trustProxy: cfg.trustProxy,
     auth: cfg.auth,
     cover: cfg.cover,
+    webDir: cfg.webDir,
   });
 }
 

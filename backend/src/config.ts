@@ -22,6 +22,7 @@ export interface Config {
   trustProxy: boolean;
   auth?: AuthConfig;
   cover?: CoverConfig;
+  webDir?: string;
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
@@ -66,5 +67,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     trustProxy: env.TRUST_PROXY === "true",
     auth,
     cover,
+    webDir: env.WEB_DIR,
   };
 }

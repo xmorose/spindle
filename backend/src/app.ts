@@ -1,4 +1,5 @@
 ﻿import Fastify, { type FastifyInstance } from "fastify";
+import fastifyStatic from "@fastify/static";
 import type { Database } from "better-sqlite3";
 import { EventStore } from "./events/store.js";
 import { NavidromeReader } from "./db/navidrome-db.js";
@@ -20,6 +21,7 @@ export interface Deps {
   trustProxy?: boolean;
   auth?: AuthConfig;
   cover?: CoverConfig;
+  webDir?: string;
 }
 
 export function buildApp(deps: Deps): FastifyInstance {
@@ -48,6 +50,17 @@ export function buildApp(deps: Deps): FastifyInstance {
   if (deps.cover) registerCover(app, deps.cover);
 
   app.decorate("spindle", { store, cache, reader: deps.reader, statsDb: deps.statsDb, sessionGapMinutes: deps.sessionGapMinutes });
+
+  if (deps.webDir) {
+    app.register(fastifyStatic, { root: deps.webDir });
+    app.setNotFoundHandler((req, reply) => {
+      if (req.method === "GET" && !req.url.startsWith("/api/") && !req.url.startsWith("/ingest") && req.url !== "/health") {
+        return reply.sendFile("index.html");
+      }
+      return reply.code(404).send({ error: "not found" });
+    });
+  }
+
   return app;
 }
 
