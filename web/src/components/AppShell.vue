@@ -16,17 +16,19 @@ async function logout() {
 </script>
 
 <template>
-  <div class="grid min-h-screen grid-cols-[180px_1fr]">
-    <aside class="border-r border-line/70 bg-[oklch(0.15_0.012_55)]">
+  <div class="grid min-h-screen grid-cols-[210px_1fr]">
+    <aside class="border-r border-line bg-[oklch(0.185_0.013_60)]">
       <SideNav />
     </aside>
     <div class="flex min-w-0 flex-col">
-      <header class="flex items-center justify-between px-8 py-5">
+      <header class="sticky top-0 z-10 flex items-center justify-between border-b border-line/60 bg-[color-mix(in_oklch,var(--color-bg),transparent_10%)] px-8 py-4 backdrop-blur">
         <RangeBar v-if="!fixedLabel" />
-        <span v-else class="text-[12.5px] font-semibold text-faint">{{ fixedLabel }}</span>
-        <button class="text-xs font-semibold text-faint hover:text-muted" @click="logout">Sign out</button>
+        <span v-else class="label">{{ fixedLabel }}</span>
+        <button
+          class="rounded-lg border border-line px-3 py-1.5 text-[13px] font-semibold text-muted transition-colors duration-150 hover:border-line hover:bg-surface hover:text-text"
+          @click="logout">Sign out</button>
       </header>
-      <main class="min-w-0 flex-1 px-8 pb-12">
+      <main class="min-w-0 flex-1 px-8 pb-16 pt-7">
         <RouterView />
       </main>
     </div>

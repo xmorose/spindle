@@ -1,33 +1,63 @@
 @import "tailwindcss";
 
-/* Warm vinyl-room dark system (OKLCH). See design spec §3. */
+/* Warm vinyl-room dark — lifted out of the "black hole" for legibility.
+   Earlier values (bg 0.165, faint 0.52) were too dark/low-contrast to read. */
 @theme {
-  --color-bg: oklch(0.165 0.012 55);
-  --color-surface: oklch(0.205 0.013 55);
-  --color-surface-2: oklch(0.245 0.014 55);
-  --color-line: oklch(0.30 0.012 55);
-  --color-text: oklch(0.955 0.01 80);
-  --color-muted: oklch(0.70 0.013 70);
-  --color-faint: oklch(0.52 0.012 65);
-  --color-accent: oklch(0.76 0.15 50);
+  --color-bg: oklch(0.205 0.014 60);        /* dark, warm, but not pitch */
+  --color-surface: oklch(0.245 0.015 60);
+  --color-surface-2: oklch(0.285 0.016 60);
+  --color-line: oklch(0.365 0.014 60);       /* visible hairlines → structure reads */
+  --color-text: oklch(0.97 0.008 85);
+  --color-muted: oklch(0.80 0.012 78);       /* readable secondary text (was 0.70) */
+  --color-faint: oklch(0.67 0.014 72);       /* readable labels (was 0.52) */
+  --color-accent: oklch(0.79 0.15 55);
 
   --font-sans: "Hanken Grotesk", system-ui, sans-serif;
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
-  /* Runtime-overridable accent (Plan 3 sets this from the top cover). Falls back to the brand amber. */
+  /* Runtime-overridable accent (set from the active period's top cover). */
   --accent: var(--color-accent);
+  /* a soft accent wash for hovers/fills, derived from --accent */
+  --accent-soft: color-mix(in oklch, var(--accent) 16%, transparent);
 }
 
-html, body, #app {
-  height: 100%;
-}
+html, body, #app { height: 100%; }
 body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
   font-feature-settings: "tnum" 1;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+
 .tabular { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+/* One consistent, legible eyebrow/label (replaces scattered 9–11px faint labels).
+   Uses muted (not faint) and a comfortable size so labels are actually readable. */
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Motion foundation. Gentle, exponential ease-out; staggered content entrance. */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.rise { animation: rise 0.55s var(--ease-out-quint) both; }
+.stagger > * { animation: rise 0.55s var(--ease-out-quint) both; }
+.stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger > *:nth-child(4) { animation-delay: 0.18s; }
+.stagger > *:nth-child(5) { animation-delay: 0.24s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .stagger > * { animation: none !important; }
+}

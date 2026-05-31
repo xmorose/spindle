@@ -35,70 +35,79 @@ useCoverAccent(() => (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
     </div>
 
     <EmptyState v-else-if="isEmpty" title="No plays in this range yet"
-      hint="Spindle started tracking recently, so recent windows fill in as you listen. Switch to All to see your full history." />
+      hint="Spindle started tracking recently, so recent windows fill in as you listen. Switch to All time to see your full history." />
 
-    <template v-else>
-      <section class="mb-10 grid grid-cols-1 gap-7 lg:grid-cols-[1fr_1.15fr]">
+    <div v-else class="stagger flex flex-col gap-12">
+      <section class="grid grid-cols-2 gap-x-8 gap-y-9 md:grid-cols-4">
         <div>
-          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-faint">This range</div>
-          <div class="tabular text-7xl font-black leading-[0.9]" :style="{ color: 'var(--accent)' }">
-            {{ formatNumber(totals.data.value?.plays ?? 0) }}
-          </div>
-          <div class="mt-3 text-lg font-semibold text-muted">songs played</div>
-          <div class="mt-5 flex gap-7 border-t border-line/50 pt-4">
-            <div><div class="tabular text-2xl font-extrabold">{{ formatDuration(totals.data.value?.seconds ?? 0) }}</div><div class="text-[11px] text-faint">listening time</div></div>
-            <div><div class="tabular text-2xl font-extrabold">{{ totals.data.value?.distinctArtists ?? 0 }}</div><div class="text-[11px] text-faint">artists</div></div>
-          </div>
+          <div class="tabular text-5xl font-black leading-none lg:text-6xl" :style="{ color: 'var(--accent)' }">{{ formatNumber(totals.data.value?.plays ?? 0) }}</div>
+          <div class="label mt-3">Songs played</div>
         </div>
-        <RouterLink v-if="topArtist" :to="`/artists/${topArtist.artistId}`"
-          class="relative flex min-h-[260px] items-end overflow-hidden rounded-2xl">
-          <CoverArt :id="topTrack?.hasCoverArt ? topTrack.id : null" :name="cleanArtist(topArtist.name)" :size="600" class="absolute inset-0 h-full w-full" />
-          <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,oklch(0.12 0.02 40 / 0.78) 100%)" />
-          <div class="relative p-7">
-            <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Top artist</div>
-            <div class="text-4xl font-black text-white" style="text-shadow:0 2px 20px rgba(0,0,0,.4)">{{ cleanArtist(topArtist.name) }}</div>
-            <div class="tabular mt-1 text-sm font-semibold text-white/85">{{ topArtist.plays }} plays · {{ formatDuration(topArtist.seconds) }}</div>
-          </div>
-        </RouterLink>
-      </section>
-
-      <section class="mb-10">
-        <div class="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Listening over time</div>
-        <LineArea :values="playValues" :height="170" />
-      </section>
-
-      <section class="grid grid-cols-1 gap-9 lg:grid-cols-[1fr_0.85fr]">
         <div>
-          <div class="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Listening clock</div>
-          <div class="flex items-center gap-6">
-            <RadialClock :hours="hourly" class="h-[200px] w-[200px] flex-none" />
+          <div class="tabular text-5xl font-black leading-none lg:text-6xl">{{ formatDuration(totals.data.value?.seconds ?? 0) }}</div>
+          <div class="label mt-3">Listening time</div>
+        </div>
+        <div>
+          <div class="tabular text-5xl font-black leading-none lg:text-6xl">{{ formatNumber(totals.data.value?.distinctArtists ?? 0) }}</div>
+          <div class="label mt-3">Artists</div>
+        </div>
+        <div>
+          <div class="tabular text-5xl font-black leading-none lg:text-6xl">{{ formatNumber(totals.data.value?.distinctAlbums ?? 0) }}</div>
+          <div class="label mt-3">Albums</div>
+        </div>
+      </section>
+
+      <RouterLink v-if="topArtist" :to="`/artists/${topArtist.artistId}`"
+        class="group relative block h-[240px] overflow-hidden rounded-2xl">
+        <CoverArt :id="topTrack?.hasCoverArt ? topTrack.id : null" :name="cleanArtist(topArtist.name)" :size="900"
+          class="absolute inset-0 h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
+        <div class="absolute inset-0" style="background:linear-gradient(110deg,oklch(0.14 0.02 50 / 0.85) 0%,transparent 55%,oklch(0.14 0.02 50 / 0.5) 100%)" />
+        <div class="relative flex h-full flex-col justify-end p-8">
+          <div class="label" style="color:oklch(0.97 0.02 80 / 0.9)">Top artist</div>
+          <div class="mt-1 text-5xl font-black text-white" style="text-shadow:0 2px 24px oklch(0.1 0.02 40 / 0.5)">{{ cleanArtist(topArtist.name) }}</div>
+          <div class="tabular mt-2 text-[15px] font-semibold" style="color:oklch(0.97 0.02 80 / 0.85)">{{ formatNumber(topArtist.plays) }} plays · {{ formatDuration(topArtist.seconds) }}</div>
+        </div>
+      </RouterLink>
+
+      <section>
+        <div class="label mb-4">Listening over time</div>
+        <div class="rounded-2xl border border-line/70 bg-surface/40 p-5">
+          <LineArea :values="playValues" :height="190" />
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_0.9fr]">
+        <div>
+          <div class="label mb-5">Listening clock</div>
+          <div class="flex items-center gap-7">
+            <RadialClock :hours="hourly" class="h-[220px] w-[220px] flex-none" />
             <div>
-              <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Peak listening</div>
-              <div class="tabular text-3xl font-extrabold">{{ String(peak).padStart(2, "0") }}:00</div>
+              <div class="label">Peak listening</div>
+              <div class="tabular mt-1 text-4xl font-black" :style="{ color: 'var(--accent)' }">{{ String(peak).padStart(2, "0") }}:00</div>
             </div>
           </div>
         </div>
         <div v-if="topTrack">
-          <div class="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Best song</div>
-          <div class="mb-4 flex items-center gap-4">
+          <div class="label mb-5">Best song</div>
+          <RouterLink :to="`/tracks/${topTrack.id}`" class="mb-3 flex items-center gap-4">
             <CoverArt :id="topTrack.hasCoverArt ? topTrack.id : null" :name="topTrack.title" :size="160" class="h-16 w-16 flex-none" />
             <div>
-              <div class="text-[10px] font-bold uppercase tracking-[0.16em]" :style="{ color: 'var(--accent)' }">{{ topTrack.plays }} plays</div>
-              <div class="text-lg font-bold">{{ topTrack.title }}</div>
+              <div class="label" :style="{ color: 'var(--accent)', fontSize: '11px' }">{{ formatNumber(topTrack.plays) }} plays</div>
+              <div class="text-xl font-bold leading-tight">{{ topTrack.title }}</div>
               <div class="text-sm text-muted">{{ cleanArtist(topTrack.artist) }}</div>
             </div>
-          </div>
-          <div class="border-t border-line/50">
+          </RouterLink>
+          <div class="border-t border-line/60">
             <RouterLink v-for="(t, i) in restTracks" :key="t.id" :to="`/tracks/${t.id}`"
-              class="flex items-center gap-3 border-b border-line/30 py-2 last:border-0">
-              <span class="tabular w-4 text-right text-xs font-bold text-faint">{{ i + 2 }}</span>
-              <CoverArt :id="t.hasCoverArt ? t.id : null" :name="t.title" :size="80" class="h-8 w-8 flex-none" />
-              <span class="min-w-0 flex-1 truncate text-[13px] font-semibold">{{ t.title }}<span class="block truncate text-[11px] font-normal text-faint">{{ cleanArtist(t.artist) }}</span></span>
-              <span class="tabular text-xs font-semibold text-muted">{{ t.plays }}</span>
+              class="flex items-center gap-3 border-b border-line/40 py-2.5 transition-colors duration-150 last:border-0 hover:bg-surface/60">
+              <span class="tabular w-5 text-right text-sm font-bold text-faint">{{ i + 2 }}</span>
+              <CoverArt :id="t.hasCoverArt ? t.id : null" :name="t.title" :size="80" class="h-9 w-9 flex-none" />
+              <span class="min-w-0 flex-1 truncate text-sm font-semibold">{{ t.title }}<span class="block truncate text-xs font-normal text-faint">{{ cleanArtist(t.artist) }}</span></span>
+              <span class="tabular text-sm font-semibold text-muted">{{ formatNumber(t.plays) }}</span>
             </RouterLink>
           </div>
         </div>
       </section>
-    </template>
+    </div>
   </div>
 </template>
