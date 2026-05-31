@@ -1,0 +1,31 @@
+# Spindle production deployment (one image serves the Vue SPA + /api).
+# Reuses the existing `navidrome_default` network (so the scrobble plugin keeps
+# reaching this container by name) and the existing `spindle-data` volume
+# (stats.db + cover cache). Secrets live in spindle.env beside this file (gitignored).
+#
+# Deploy / redeploy:  docker compose up -d --build
+services:
+  spindle-backend:
+    build: .
+    image: spindle-backend:0.2
+    container_name: spindle-backend
+    restart: unless-stopped
+    env_file:
+      - spindle.env
+    ports:
+      # published on loopback only; host nginx terminates TLS and proxies here
+      - "127.0.0.1:3590:3590"
+    volumes:
+      - spindle-data:/app/data
+      # Navidrome's data dir (navidrome.db); the app opens it read-only at the connection level
+      - /opt/selfhosted/docker/navidrome/data:/nddata
+    networks:
+      - navidrome_default
+
+volumes:
+  spindle-data:
+    external: true
+
+networks:
+  navidrome_default:
+    external: true

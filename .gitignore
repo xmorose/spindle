@@ -5,3 +5,7 @@ dist/
 *.db-wal
 .env
 .idea/
+
+# Deploy secrets / generated files (live only on the server)
+spindle.env
+LOGIN-PASSWORD.txt
