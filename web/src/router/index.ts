@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
       { path: "tracks", name: "tracks", component: () => import("@/views/TracksView.vue") },
       { path: "tracks/:id", name: "track", component: () => import("@/views/EntityDetailView.vue"), meta: { entityKind: "track" } },
       { path: "pulse", name: "pulse", component: () => import("@/views/PulseView.vue") },
-      { path: "sessions", name: "sessions", component: () => import("@/views/stubs/SessionsView.vue") },
+      { path: "sessions", name: "sessions", component: () => import("@/views/SessionsView.vue") },
       { path: "wrapped", name: "wrapped", component: () => import("@/views/stubs/WrappedView.vue") },
     ],
   },
