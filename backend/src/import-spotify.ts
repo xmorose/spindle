@@ -131,6 +131,8 @@ async function main() {
     `  Too short (<${threshSec}s):    ${report.tooShort}    (skips / previews)`,
     `  Counted plays:       ${report.counted}`,
     `    Matched to library:  ${report.matched}  (${pct(report.matched, report.counted)} of counted)`,
+    `      exact (artist+title): ${report.matchedExact}`,
+    `      by title only:        ${report.matchedByTitle}   (artist tag differed; title was unique — see matched-by-title.csv)`,
     `    Not in library:      ${report.unmatched}  (${pct(report.unmatched, report.counted)})   ← these won't import`,
     `  Matched plays span:  ${spanStr}`,
     `  Listening imported:  ${fmtDuration(report.matchedSeconds)}`,
@@ -167,7 +169,13 @@ async function main() {
   }
   writeFileSync(join(outDir, "matched.csv"), matchedCsvLines.join("\n"), "utf8");
 
-  const reportsMsg = `  Reports written: ${outDir}/summary.txt, unmatched.csv, matched.csv`;
+  const byTitleCsvLines = ["plays,spotify_artist,title"];
+  for (const a of report.byTitleAgg) {
+    byTitleCsvLines.push(csvRow(a.plays, a.artist, a.title));
+  }
+  writeFileSync(join(outDir, "matched-by-title.csv"), byTitleCsvLines.join("\n"), "utf8");
+
+  const reportsMsg = `  Reports: ${outDir}/  (summary.txt, matched.csv, matched-by-title.csv, unmatched.csv)`;
   lines.push(reportsMsg);
 
   const topN = report.unmatchedAgg.slice(0, 25);

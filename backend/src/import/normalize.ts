@@ -8,7 +8,8 @@ export function normArtist(s: string): string {
 
 export function normTitle(s: string): string {
   return base(s)
-    .replace(/[([]\s*(feat|ft|with)\.?[^)\]]*[)\]]/g, " ")
+    .replace(/[([]\s*(feat|ft|featuring|with|prod)\.?[^)\]]*[)\]]/g, " ")
+    .replace(/\s(feat|ft|featuring)\.?\s.*$/, "")
     .replace(/\s-\s.*$/, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
