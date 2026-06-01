@@ -11,6 +11,7 @@ export function normTitle(s: string): string {
     .replace(/[([]\s*(feat|ft|featuring|with|prod)\.?[^)\]]*[)\]]/g, " ")
     .replace(/\s(feat|ft|featuring)\.?\s.*$/, "")
     .replace(/\s-\s.*$/, "")
+    .replace(/\s\+.*$/, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
