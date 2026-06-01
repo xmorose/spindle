@@ -9,3 +9,6 @@ dist/
 # Deploy secrets / generated files (live only on the server)
 spindle.env
 LOGIN-PASSWORD.txt
+
+# Generated import reports
+import-report/
