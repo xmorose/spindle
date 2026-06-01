@@ -8,6 +8,7 @@ import { computeTotals } from "../stats/totals.js";
 import { computeHeatmap } from "../stats/heatmap.js";
 import { computeTimeseries, type Bucketing } from "../stats/timeseries.js";
 import { longestSessions } from "../stats/sessions.js";
+import { recentPlays } from "../stats/recent.js";
 
 interface Opts {
   statsDb: Database;
@@ -73,5 +74,9 @@ export function registerStats(app: FastifyInstance, o: Opts): void {
     const q = req.query as Q;
     const t = tf(q);
     return o.cache.get(key(["sessions", q, t]), () => longestSessions(o.statsDb, o.reader, t, user(q), o.sessionGapSeconds, limit(q)));
+  });
+  app.get("/api/recent", async (req) => {
+    const q = req.query as Q;
+    return o.cache.get(key(["recent", user(q), limit(q)]), () => recentPlays(o.statsDb, o.reader, user(q), limit(q)));
   });
 }

@@ -11,6 +11,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: "", name: "home", component: () => import("@/views/HomeView.vue") },
       { path: "tops", name: "tops", component: () => import("@/views/TopsView.vue") },
+      { path: "recent", name: "recent", component: () => import("@/views/RecentView.vue"), meta: { fixedRange: "Recent plays" } },
       { path: "all-time", name: "all-time", component: () => import("@/views/AllTimeView.vue"), meta: { fixedRange: "All-time" } },
       { path: "artists", name: "artists", component: () => import("@/views/ArtistsView.vue") },
       { path: "artists/:id", name: "artist", component: () => import("@/views/EntityDetailView.vue"), meta: { entityKind: "artist" } },

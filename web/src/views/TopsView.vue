@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, computed, watch } from "vue";
 import { api } from "@/api/client";
 import { storeToRefs } from "pinia";
 import { useRangeStore } from "@/stores/range";
 import { formatDuration, cleanArtist } from "@/lib/format";
 import type { Sort } from "@/api/types";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
+import Spinner from "@/components/ui/Spinner.vue";
 
 type Kind = "artists" | "albums" | "tracks" | "genres";
 const kinds: Kind[] = ["artists", "albums", "tracks", "genres"];
@@ -15,6 +16,7 @@ const { range } = storeToRefs(useRangeStore());
 
 const rows = ref<RankedRow[]>([]);
 const loading = ref(true);
+const firstLoad = computed(() => loading.value && rows.value.length === 0);
 
 function label(v: number, seconds: number) {
   return sort.value === "time" ? formatDuration(seconds) : String(v);
@@ -57,6 +59,7 @@ watch([kind, sort, range], load, { immediate: true });
         :class="kind === k ? 'bg-surface-2 text-text' : 'text-muted hover:text-text'">{{ k[0].toUpperCase() + k.slice(1) }}</button>
     </div>
 
-    <RankedList :rows="rows" :playable="kind === 'tracks'" />
+    <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
+    <RankedList v-else :rows="rows" :playable="kind === 'tracks'" />
   </div>
 </template>

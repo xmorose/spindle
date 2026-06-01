@@ -3,6 +3,7 @@ const groups = [
   { items: [
     { to: "/", label: "Home" },
     { to: "/tops", label: "Tops" },
+    { to: "/recent", label: "Recent" },
     { to: "/all-time", label: "All-time" },
   ] },
   { title: "Browse", items: [

@@ -1,5 +1,5 @@
 import type {
-  RangeParams, Totals, ArtistTop, AlbumTop, TrackTop, GenreTop, HeatCell, TimePoint, Session, EntityDetail, AuthStatus,
+  RangeParams, Totals, ArtistTop, AlbumTop, TrackTop, GenreTop, HeatCell, TimePoint, Session, RecentPlay, EntityDetail, AuthStatus,
 } from "./types";
 
 export class ApiError extends Error {
@@ -48,6 +48,7 @@ export const api = {
   heatmap: (p?: RangeParams) => get<HeatCell[]>(`/heatmap${qs(p)}`),
   timeseries: (p?: RangeParams) => get<TimePoint[]>(`/timeseries${qs(p)}`),
   sessions: (p?: RangeParams) => get<Session[]>(`/sessions${qs(p)}`),
+  recent: (p?: RangeParams) => get<RecentPlay[]>(`/recent${qs(p)}`),
   entity: (kind: string, id: string, p?: RangeParams) => get<EntityDetail>(`/entity/${kind}/${encodeURIComponent(id)}${qs(p)}`),
   me: () => get<AuthStatus>("/auth/me"),
   login: (password: string) => post<AuthStatus>("/auth/login", { password }),
