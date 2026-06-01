@@ -1,7 +1,7 @@
 import { matchKey, normTitle, normArtist } from "./normalize.js";
 
 export interface SpotifyPlay { ts: string; ms_played: number; track: string | null; artist: string | null; album: string | null; uri: string | null; }
-export interface NavTrack { id: string; title: string; artist: string; duration: number; }
+export interface NavTrack { id: string; title: string; artist: string; duration: number; path?: string; }
 export interface ImportEvent { played_at: number; nd_track_id: string; }
 export interface Agg { artist: string; title: string; plays: number; }
 export interface NavIndex { byKey: Map<string, NavTrack>; byTitle: Map<string, NavTrack[]>; }
@@ -47,6 +47,26 @@ export function buildIndex(tracks: NavTrack[]): NavIndex {
     }
   }
   return { byKey, byTitle };
+}
+
+export function matchOne(index: NavIndex, artist: string, title: string): NavTrack | null {
+  const exact = index.byKey.get(matchKey(artist, title));
+  if (exact) return exact;
+  const cands = index.byTitle.get(normTitle(title));
+  return cands && cands.length === 1 ? cands[0] : null;
+}
+
+export interface PlaylistMatch { matchedPaths: string[]; matched: number; total: number; unmatched: { artist: string; title: string }[]; }
+
+export function matchPlaylist(items: { artist: string; title: string }[], index: NavIndex): PlaylistMatch {
+  const matchedPaths: string[] = [];
+  const unmatched: { artist: string; title: string }[] = [];
+  for (const it of items) {
+    const nav = matchOne(index, it.artist, it.title);
+    if (nav?.path) matchedPaths.push(nav.path);
+    else unmatched.push(it);
+  }
+  return { matchedPaths, matched: matchedPaths.length, total: items.length, unmatched };
 }
 
 export function classify(plays: SpotifyPlay[], index: NavIndex, thresholdMs: number): ImportReport {

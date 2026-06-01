@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "hash-password": "tsx src/auth/hash-cli.ts",
-    "import-spotify": "tsx src/import-spotify.ts"
+    "import-spotify": "tsx src/import-spotify.ts",
+    "import-playlists": "tsx src/import-playlists.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",
