@@ -11,7 +11,7 @@ const res = useRangedResource((range) => api.topArtists({ range, limit: 200 }));
 const q = ref("");
 const items = computed<CoverItem[]>(() =>
   (res.data.value ?? []).map((a) => ({
-    id: a.artistId, title: cleanArtist(a.name), value: `${formatNumber(a.plays)} plays`, coverId: a.artistId, to: `/artists/${a.artistId}`,
+    id: a.artistId, title: cleanArtist(a.name), value: `${formatNumber(a.plays)} plays`, coverId: a.coverArt, to: `/artists/${a.artistId}`,
   })),
 );
 const filtered = computed(() => {

@@ -17,7 +17,7 @@ onMounted(async () => {
     api.topTracks({ range: "all", limit: 10 }),
   ]);
   totals.value = t;
-  artistRows.value = ar.map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: a.plays, coverId: a.artistId, to: `/artists/${a.artistId}` }));
+  artistRows.value = ar.map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: a.plays, coverId: a.coverArt, to: `/artists/${a.artistId}` }));
   trackRows.value = tr.map((x) => ({ id: x.id, title: x.title, subtitle: cleanArtist(x.artist), value: x.plays, coverId: x.hasCoverArt ? x.id : null, to: `/tracks/${x.id}` }));
 });
 

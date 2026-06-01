@@ -33,7 +33,7 @@ async function load() {
 }
 watch([id, range], load, { immediate: true });
 
-const coverId = computed(() => data.value?.id ?? null);
+const coverId = computed(() => data.value?.coverArt ?? data.value?.id ?? null);
 useCoverAccent(() => coverId.value);
 
 const historyValues = computed(() => (data.value?.history ?? []).map((h) => h.plays));

@@ -12,6 +12,7 @@ export interface EntityDetail {
   kind: EntityKind; id: string; name: string; artist?: string; album?: string;
   plays: number; seconds: number; rank: number;
   firstPlayedAt: number | null; lastPlayedAt: number | null;
+  coverArt: string | null;
   history: { day: number; plays: number }[];
   related: RelatedTrack[];
 }
@@ -80,6 +81,7 @@ export function entityDetail(
     album: kind === "track" ? sample.album : undefined,
     plays: totalPlays, seconds: totalSeconds, rank,
     firstPlayedAt: span.first ?? null, lastPlayedAt: span.last ?? null,
+    coverArt: related.find((r) => r.hasCoverArt)?.id ?? null,
     history, related: related.slice(0, 25),
   };
 }

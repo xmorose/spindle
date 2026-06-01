@@ -4,7 +4,7 @@ import type { Timeframe } from "./timeframe.js";
 
 export type Sort = "plays" | "time";
 
-export interface ArtistTop { artistId: string; name: string; plays: number; seconds: number; }
+export interface ArtistTop { artistId: string; name: string; plays: number; seconds: number; coverArt: string | null; }
 export interface AlbumTop { albumId: string; name: string; artist: string; plays: number; seconds: number; }
 export interface TrackTop { id: string; title: string; artist: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface GenreTop { genre: string; plays: number; seconds: number; }
@@ -42,16 +42,17 @@ export function topTracks(db: Database, reader: NavidromeReader, tf: Timeframe, 
 export function topArtists(db: Database, reader: NavidromeReader, tf: Timeframe, user: string, sort: Sort, limit: number): ArtistTop[] {
   const plays = playsByTrack(db, tf, user);
   const meta = reader.tracksById(plays.map((p) => p.nd_track_id));
-  const acc = new Map<string, ArtistTop>();
+  const acc = new Map<string, ArtistTop & { _coverPlays: number }>();
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);
     if (!m) continue;
-    const cur = acc.get(m.artistId) ?? { artistId: m.artistId, name: m.artist, plays: 0, seconds: 0 };
+    let cur = acc.get(m.artistId);
+    if (!cur) { cur = { artistId: m.artistId, name: m.artist, plays: 0, seconds: 0, coverArt: null, _coverPlays: -1 }; acc.set(m.artistId, cur); }
     cur.plays += p.plays;
     cur.seconds += p.plays * m.duration;
-    acc.set(m.artistId, cur);
+    if (m.hasCoverArt && p.plays > cur._coverPlays) { cur._coverPlays = p.plays; cur.coverArt = m.id; }
   }
-  return sortRows([...acc.values()], sort, limit);
+  return sortRows([...acc.values()], sort, limit).map(({ _coverPlays, ...rest }) => rest);
 }
 
 export function topAlbums(db: Database, reader: NavidromeReader, tf: Timeframe, user: string, sort: Sort, limit: number): AlbumTop[] {

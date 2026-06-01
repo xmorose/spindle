@@ -20,12 +20,25 @@ export const usePlayerStore = defineStore("player", () => {
   const volume = ref(1);
   const current = computed<PlayerTrack | null>(() => queue.value[index.value] ?? null);
 
+  let raf = 0;
+  const canRaf = typeof requestAnimationFrame === "function";
+  function startTick() {
+    if (raf || !canRaf) return;
+    const loop = () => {
+      const a = el();
+      if (a) currentTime.value = a.currentTime;
+      raf = playing.value ? requestAnimationFrame(loop) : 0;
+    };
+    raf = requestAnimationFrame(loop);
+  }
+  function stopTick() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+
   let attached = false;
   function attach(a: HTMLAudioElement) {
     a.ontimeupdate = () => { currentTime.value = a.currentTime; };
     a.ondurationchange = () => { duration.value = Number.isFinite(a.duration) ? a.duration : 0; };
-    a.onplay = () => { playing.value = true; };
-    a.onpause = () => { playing.value = false; };
+    a.onplay = () => { playing.value = true; startTick(); };
+    a.onpause = () => { playing.value = false; stopTick(); };
     a.onended = () => next();
   }
   function load(autoplay = true) {
