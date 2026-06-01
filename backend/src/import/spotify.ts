@@ -46,6 +46,10 @@ export function buildIndex(tracks: NavTrack[]): NavIndex {
       addTitle(tt, t);
     }
   }
+  for (const t of tracks) {
+    const nt = normTitle(t.title);
+    if (nt && !byKey.has(nt)) byKey.set(nt, t);
+  }
   return { byKey, byTitle };
 }
 
