@@ -45,7 +45,7 @@ const relatedRows = computed<RankedRow[]>(() =>
 </script>
 
 <template>
-  <div class="py-2">
+  <div class="py-2 rise">
     <div v-if="loading" class="grid min-h-[50vh] place-items-center">
       <div class="h-9 w-9 animate-spin rounded-full border-2 border-line border-t-[var(--accent)]" />
     </div>

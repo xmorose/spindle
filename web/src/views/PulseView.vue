@@ -15,7 +15,7 @@ const isEmpty = computed(() => !res.loading.value && cells.value.length === 0);
 </script>
 
 <template>
-  <div class="py-2">
+  <div class="py-2 rise">
     <h1 class="mb-6 text-2xl font-extrabold tracking-tight">Pulse</h1>
 
     <EmptyState v-if="isEmpty" title="No listening pattern yet"

@@ -10,7 +10,7 @@ const isEmpty = computed(() => !res.loading.value && sessions.value.length === 0
 </script>
 
 <template>
-  <div class="py-2">
+  <div class="py-2 rise">
     <h1 class="mb-6 text-2xl font-extrabold tracking-tight">Sessions</h1>
 
     <div v-if="isEmpty" class="py-16 text-center text-sm text-faint">No sessions yet — they appear once you have live listening.</div>

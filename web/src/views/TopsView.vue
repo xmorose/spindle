@@ -41,7 +41,7 @@ watch([kind, sort, range], load, { immediate: true });
 </script>
 
 <template>
-  <div class="py-2">
+  <div class="py-2 rise">
     <div class="mb-6 flex items-center justify-between">
       <h1 class="text-2xl font-extrabold tracking-tight">Tops</h1>
       <div class="flex gap-1 rounded-full border border-line/60 p-0.5">
