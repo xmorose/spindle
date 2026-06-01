@@ -1,4 +1,4 @@
-import { matchKey, normTitle } from "./normalize.js";
+import { matchKey, normTitle, normArtist } from "./normalize.js";
 
 export interface SpotifyPlay { ts: string; ms_played: number; track: string | null; artist: string | null; album: string | null; uri: string | null; }
 export interface NavTrack { id: string; title: string; artist: string; duration: number; }
@@ -28,14 +28,23 @@ function firstArtist(s: string): string { return s.split(",")[0]; }
 export function buildIndex(tracks: NavTrack[]): NavIndex {
   const byKey = new Map<string, NavTrack>();
   const byTitle = new Map<string, NavTrack[]>();
-  for (const t of tracks) {
-    for (const k of new Set([matchKey(t.artist, t.title), matchKey(firstArtist(t.artist), t.title)])) {
-      if (!byKey.has(k)) byKey.set(k, t);
-    }
-    const tk = normTitle(t.title);
+  const addTitle = (tk: string, t: NavTrack) => {
     const arr = byTitle.get(tk) ?? [];
     if (!arr.some((x) => x.id === t.id)) arr.push(t);
     byTitle.set(tk, arr);
+  };
+  for (const t of tracks) {
+    const artists = new Set([normArtist(t.artist), normArtist(firstArtist(t.artist))]);
+    const nt = normTitle(t.title);
+    const titles = new Set([nt]);
+    for (const a of artists) if (a && nt.startsWith(a + " ")) titles.add(nt.slice(a.length + 1));
+    for (const tt of titles) {
+      for (const a of artists) {
+        const k = `${a} ${tt}`;
+        if (!byKey.has(k)) byKey.set(k, t);
+      }
+      addTitle(tt, t);
+    }
   }
   return { byKey, byTitle };
 }
