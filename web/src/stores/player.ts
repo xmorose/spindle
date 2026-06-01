@@ -65,5 +65,30 @@ export const usePlayerStore = defineStore("player", () => {
   function seek(t: number) { const a = el(); if (a) { a.currentTime = t; currentTime.value = t; } }
   function setVolume(v: number) { volume.value = v; const a = el(); if (a) a.volume = v; }
 
-  return { queue, index, playing, currentTime, duration, volume, current, playQueue, playNow, toggle, next, prev, seek, setVolume };
+  function jumpTo(i: number) { if (i >= 0 && i < queue.value.length && i !== index.value) { index.value = i; load(); } }
+  function addToQueue(tracks: PlayerTrack[]) {
+    if (!tracks.length) return;
+    const wasEmpty = queue.value.length === 0;
+    queue.value.push(...tracks);
+    if (wasEmpty) { index.value = 0; load(); }
+  }
+  function playNext(tracks: PlayerTrack[]) {
+    if (!tracks.length) return;
+    if (queue.value.length === 0) { playQueue(tracks, 0); return; }
+    queue.value.splice(index.value + 1, 0, ...tracks);
+  }
+  function removeAt(i: number) {
+    if (i < 0 || i >= queue.value.length) return;
+    const wasCurrent = i === index.value;
+    queue.value.splice(i, 1);
+    if (queue.value.length === 0) { stop(); return; }
+    if (i < index.value) index.value--;
+    else if (wasCurrent) { if (index.value > queue.value.length - 1) index.value = queue.value.length - 1; load(); }
+  }
+  function stop() {
+    const a = el(); if (a) { a.pause(); a.removeAttribute("src"); }
+    queue.value = []; index.value = 0; playing.value = false; currentTime.value = 0; duration.value = 0;
+  }
+
+  return { queue, index, playing, currentTime, duration, volume, current, playQueue, playNow, toggle, next, prev, seek, setVolume, jumpTo, addToQueue, playNext, removeAt, stop };
 });

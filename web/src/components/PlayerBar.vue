@@ -5,6 +5,7 @@ import { cleanArtist, formatClock } from "@/lib/format";
 import CoverArt from "@/components/CoverArt.vue";
 
 const p = usePlayerStore();
+const showQueue = ref(false);
 
 const bar = ref<HTMLElement | null>(null);
 const dragging = ref(false);
@@ -39,6 +40,7 @@ function nudge(by: number) {
 </script>
 
 <template>
+  <div v-if="showQueue && p.current" class="fixed inset-0 z-10" @click="showQueue = false"></div>
   <Transition name="player">
     <div v-if="p.current" class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-[color-mix(in_oklch,var(--color-bg),transparent_8%)] backdrop-blur">
       <div class="flex items-center gap-4 px-5 py-3">
@@ -83,7 +85,44 @@ function nudge(by: number) {
           ></div>
         </div>
         <span class="tabular w-12 flex-none text-xs text-faint">{{ formatClock(p.duration) }}</span>
+
+        <button
+          class="flex-none rounded-full p-1.5 transition-colors hover:text-text"
+          :class="showQueue ? 'text-text' : 'text-muted'"
+          @click="showQueue = !showQueue" aria-label="Queue"
+        >
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 7h12M4 12h12M4 17h8" /><path d="M16 12.5l5 3-5 3z" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
       </div>
+
+      <Transition name="qpanel">
+        <div v-if="showQueue" class="absolute bottom-full right-4 mb-3 flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-2xl">
+          <div class="flex items-center justify-between border-b border-line/60 px-4 py-2.5">
+            <span class="label">Queue · {{ p.queue.length }}</span>
+            <button class="text-xs font-semibold text-faint transition-colors hover:text-text" @click="p.stop()">Clear</button>
+          </div>
+          <div class="min-h-0 flex-1 overflow-y-auto py-1">
+            <div
+              v-for="(t, i) in p.queue" :key="i"
+              class="group flex items-center gap-2.5 px-3 py-1.5 transition-colors"
+              :class="i === p.index ? 'bg-[var(--accent-soft)]' : 'hover:bg-surface-2'"
+            >
+              <button class="min-w-0 flex-1 text-left" @click="p.jumpTo(i)">
+                <div class="truncate text-[13px] font-semibold" :style="i === p.index ? { color: 'var(--accent)' } : undefined">{{ t.title }}</div>
+                <div class="truncate text-[11px] text-faint">{{ cleanArtist(t.artist) }}</div>
+              </button>
+              <span v-if="i === p.index && p.playing" class="flex-none text-[var(--accent)]" aria-label="Now playing">
+                <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor" aria-hidden="true"><rect x="4" y="10" width="3" height="8" rx="1" /><rect x="10" y="5" width="3" height="13" rx="1" /><rect x="16" y="12" width="3" height="6" rx="1" /></svg>
+              </span>
+              <button class="flex-none text-faint opacity-0 transition-opacity hover:text-text group-hover:opacity-100" @click="p.removeAt(i)" aria-label="Remove from queue">
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </Transition>
 </template>
@@ -95,7 +134,11 @@ function nudge(by: number) {
 .icon-enter-active, .icon-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
 .icon-enter-from, .icon-leave-to { opacity: 0; transform: scale(0.6); }
 
+.qpanel-enter-active, .qpanel-leave-active { transition: opacity 0.18s ease, transform 0.18s var(--ease-out-quint); }
+.qpanel-enter-from, .qpanel-leave-to { opacity: 0; transform: translateY(8px) scale(0.98); }
+
 @media (prefers-reduced-motion: reduce) {
-  .player-enter-active, .icon-enter-active, .icon-leave-active { transition: none; }
+  .player-enter-active, .icon-enter-active, .icon-leave-active,
+  .qpanel-enter-active, .qpanel-leave-active { transition: none; }
 }
 </style>

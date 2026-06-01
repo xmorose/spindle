@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { buildSeriesPaths } from "@/lib/chart";
 
-const props = withDefaults(defineProps<{ values: number[]; height?: number }>(), { height: 160 });
+const props = withDefaults(defineProps<{ values: number[]; height?: number; labels?: string[] }>(), { height: 160 });
 const W = 900;
 const PAD = 6;
 const paths = computed(() => buildSeriesPaths(props.values, W, props.height, PAD));
@@ -49,9 +49,10 @@ const topPct = computed(() => (hover.value === null ? 0 : (points.value[hover.va
     <template v-if="hover !== null && values.length">
       <div class="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
         :style="{ left: leftPct + '%', top: topPct + '%', background: 'var(--accent)', boxShadow: '0 0 0 3px var(--color-bg)' }" />
-      <div class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[140%] whitespace-nowrap rounded-md border border-line bg-surface-2 px-2 py-1 text-xs font-bold tabular shadow-lg"
+      <div class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[140%] whitespace-nowrap rounded-md border border-line bg-surface-2 px-2 py-1 text-center shadow-lg"
         :style="{ left: leftPct + '%', top: topPct + '%' }">
-        {{ values[hover] }} plays
+        <div class="tabular text-xs font-bold">{{ values[hover] }} {{ values[hover] === 1 ? 'play' : 'plays' }}</div>
+        <div v-if="labels && labels[hover]" class="tabular text-[10px] text-faint">{{ labels[hover] }}</div>
       </div>
     </template>
   </div>

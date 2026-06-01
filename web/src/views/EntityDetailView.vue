@@ -7,6 +7,7 @@ import { api } from "@/api/client";
 import { useCoverAccent } from "@/composables/useCoverAccent";
 import { formatNumber, formatDuration, formatDate, cleanArtist } from "@/lib/format";
 import type { EntityDetail, RelatedTrack } from "@/api/types";
+import { usePlayerStore, type PlayerTrack } from "@/stores/player";
 import CoverArt from "@/components/CoverArt.vue";
 import LineArea from "@/components/charts/LineArea.vue";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
@@ -36,7 +37,15 @@ watch([id, range], load, { immediate: true });
 const coverId = computed(() => data.value?.coverArt ?? data.value?.id ?? null);
 useCoverAccent(() => coverId.value);
 
+const player = usePlayerStore();
+const queueTracks = computed<PlayerTrack[]>(() =>
+  (data.value?.related ?? []).map((r) => ({ id: r.id, title: r.title, artist: r.artist, coverId: r.hasCoverArt ? r.id : null })),
+);
+
 const historyValues = computed(() => (data.value?.history ?? []).map((h) => h.plays));
+const historyLabels = computed(() =>
+  (data.value?.history ?? []).map((h) => new Date(h.day * 86_400_000).toLocaleDateString("en-US", { month: "short", day: "numeric" })),
+);
 const relatedRows = computed<RankedRow[]>(() =>
   (data.value?.related ?? []).map((r: RelatedTrack) => ({
     id: r.id, title: r.title, subtitle: cleanArtist(r.artist), value: r.plays, coverId: r.hasCoverArt ? r.id : null, to: `/tracks/${r.id}`,
@@ -54,12 +63,25 @@ const relatedRows = computed<RankedRow[]>(() =>
       hint="This entity has no plays in the selected window. Switch to All to see its full history." />
 
     <template v-else>
-      <header class="mb-8 flex items-end gap-5">
+      <header class="mb-8 flex flex-wrap items-end gap-5">
         <CoverArt :id="coverId" :name="data.name" :size="240" class="h-28 w-28 flex-none rounded-xl" />
-        <div>
+        <div class="flex-1">
           <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-faint">{{ kind }} · rank #{{ data.rank }}</div>
           <h1 class="text-4xl font-black tracking-tight">{{ kind === 'artist' ? cleanArtist(data.name) : data.name }}</h1>
           <div v-if="data.artist && kind !== 'artist'" class="text-sm text-muted">{{ cleanArtist(data.artist) }}</div>
+        </div>
+        <div v-if="queueTracks.length" class="flex gap-2">
+          <button
+            class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-[color:var(--color-bg)] transition-transform duration-150 hover:scale-[1.03] active:scale-95"
+            :style="{ background: 'var(--accent)' }" @click="player.playQueue(queueTracks, 0)"
+          >
+            <svg viewBox="0 0 24 24" class="h-4 w-4 translate-x-px" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+            Play
+          </button>
+          <button
+            class="rounded-full border border-line px-4 py-2 text-sm font-semibold text-muted transition-colors hover:bg-surface hover:text-text"
+            @click="player.addToQueue(queueTracks)"
+          >Add to queue</button>
         </div>
       </header>
 
@@ -72,7 +94,7 @@ const relatedRows = computed<RankedRow[]>(() =>
 
       <section v-if="historyValues.length" class="mb-9">
         <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Plays over time</div>
-        <LineArea :values="historyValues" :height="140" />
+        <LineArea :values="historyValues" :labels="historyLabels" :height="140" />
       </section>
 
       <section v-if="relatedRows.length">
