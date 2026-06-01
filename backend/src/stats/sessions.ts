@@ -22,7 +22,7 @@ export function longestSessions(
   const rows = db
     .prepare(
       `SELECT played_at, nd_track_id FROM play_events
-       WHERE user=? AND source='live' AND played_at BETWEEN ? AND ?
+       WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ?
        ORDER BY played_at ASC`,
     )
     .all(user, tf.fromTs, tf.toTs) as Row[];

@@ -66,11 +66,11 @@ export function entityDetail(
   const ph = ids.map(() => "?").join(",");
   const span = db.prepare(
     `SELECT MIN(played_at) AS first, MAX(played_at) AS last FROM play_events
-     WHERE user=? AND source='live' AND played_at BETWEEN ? AND ? AND nd_track_id IN (${ph})`,
+     WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ? AND nd_track_id IN (${ph})`,
   ).get(user, tf.fromTs, tf.toTs, ...ids) as { first: number | null; last: number | null };
   const history = db.prepare(
     `SELECT played_at/86400 AS day, COUNT(*) AS plays FROM play_events
-     WHERE user=? AND source='live' AND played_at BETWEEN ? AND ? AND nd_track_id IN (${ph})
+     WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ? AND nd_track_id IN (${ph})
      GROUP BY day ORDER BY day`,
   ).all(user, tf.fromTs, tf.toTs, ...ids) as { day: number; plays: number }[];
 

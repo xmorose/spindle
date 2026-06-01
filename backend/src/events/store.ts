@@ -24,6 +24,22 @@ export class EventStore {
     return true;
   }
 
+  insertImport(events: { played_at: number; nd_track_id: string }[], user: string): number {
+    const exists = this.db.prepare("SELECT 1 FROM play_events WHERE source='import' AND user=? AND nd_track_id=? AND played_at=? LIMIT 1");
+    const ins = this.db.prepare("INSERT INTO play_events (played_at,user,nd_track_id,source) VALUES (?,?,?,'import')");
+    const run = this.db.transaction((evs: { played_at: number; nd_track_id: string }[]) => {
+      let n = 0;
+      for (const e of evs) {
+        if (!exists.get(user, e.nd_track_id, e.played_at)) {
+          ins.run(e.played_at, user, e.nd_track_id);
+          n++;
+        }
+      }
+      return n;
+    });
+    return run(events);
+  }
+
   count(): number {
     return (this.db.prepare("SELECT COUNT(*) AS n FROM play_events").get() as { n: number }).n;
   }

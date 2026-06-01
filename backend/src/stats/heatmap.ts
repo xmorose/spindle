@@ -10,7 +10,7 @@ export function computeHeatmap(db: Database, tf: Timeframe, user: string): HeatC
               CAST(strftime('%H', played_at, 'unixepoch') AS INTEGER) AS hour,
               COUNT(*) AS plays
        FROM play_events
-       WHERE user=? AND source='live' AND played_at BETWEEN ? AND ?
+       WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ?
        GROUP BY weekday, hour`,
     )
     .all(user, tf.fromTs, tf.toTs) as HeatCell[];

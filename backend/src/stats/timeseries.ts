@@ -25,7 +25,7 @@ export function computeTimeseries(
     .prepare(
       `SELECT played_at/${div} AS bucket, nd_track_id, COUNT(*) AS plays
        FROM play_events
-       WHERE user=? AND source='live' AND played_at BETWEEN ? AND ?
+       WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ?
        GROUP BY bucket, nd_track_id
        ORDER BY bucket ASC`,
     )
