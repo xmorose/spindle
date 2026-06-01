@@ -4,6 +4,8 @@ import { api } from "@/api/client";
 import { useRangedResource } from "@/composables/useRangedResource";
 import { useCoverAccent } from "@/composables/useCoverAccent";
 import { formatNumber, formatDuration, cleanArtist } from "@/lib/format";
+import { usePlayerStore } from "@/stores/player";
+import type { TrackTop } from "@/api/types";
 import { hourlyFromHeatmap, peakHour } from "@/lib/stats";
 import LineArea from "@/components/charts/LineArea.vue";
 import RadialClock from "@/components/charts/RadialClock.vue";
@@ -26,6 +28,15 @@ const firstLoad = computed(() => totals.loading.value && totals.data.value === n
 const isEmpty = computed(() => !totals.loading.value && (totals.data.value?.plays ?? 0) === 0);
 
 useCoverAccent(() => (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
+
+const player = usePlayerStore();
+function toPlayerTrack(t: TrackTop) {
+  return { id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null };
+}
+function playAll(startIndex: number) {
+  const all = tracks.data.value ?? [];
+  player.playQueue(all.map(toPlayerTrack), startIndex);
+}
 </script>
 
 <template>
@@ -89,22 +100,23 @@ useCoverAccent(() => (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
         </div>
         <div v-if="topTrack">
           <div class="label mb-5">Best song</div>
-          <RouterLink :to="`/tracks/${topTrack.id}`" class="mb-3 flex items-center gap-4">
+          <div class="mb-3 flex items-center gap-4 cursor-pointer" @click="playAll(0)">
             <CoverArt :id="topTrack.hasCoverArt ? topTrack.id : null" :name="topTrack.title" :size="160" class="h-16 w-16 flex-none" />
             <div>
               <div class="label" :style="{ color: 'var(--accent)', fontSize: '11px' }">{{ formatNumber(topTrack.plays) }} plays</div>
               <div class="text-xl font-bold leading-tight">{{ topTrack.title }}</div>
               <div class="text-sm text-muted">{{ cleanArtist(topTrack.artist) }}</div>
             </div>
-          </RouterLink>
+          </div>
           <div class="border-t border-line/60">
-            <RouterLink v-for="(t, i) in restTracks" :key="t.id" :to="`/tracks/${t.id}`"
-              class="flex items-center gap-3 border-b border-line/40 py-2.5 transition-colors duration-150 last:border-0 hover:bg-surface/60">
+            <div v-for="(t, i) in restTracks" :key="t.id"
+              class="flex items-center gap-3 border-b border-line/40 py-2.5 transition-colors duration-150 last:border-0 hover:bg-surface/60 cursor-pointer"
+              @click="playAll(i + 1)">
               <span class="tabular w-5 text-right text-sm font-bold text-faint">{{ i + 2 }}</span>
               <CoverArt :id="t.hasCoverArt ? t.id : null" :name="t.title" :size="80" class="h-9 w-9 flex-none" />
               <span class="min-w-0 flex-1 truncate text-sm font-semibold">{{ t.title }}<span class="block truncate text-xs font-normal text-faint">{{ cleanArtist(t.artist) }}</span></span>
               <span class="tabular text-sm font-semibold text-muted">{{ formatNumber(t.plays) }}</span>
-            </RouterLink>
+            </div>
           </div>
         </div>
       </section>

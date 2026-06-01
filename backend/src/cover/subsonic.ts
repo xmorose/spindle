@@ -7,3 +7,9 @@ export function subsonicCoverUrl(cfg: CoverConfig, id: string, size?: number, sa
   if (size) params.set("size", String(size));
   return `${cfg.navidromeUrl}/rest/getCoverArt.view?${params.toString()}`;
 }
+
+export function subsonicStreamUrl(cfg: CoverConfig, id: string, salt = randomBytes(8).toString("hex")): string {
+  const token = createHash("md5").update(cfg.navidromePassword + salt).digest("hex");
+  const params = new URLSearchParams({ u: cfg.navidromeUser, t: token, s: salt, v: "1.16.1", c: "spindle", id });
+  return `${cfg.navidromeUrl}/rest/stream.view?${params.toString()}`;
+}

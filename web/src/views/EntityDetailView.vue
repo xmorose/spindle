@@ -77,7 +77,7 @@ const relatedRows = computed<RankedRow[]>(() =>
 
       <section v-if="relatedRows.length">
         <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">{{ kind === 'track' ? 'Related' : 'Top tracks' }}</div>
-        <RankedList :rows="relatedRows" />
+        <RankedList :rows="relatedRows" playable />
       </section>
     </template>
   </div>

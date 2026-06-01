@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import SideNav from "./SideNav.vue";
 import RangeBar from "./RangeBar.vue";
+import PlayerBar from "./PlayerBar.vue";
 import { computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter, useRoute } from "vue-router";
@@ -28,9 +29,10 @@ async function logout() {
           class="rounded-lg border border-line px-3 py-1.5 text-[13px] font-semibold text-muted transition-colors duration-150 hover:border-line hover:bg-surface hover:text-text"
           @click="logout">Sign out</button>
       </header>
-      <main class="min-w-0 flex-1 px-8 pb-16 pt-7">
+      <main class="min-w-0 flex-1 px-8 pb-28 pt-7">
         <RouterView />
       </main>
     </div>
+    <PlayerBar />
   </div>
 </template>

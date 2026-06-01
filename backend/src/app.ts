@@ -8,6 +8,7 @@ import { registerIngest } from "./routes/ingest.js";
 import { registerStats } from "./routes/stats.js";
 import { registerAuth } from "./auth/index.js";
 import { registerCover } from "./routes/cover.js";
+import { registerStream } from "./routes/stream.js";
 import { registerEntity } from "./routes/entity.js";
 import type { AuthConfig, CoverConfig } from "./config.js";
 
@@ -48,6 +49,7 @@ export function buildApp(deps: Deps): FastifyInstance {
   registerEntity(app, { statsDb: deps.statsDb, reader: deps.reader, cache, now, defaultUser });
 
   if (deps.cover) registerCover(app, deps.cover);
+  if (deps.cover) registerStream(app, deps.cover);
 
   app.decorate("spindle", { store, cache, reader: deps.reader, statsDb: deps.statsDb, sessionGapMinutes: deps.sessionGapMinutes });
 

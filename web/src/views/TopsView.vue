@@ -57,6 +57,6 @@ watch([kind, sort, range], load, { immediate: true });
         :class="kind === k ? 'bg-surface-2 text-text' : 'text-muted hover:text-text'">{{ k[0].toUpperCase() + k.slice(1) }}</button>
     </div>
 
-    <RankedList :rows="rows" />
+    <RankedList :rows="rows" :playable="kind === 'tracks'" />
   </div>
 </template>

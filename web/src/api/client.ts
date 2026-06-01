@@ -37,6 +37,8 @@ export function coverUrl(id: string, size = 300): string {
   return `/api/cover/${encodeURIComponent(id)}?size=${size}`;
 }
 
+export function streamUrl(id: string): string { return `/api/stream/${encodeURIComponent(id)}`; }
+
 export const api = {
   totals: (p?: RangeParams) => get<Totals>(`/totals${qs(p)}`),
   topArtists: (p?: RangeParams) => get<ArtistTop[]>(`/tops/artists${qs(p)}`),

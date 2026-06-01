@@ -75,7 +75,7 @@ const genreMax = computed(() => Math.max(1, ...genres.value.map((g) => g.plays))
         </div>
         <div>
           <div class="label mb-4">Top songs</div>
-          <RankedList :rows="trackRows" />
+          <RankedList :rows="trackRows" playable />
         </div>
       </section>
 

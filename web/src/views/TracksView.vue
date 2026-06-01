@@ -28,6 +28,6 @@ const firstLoad = computed(() => res.loading.value && res.data.value === null);
       <SearchInput v-model="q" placeholder="Search tracks…" />
     </div>
     <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
-    <RankedList v-else :rows="filtered" />
+    <RankedList v-else :rows="filtered" playable />
   </div>
 </template>
