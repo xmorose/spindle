@@ -1,5 +1,5 @@
 import type {
-  RangeParams, Totals, ArtistTop, AlbumTop, TrackTop, GenreTop, HeatCell, TimePoint, Session, RecentPlay, EntityDetail, AuthStatus,
+  RangeParams, Totals, ArtistTop, AlbumTop, TrackTop, GenreTop, HeatCell, TimePoint, Session, RecentPlay, SearchResult, EntityDetail, AuthStatus,
 } from "./types";
 
 export class ApiError extends Error {
@@ -49,6 +49,7 @@ export const api = {
   timeseries: (p?: RangeParams) => get<TimePoint[]>(`/timeseries${qs(p)}`),
   sessions: (p?: RangeParams) => get<Session[]>(`/sessions${qs(p)}`),
   recent: (p?: RangeParams) => get<RecentPlay[]>(`/recent${qs(p)}`),
+  search: (q: string) => get<SearchResult>(`/search?q=${encodeURIComponent(q)}`),
   entity: (kind: string, id: string, p?: RangeParams) => get<EntityDetail>(`/entity/${kind}/${encodeURIComponent(id)}${qs(p)}`),
   me: () => get<AuthStatus>("/auth/me"),
   login: (password: string) => post<AuthStatus>("/auth/login", { password }),

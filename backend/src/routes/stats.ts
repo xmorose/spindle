@@ -79,4 +79,9 @@ export function registerStats(app: FastifyInstance, o: Opts): void {
     const q = req.query as Q;
     return o.cache.get(key(["recent", user(q), limit(q)]), () => recentPlays(o.statsDb, o.reader, user(q), limit(q)));
   });
+  app.get("/api/search", async (req) => {
+    const term = String((req.query as { q?: string }).q ?? "").trim();
+    if (!term) return { artists: [], albums: [], tracks: [] };
+    return o.cache.get(key(["search", term]), () => o.reader.search(term, 8));
+  });
 }

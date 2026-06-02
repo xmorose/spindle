@@ -12,6 +12,11 @@ export interface HeatCell { weekday: number; hour: number; plays: number; }
 export interface TimePoint { bucket: number; plays: number; seconds: number; }
 export interface Session { startedAt: number; endedAt: number; trackCount: number; seconds: number; }
 export interface RecentPlay { playedAt: number; id: string; title: string; artist: string; album: string; artistId: string; albumId: string; hasCoverArt: boolean; }
+export interface SearchResult {
+  artists: { id: string; name: string }[];
+  albums: { id: string; name: string; artist: string }[];
+  tracks: { id: string; title: string; artist: string; hasCoverArt: boolean }[];
+}
 export interface RelatedTrack { id: string; title: string; artist: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface EntityDetail {
   kind: "artist" | "album" | "track"; id: string; name: string; artist?: string; album?: string;

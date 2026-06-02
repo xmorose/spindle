@@ -4,6 +4,7 @@ const groups = [
     { to: "/", label: "Home" },
     { to: "/tops", label: "Tops" },
     { to: "/recent", label: "Recent" },
+    { to: "/search", label: "Search" },
     { to: "/all-time", label: "All-time" },
   ] },
   { title: "Browse", items: [

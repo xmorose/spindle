@@ -55,6 +55,25 @@ export class NavidromeReader {
     return result;
   }
 
+  search(q: string, perKind: number): {
+    artists: { id: string; name: string }[];
+    albums: { id: string; name: string; artist: string }[];
+    tracks: { id: string; title: string; artist: string; hasCoverArt: boolean }[];
+  } {
+    const like = `%${q.replace(/[\\%_]/g, (m) => "\\" + m)}%`;
+    const artists = this.db
+      .prepare("SELECT DISTINCT artist_id AS id, artist AS name FROM media_file WHERE artist<>'' AND artist LIKE ? ESCAPE '\\' ORDER BY artist LIMIT ?")
+      .all(like, perKind) as { id: string; name: string }[];
+    const albums = this.db
+      .prepare("SELECT DISTINCT album_id AS id, album AS name, artist FROM media_file WHERE album<>'' AND album LIKE ? ESCAPE '\\' ORDER BY album LIMIT ?")
+      .all(like, perKind) as { id: string; name: string; artist: string }[];
+    const trackRows = this.db
+      .prepare("SELECT id, title, artist, has_cover_art FROM media_file WHERE title LIKE ? ESCAPE '\\' ORDER BY title LIMIT ?")
+      .all(like, perKind) as any[];
+    const tracks = trackRows.map((r) => ({ id: r.id, title: r.title, artist: r.artist, hasCoverArt: !!r.has_cover_art }));
+    return { artists, albums, tracks };
+  }
+
   baselinePlayCounts(): BaselineRow[] {
     return this.db
       .prepare(
