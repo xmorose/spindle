@@ -40,23 +40,8 @@ async function logout() {
           class="flex-none rounded-lg border border-line px-3 py-1.5 text-[13px] font-semibold text-muted transition-colors duration-150 hover:bg-surface hover:text-text"
           @click="logout">Sign out</button>
       </header>
-      <main class="min-w-0 flex-1 px-4 pb-28 pt-7 sm:px-8">
-        <RouterView v-slot="{ Component }">
-          <Transition name="route" mode="out-in">
-            <component :is="Component" />
-          </Transition>
-        </RouterView>
-      </main>
+      <main class="min-w-0 flex-1 px-4 pb-28 pt-7 sm:px-8"><RouterView /></main>
     </div>
     <PlayerBar />
   </div>
 </template>
-
-<style scoped>
-.route-enter-active { transition: opacity 0.22s var(--ease-out-quint); }
-.route-leave-active { transition: opacity 0.12s ease; }
-.route-enter-from, .route-leave-to { opacity: 0; }
-@media (prefers-reduced-motion: reduce) {
-  .route-enter-active, .route-leave-active { transition: none; }
-}
-</style>

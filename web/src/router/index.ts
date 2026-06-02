@@ -29,6 +29,20 @@ const routes: RouteRecordRaw[] = [
 
 export const router = createRouter({ history: createWebHistory(), routes });
 
+router.isReady().then(() => {
+  const warm = () => {
+    const visit = (rs: RouteRecordRaw[]) => {
+      for (const r of rs) {
+        if (typeof r.component === "function") (r.component as () => unknown)();
+        if (r.children) visit(r.children);
+      }
+    };
+    visit(routes);
+  };
+  const ric = (window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback;
+  if (ric) ric(warm); else setTimeout(warm, 300);
+});
+
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
   if (!auth.ready) await auth.checkAuth();

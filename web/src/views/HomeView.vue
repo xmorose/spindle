@@ -51,7 +51,7 @@ function playAll(startIndex: number) {
       hint="Spindle started tracking recently, so recent windows fill in as you listen. Switch to All time to see your full history." />
 
     <div v-else class="stagger flex flex-col gap-12">
-      <section class="grid grid-cols-2 gap-x-8 gap-y-9 md:grid-cols-4">
+      <section class="stagger grid grid-cols-2 gap-x-8 gap-y-9 md:grid-cols-4">
         <div>
           <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl" :style="{ color: 'var(--accent)' }"><AnimatedNumber :value="totals.data.value?.plays ?? 0" :format="formatNumber" /></div>
           <div class="label mt-3">Songs played</div>
