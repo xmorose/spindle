@@ -53,7 +53,7 @@ const genreMax = computed(() => Math.max(1, ...genres.value.map((g) => g.plays))
       <section>
         <div class="label" style="letter-spacing:0.12em">Your year in sound</div>
         <div class="mt-2 text-7xl font-black leading-[0.85] tracking-tight lg:text-8xl" :style="{ color: 'var(--accent)' }"><AnimatedNumber :value="totals?.plays ?? 0" :format="formatNumber" /></div>
-        <div class="mt-3 text-xl font-semibold text-muted">plays · {{ formatDuration(totals?.seconds ?? 0) }} of listening</div>
+        <div class="mt-3 text-xl font-semibold text-muted">plays · <AnimatedNumber :value="totals?.seconds ?? 0" :format="formatDuration" /> of listening</div>
       </section>
 
       <section class="grid grid-cols-3 gap-8">

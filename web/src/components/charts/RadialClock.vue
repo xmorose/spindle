@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps<{ hours: number[] }>();
 const CX = 100, CY = 100, INNER = 40, MAXLEN = 52;
 const max = computed(() => Math.max(...props.hours, 1));
+
+const clockKey = ref(0);
+watch(() => props.hours, () => { clockKey.value++; });
 
 function lenFor(v: number) { return 4 + (v / max.value) * MAXLEN; }
 
@@ -52,7 +55,7 @@ const tip = computed(() => {
     <svg viewBox="0 0 200 200" class="block" @pointermove="onMove" @pointerleave="hover = null">
       <circle :cx="CX" :cy="CY" :r="INNER - 4" fill="none" stroke="var(--color-line)" stroke-width="1" />
       <circle class="spindle" :cx="CX" :cy="CY" r="3.5" fill="var(--accent)" />
-      <line v-for="(s, i) in spokes" :key="i" class="spoke" pathLength="1"
+      <line v-for="(s, i) in spokes" :key="clockKey + '-' + i" class="spoke" pathLength="1"
         :style="{ animationDelay: (i * 0.018) + 's' }"
         :x1="s.x1" :y1="s.y1" :x2="s.x2" :y2="s.y2"
         stroke="var(--accent)" :stroke-opacity="i === hover ? 1 : s.opacity"

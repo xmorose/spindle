@@ -57,7 +57,7 @@ function playAll(startIndex: number) {
           <div class="label mt-3">Songs played</div>
         </div>
         <div>
-          <div class="tabular text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl">{{ formatDuration(totals.data.value?.seconds ?? 0) }}</div>
+          <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl"><AnimatedNumber :value="totals.data.value?.seconds ?? 0" :format="formatDuration" /></div>
           <div class="label mt-3">Listening time</div>
         </div>
         <div>

@@ -13,6 +13,9 @@ const box = ref<HTMLElement | null>(null);
 const win = ref({ s: 0, e: props.values.length });
 watch(() => props.values.length, (n) => { win.value = { s: 0, e: n }; });
 
+const drawKey = ref(0);
+watch(() => props.values, () => { drawKey.value++; });
+
 const visible = computed(() => (props.zoomable ? props.values.slice(win.value.s, win.value.e) : props.values));
 const visibleLabels = computed(() =>
   props.labels ? (props.zoomable ? props.labels.slice(win.value.s, win.value.e) : props.labels) : undefined,
@@ -90,8 +93,8 @@ const topPct = computed(() => (hover.value === null ? 0 : (points.value[hover.va
         </defs>
         <line :x1="0" :y1="height - PAD" :x2="W" :y2="height - PAD" stroke="var(--color-line)" stroke-width="1" />
         <template v-if="visible.length">
-          <path :d="paths.area" fill="url(#la-fill)" />
-          <path :d="paths.line" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+          <path :key="'a' + drawKey" class="area-in" :d="paths.area" fill="url(#la-fill)" />
+          <path :key="'l' + drawKey" class="line-in" pathLength="1" :d="paths.line" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
           <line v-if="hover !== null" :x1="hx" :y1="PAD" :x2="hx" :y2="height - PAD" stroke="var(--color-faint)" stroke-width="1" vector-effect="non-scaling-stroke" />
         </template>
       </svg>
@@ -115,3 +118,11 @@ const topPct = computed(() => (hover.value === null ? 0 : (points.value[hover.va
     </div>
   </div>
 </template>
+
+<style scoped>
+.line-in { stroke-dasharray: 1; animation: la-draw 0.7s var(--ease-out-quint) both; }
+@keyframes la-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.area-in { animation: la-fade 0.7s ease both; }
+@keyframes la-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .line-in, .area-in { animation: none; } }
+</style>
