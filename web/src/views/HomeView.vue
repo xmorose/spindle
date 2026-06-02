@@ -27,7 +27,8 @@ const peak = computed(() => peakHour(hourly.value));
 const firstLoad = computed(() => totals.loading.value && totals.data.value === null);
 const isEmpty = computed(() => !totals.loading.value && (totals.data.value?.plays ?? 0) === 0);
 
-useCoverAccent(() => (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
+const heroCover = computed(() => topArtist.value?.coverArt ?? (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
+useCoverAccent(() => heroCover.value);
 
 const player = usePlayerStore();
 function toPlayerTrack(t: TrackTop) {
@@ -70,7 +71,7 @@ function playAll(startIndex: number) {
 
       <RouterLink v-if="topArtist" :to="`/artists/${topArtist.artistId}`"
         class="group relative block h-[240px] overflow-hidden rounded-2xl">
-        <CoverArt :id="topTrack?.hasCoverArt ? topTrack.id : null" :name="cleanArtist(topArtist.name)" :size="900"
+        <CoverArt :id="heroCover" :name="cleanArtist(topArtist.name)" :size="900"
           class="absolute inset-0 h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
         <div class="absolute inset-0" style="background:linear-gradient(110deg,oklch(0.14 0.02 50 / 0.85) 0%,transparent 55%,oklch(0.14 0.02 50 / 0.5) 100%)" />
         <div class="relative flex h-full flex-col justify-end p-8">
