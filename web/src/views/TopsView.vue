@@ -9,8 +9,8 @@ import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 import SearchInput from "@/components/SearchInput.vue";
 import Spinner from "@/components/ui/Spinner.vue";
 
-type Kind = "artists" | "albums" | "tracks" | "genres";
-const kinds: Kind[] = ["artists", "albums", "tracks", "genres"];
+type Kind = "artists" | "albums" | "tracks";
+const kinds: Kind[] = ["artists", "albums", "tracks"];
 const counts = [25, 50, 100, 200];
 const kind = ref<Kind>("artists");
 const sort = ref<Sort>("plays");
@@ -39,10 +39,8 @@ async function load() {
     mapped = (await api.topArtists(p)).map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.coverArt, to: `/artists/${a.artistId}` }));
   } else if (kind.value === "albums") {
     mapped = (await api.topAlbums(p)).map((a) => ({ id: a.albumId, title: a.name, subtitle: cleanArtist(a.artist), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.albumId, to: `/albums/${a.albumId}` }));
-  } else if (kind.value === "tracks") {
-    mapped = (await api.topTracks(p)).map((t) => ({ id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: sort.value === "time" ? t.seconds : t.plays, valueLabel: label(t.plays, t.seconds), coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}` }));
   } else {
-    mapped = (await api.topGenres(p)).map((g) => ({ id: g.genre, title: g.genre, value: sort.value === "time" ? g.seconds : g.plays, valueLabel: label(g.plays, g.seconds), coverId: null }));
+    mapped = (await api.topTracks(p)).map((t) => ({ id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: sort.value === "time" ? t.seconds : t.plays, valueLabel: label(t.plays, t.seconds), coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}` }));
   }
   rows.value = mapped;
   loading.value = false;

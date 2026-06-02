@@ -1,11 +1,26 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import { usePlayerStore } from "@/stores/player";
 import { cleanArtist, formatClock } from "@/lib/format";
 import CoverArt from "@/components/CoverArt.vue";
 
 const p = usePlayerStore();
 const showQueue = ref(false);
+const showVol = ref(false);
+
+function onVol(e: Event) { p.setVolume(Number((e.target as HTMLInputElement).value) / 100); }
+
+function onKey(e: KeyboardEvent) {
+  const t = e.target as HTMLElement | null;
+  if (!p.current || (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable))) return;
+  if (e.code === "Space") { e.preventDefault(); p.toggle(); }
+  else if (e.code === "ArrowRight" && e.shiftKey) { e.preventDefault(); p.next(); }
+  else if (e.code === "ArrowLeft" && e.shiftKey) { e.preventDefault(); p.prev(); }
+  else if (e.code === "ArrowRight") { e.preventDefault(); nudge(5); }
+  else if (e.code === "ArrowLeft") { e.preventDefault(); nudge(-5); }
+}
+onMounted(() => window.addEventListener("keydown", onKey));
+onUnmounted(() => window.removeEventListener("keydown", onKey));
 
 const bar = ref<HTMLElement | null>(null);
 const dragging = ref(false);
@@ -73,6 +88,16 @@ function nudge(by: number) {
         <button class="flex-none rounded-full p-1.5 text-muted transition-colors hover:text-text" @click="p.next()" aria-label="Next">
           <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true"><path d="M16 6h2v12h-2zM4 6l11 6L4 18V6z" /></svg>
         </button>
+        <button
+          class="relative flex-none rounded-full p-1.5 transition-colors hover:text-text"
+          :class="p.repeat === 'off' ? 'text-muted' : 'text-[var(--accent)]'"
+          @click="p.cycleRepeat()" :aria-label="`Repeat: ${p.repeat}`"
+        >
+          <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><polyline points="7 23 3 19 7 15" /><path d="M21 13v2a4 4 0 0 1-4 4H3" />
+          </svg>
+          <span v-if="p.repeat === 'one'" class="tabular absolute right-0 top-0 grid h-3 w-3 place-items-center rounded-full bg-[var(--accent)] text-[8px] font-black text-[color:var(--color-bg)]">1</span>
+        </button>
 
         <span class="tabular w-12 flex-none text-right text-xs text-faint">{{ elapsed }}</span>
         <div
@@ -93,6 +118,21 @@ function nudge(by: number) {
           ></div>
         </div>
         <span class="tabular w-12 flex-none text-xs text-faint">{{ formatClock(p.duration) }}</span>
+
+        <div class="relative flex-none" @pointerenter="showVol = true" @pointerleave="showVol = false">
+          <button class="rounded-full p-1.5 text-muted transition-colors hover:text-text" @click="p.toggleMute()" :aria-label="p.muted ? 'Unmute' : 'Mute'">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <template v-if="p.muted"><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></template>
+              <template v-else><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></template>
+            </svg>
+          </button>
+          <Transition name="qpanel">
+            <div v-if="showVol" class="absolute bottom-full right-0 mb-2 rounded-lg border border-line bg-surface px-3 py-2.5 shadow-xl">
+              <input type="range" min="0" max="100" :value="Math.round(p.volume * 100)" @input="onVol" class="block h-1 w-28 cursor-pointer accent-[var(--accent)]" aria-label="Volume" />
+            </div>
+          </Transition>
+        </div>
 
         <button
           class="flex-none rounded-full p-1.5 transition-colors hover:text-text"

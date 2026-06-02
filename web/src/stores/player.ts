@@ -1,6 +1,15 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { streamUrl } from "@/api/client";
+
+export type RepeatMode = "off" | "all" | "one";
+
+function readLS(k: string): string | null {
+  try { return typeof localStorage !== "undefined" ? localStorage.getItem(k) : null; } catch { return null; }
+}
+function writeLS(k: string, v: string) {
+  try { if (typeof localStorage !== "undefined") localStorage.setItem(k, v); } catch {  }
+}
 
 export interface PlayerTrack { id: string; title: string; artist: string; coverId: string | null; }
 
@@ -18,7 +27,16 @@ export const usePlayerStore = defineStore("player", () => {
   const currentTime = ref(0);
   const duration = ref(0);
   const volume = ref(1);
+  const repeat = ref<RepeatMode>("off");
   const current = computed<PlayerTrack | null>(() => queue.value[index.value] ?? null);
+  const muted = computed(() => volume.value === 0);
+
+  const sv = readLS("spindle.volume");
+  if (sv !== null && Number.isFinite(Number(sv))) volume.value = Math.max(0, Math.min(1, Number(sv)));
+  const sr = readLS("spindle.repeat");
+  if (sr === "off" || sr === "all" || sr === "one") repeat.value = sr;
+  watch(volume, (v) => writeLS("spindle.volume", String(v)));
+  watch(repeat, (v) => writeLS("spindle.repeat", v));
 
   let raf = 0;
   const canRaf = typeof requestAnimationFrame === "function";
@@ -39,7 +57,10 @@ export const usePlayerStore = defineStore("player", () => {
     a.ondurationchange = () => { duration.value = Number.isFinite(a.duration) ? a.duration : 0; };
     a.onplay = () => { playing.value = true; startTick(); };
     a.onpause = () => { playing.value = false; stopTick(); };
-    a.onended = () => next();
+    a.onended = () => {
+      if (repeat.value === "one") { a.currentTime = 0; const p = a.play(); if (p?.catch) p.catch(() => {}); return; }
+      next();
+    };
   }
   function load(autoplay = true) {
     const a = el(); if (!a || !current.value) return;
@@ -60,10 +81,21 @@ export const usePlayerStore = defineStore("player", () => {
     const a = el(); if (!a || !current.value) return;
     if (a.paused) { try { const p = a.play(); if (p?.catch) p.catch(() => {}); } catch {  } } else a.pause();
   }
-  function next() { if (index.value < queue.value.length - 1) { index.value++; load(); } else { playing.value = false; } }
+  function next() {
+    if (index.value < queue.value.length - 1) { index.value++; load(); }
+    else if (repeat.value === "all" && queue.value.length) { index.value = 0; load(); }
+    else { playing.value = false; }
+  }
   function prev() { const a = el(); if (a && a.currentTime > 3) { a.currentTime = 0; return; } if (index.value > 0) { index.value--; load(); } }
   function seek(t: number) { const a = el(); if (a) { a.currentTime = t; currentTime.value = t; } }
-  function setVolume(v: number) { volume.value = v; const a = el(); if (a) a.volume = v; }
+  function setVolume(v: number) { volume.value = Math.max(0, Math.min(1, v)); const a = el(); if (a) a.volume = volume.value; }
+
+  let preMuteVolume = 1;
+  function toggleMute() {
+    if (volume.value > 0) { preMuteVolume = volume.value; setVolume(0); }
+    else setVolume(preMuteVolume > 0 ? preMuteVolume : 1);
+  }
+  function cycleRepeat() { repeat.value = repeat.value === "off" ? "all" : repeat.value === "all" ? "one" : "off"; }
 
   function jumpTo(i: number) { if (i >= 0 && i < queue.value.length && i !== index.value) { index.value = i; load(); } }
   function addToQueue(tracks: PlayerTrack[]) {
@@ -110,5 +142,5 @@ export const usePlayerStore = defineStore("player", () => {
     queue.value = []; index.value = 0; playing.value = false; currentTime.value = 0; duration.value = 0;
   }
 
-  return { queue, index, playing, currentTime, duration, volume, current, playQueue, playNow, toggle, next, prev, seek, setVolume, jumpTo, addToQueue, playNext, removeAt, shuffleUpcoming, playShuffled, stop };
+  return { queue, index, playing, currentTime, duration, volume, repeat, muted, current, playQueue, playNow, toggle, next, prev, seek, setVolume, toggleMute, cycleRepeat, jumpTo, addToQueue, playNext, removeAt, shuffleUpcoming, playShuffled, stop };
 });
