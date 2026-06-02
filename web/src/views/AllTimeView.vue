@@ -32,7 +32,7 @@ const tiles = computed(() => totals.value ? [
 
 <template>
   <div class="py-2 rise">
-    <h1 class="mb-1 text-2xl font-extrabold tracking-tight">All-time</h1>
+    <h1 class="mb-1 text-3xl font-black tracking-tight">All-time</h1>
     <p class="mb-6 text-sm text-faint">Your full history, including plays from before tracking started.</p>
 
     <div class="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

@@ -24,7 +24,7 @@ const firstLoad = computed(() => res.loading.value && res.data.value === null);
 <template>
   <div class="py-2">
     <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
-      <h1 class="text-2xl font-extrabold tracking-tight">Tracks</h1>
+      <h1 class="text-3xl font-black tracking-tight">Tracks</h1>
       <SearchInput v-model="q" placeholder="Search tracks…" />
     </div>
     <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>

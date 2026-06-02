@@ -11,6 +11,7 @@ import LineArea from "@/components/charts/LineArea.vue";
 import RadialClock from "@/components/charts/RadialClock.vue";
 import CoverArt from "@/components/CoverArt.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
+import AnimatedNumber from "@/components/ui/AnimatedNumber.vue";
 
 const totals = useRangedResource((range) => api.totals({ range }));
 const series = useRangedResource((range) => api.timeseries({ range, bucket: "day" }));
@@ -52,19 +53,19 @@ function playAll(startIndex: number) {
     <div v-else class="stagger flex flex-col gap-12">
       <section class="grid grid-cols-2 gap-x-8 gap-y-9 md:grid-cols-4">
         <div>
-          <div class="tabular text-4xl font-black leading-none sm:text-5xl lg:text-6xl" :style="{ color: 'var(--accent)' }">{{ formatNumber(totals.data.value?.plays ?? 0) }}</div>
+          <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl" :style="{ color: 'var(--accent)' }"><AnimatedNumber :value="totals.data.value?.plays ?? 0" :format="formatNumber" /></div>
           <div class="label mt-3">Songs played</div>
         </div>
         <div>
-          <div class="tabular text-4xl font-black leading-none sm:text-5xl lg:text-6xl">{{ formatDuration(totals.data.value?.seconds ?? 0) }}</div>
+          <div class="tabular text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl">{{ formatDuration(totals.data.value?.seconds ?? 0) }}</div>
           <div class="label mt-3">Listening time</div>
         </div>
         <div>
-          <div class="tabular text-4xl font-black leading-none sm:text-5xl lg:text-6xl">{{ formatNumber(totals.data.value?.distinctArtists ?? 0) }}</div>
+          <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl"><AnimatedNumber :value="totals.data.value?.distinctArtists ?? 0" :format="formatNumber" /></div>
           <div class="label mt-3">Artists</div>
         </div>
         <div>
-          <div class="tabular text-4xl font-black leading-none sm:text-5xl lg:text-6xl">{{ formatNumber(totals.data.value?.distinctAlbums ?? 0) }}</div>
+          <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl"><AnimatedNumber :value="totals.data.value?.distinctAlbums ?? 0" :format="formatNumber" /></div>
           <div class="label mt-3">Albums</div>
         </div>
       </section>

@@ -16,12 +16,25 @@
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Register --accent as a real color so it can animate: the page recolors with a smooth
+   OKLCH cross-fade when the top cover (and thus the extracted accent) changes. */
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.79 0.15 55);
+}
+
 :root {
   /* Runtime-overridable accent (set from the active period's top cover). */
   --accent: var(--color-accent);
   /* a soft accent wash for hovers/fills, derived from --accent */
   --accent-soft: color-mix(in oklch, var(--accent) 16%, transparent);
 }
+
+/* Smoothly cross-fade the accent (and everything keyed off it) on navigation/range change. */
+html { transition: --accent 600ms var(--ease-out-quint); }
+
+@keyframes vinyl-rotate { to { transform: rotate(360deg); } }
 
 html, body, #app { height: 100%; }
 body {
@@ -60,4 +73,5 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .rise, .stagger > * { animation: none !important; }
+  html { transition: none; }
 }

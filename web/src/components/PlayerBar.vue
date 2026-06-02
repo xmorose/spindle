@@ -2,7 +2,7 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { usePlayerStore } from "@/stores/player";
 import { cleanArtist, formatClock } from "@/lib/format";
-import CoverArt from "@/components/CoverArt.vue";
+import VinylRecord from "@/components/VinylRecord.vue";
 
 const p = usePlayerStore();
 const showQueue = ref(false);
@@ -59,7 +59,7 @@ function nudge(by: number) {
   <Transition name="player">
     <div v-if="p.current" class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-[color-mix(in_oklch,var(--color-bg),transparent_8%)] backdrop-blur">
       <div class="flex items-center gap-2 px-3 py-3 sm:gap-4 sm:px-5">
-        <CoverArt :id="p.current.coverId" :name="p.current.title" :size="80" class="h-11 w-11 flex-none rounded-sm" />
+        <VinylRecord :id="p.current.coverId" :name="p.current.title" :playing="p.playing" class="h-11 w-11 flex-none" />
         <div class="min-w-0 w-28 flex-none sm:w-48">
           <div class="truncate text-sm font-semibold">{{ p.current.title }}</div>
           <div class="truncate text-xs text-faint">{{ cleanArtist(p.current.artist) }}</div>

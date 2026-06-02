@@ -16,7 +16,7 @@ const isEmpty = computed(() => !res.loading.value && cells.value.length === 0);
 
 <template>
   <div class="py-2 rise">
-    <h1 class="mb-6 text-2xl font-extrabold tracking-tight">Pulse</h1>
+    <h1 class="mb-6 text-3xl font-black tracking-tight">Pulse</h1>
 
     <EmptyState v-if="isEmpty" title="No listening pattern yet"
       hint="Pulse needs live plays with real timestamps. It fills in as Spindle tracks your listening." />

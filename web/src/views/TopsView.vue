@@ -52,7 +52,7 @@ watch([kind, sort, range, limitN], load, { immediate: true });
 <template>
   <div class="py-2 rise">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-      <h1 class="text-2xl font-extrabold tracking-tight">Tops</h1>
+      <h1 class="text-3xl font-black tracking-tight">Tops</h1>
       <div class="flex items-center gap-3">
         <SearchInput v-model="q" placeholder="Filter…" />
         <div class="flex gap-1 rounded-full border border-line/60 p-0.5">

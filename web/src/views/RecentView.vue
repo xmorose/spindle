@@ -38,7 +38,7 @@ function playFrom(i: number) {
 
 <template>
   <div class="py-2 rise">
-    <h1 class="mb-6 text-2xl font-extrabold tracking-tight">Recent</h1>
+    <h1 class="mb-6 text-3xl font-black tracking-tight">Recent</h1>
 
     <div v-if="loading" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
 

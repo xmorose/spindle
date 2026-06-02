@@ -31,7 +31,7 @@ const empty = computed(() => !!res.value && !res.value.artists.length && !res.va
 
 <template>
   <div class="py-2 rise">
-    <h1 class="mb-5 text-2xl font-extrabold tracking-tight">Search</h1>
+    <h1 class="mb-5 text-3xl font-black tracking-tight">Search</h1>
     <input
       v-model="q" type="search" autofocus
       placeholder="Search artists, albums, tracks…"

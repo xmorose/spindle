@@ -7,6 +7,7 @@ import type { Totals, ArtistTop, TrackTop, GenreTop, TimePoint } from "@/api/typ
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 import LineArea from "@/components/charts/LineArea.vue";
 import Spinner from "@/components/ui/Spinner.vue";
+import AnimatedNumber from "@/components/ui/AnimatedNumber.vue";
 
 const totals = ref<Totals | null>(null);
 const artists = ref<ArtistTop[]>([]);
@@ -51,14 +52,14 @@ const genreMax = computed(() => Math.max(1, ...genres.value.map((g) => g.plays))
     <div v-else class="stagger flex flex-col gap-12">
       <section>
         <div class="label" style="letter-spacing:0.12em">Your year in sound</div>
-        <div class="tabular mt-2 text-7xl font-black leading-[0.85] lg:text-8xl" :style="{ color: 'var(--accent)' }">{{ formatNumber(totals?.plays ?? 0) }}</div>
+        <div class="mt-2 text-7xl font-black leading-[0.85] tracking-tight lg:text-8xl" :style="{ color: 'var(--accent)' }"><AnimatedNumber :value="totals?.plays ?? 0" :format="formatNumber" /></div>
         <div class="mt-3 text-xl font-semibold text-muted">plays · {{ formatDuration(totals?.seconds ?? 0) }} of listening</div>
       </section>
 
       <section class="grid grid-cols-3 gap-8">
-        <div><div class="tabular text-4xl font-black lg:text-5xl">{{ formatNumber(totals?.distinctArtists ?? 0) }}</div><div class="label mt-2">Artists</div></div>
-        <div><div class="tabular text-4xl font-black lg:text-5xl">{{ formatNumber(totals?.distinctAlbums ?? 0) }}</div><div class="label mt-2">Albums</div></div>
-        <div><div class="tabular text-4xl font-black lg:text-5xl">{{ formatNumber(totals?.distinctTracks ?? 0) }}</div><div class="label mt-2">Tracks</div></div>
+        <div><div class="text-4xl font-black lg:text-5xl"><AnimatedNumber :value="totals?.distinctArtists ?? 0" :format="formatNumber" /></div><div class="label mt-2">Artists</div></div>
+        <div><div class="text-4xl font-black lg:text-5xl"><AnimatedNumber :value="totals?.distinctAlbums ?? 0" :format="formatNumber" /></div><div class="label mt-2">Albums</div></div>
+        <div><div class="text-4xl font-black lg:text-5xl"><AnimatedNumber :value="totals?.distinctTracks ?? 0" :format="formatNumber" /></div><div class="label mt-2">Tracks</div></div>
       </section>
 
       <section v-if="seriesValues.length">

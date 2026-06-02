@@ -52,7 +52,8 @@ const tip = computed(() => {
     <svg viewBox="0 0 200 200" class="block" @pointermove="onMove" @pointerleave="hover = null">
       <circle :cx="CX" :cy="CY" :r="INNER - 4" fill="none" stroke="var(--color-line)" stroke-width="1" />
       <circle class="spindle" :cx="CX" :cy="CY" r="3.5" fill="var(--accent)" />
-      <line v-for="(s, i) in spokes" :key="i" class="spoke"
+      <line v-for="(s, i) in spokes" :key="i" class="spoke" pathLength="1"
+        :style="{ animationDelay: (i * 0.018) + 's' }"
         :x1="s.x1" :y1="s.y1" :x2="s.x2" :y2="s.y2"
         stroke="var(--accent)" :stroke-opacity="i === hover ? 1 : s.opacity"
         :stroke-width="i === hover ? 6 : 4.5" stroke-linecap="round" />
@@ -67,3 +68,9 @@ const tip = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.spoke { stroke-dasharray: 1; animation: spoke-draw 0.5s var(--ease-out-quint) both; }
+@keyframes spoke-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .spoke { animation: none; } }
+</style>

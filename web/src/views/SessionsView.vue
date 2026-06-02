@@ -13,7 +13,7 @@ const isEmpty = computed(() => !res.loading.value && sessions.value.length === 0
 
 <template>
   <div class="py-2 rise">
-    <h1 class="mb-6 text-2xl font-extrabold tracking-tight">Sessions</h1>
+    <h1 class="mb-6 text-3xl font-black tracking-tight">Sessions</h1>
 
     <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
 
