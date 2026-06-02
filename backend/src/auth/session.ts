@@ -13,18 +13,22 @@ export function signSession(payload: SessionPayload, secret: string): string {
   return `${body}.${sign(body, secret)}`;
 }
 
-export function verifySession(token: string, secret: string, nowSec: number): boolean {
+export function readSession(token: string, secret: string, nowSec: number): SessionPayload | null {
   try {
     const parts = token.split(".");
-    if (parts.length !== 2) return false;
+    if (parts.length !== 2) return null;
     const [body, mac] = parts;
-    if (!body || !mac) return false;
+    if (!body || !mac) return null;
     const expected = Buffer.from(sign(body, secret), "base64url");
     const actual = Buffer.from(mac, "base64url");
-    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return false;
+    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return null;
     const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as SessionPayload;
-    return typeof payload.exp === "number" && payload.exp > nowSec;
+    return typeof payload.exp === "number" && payload.exp > nowSec ? payload : null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function verifySession(token: string, secret: string, nowSec: number): boolean {
+  return readSession(token, secret, nowSec) !== null;
 }

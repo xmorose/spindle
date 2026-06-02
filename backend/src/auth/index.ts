@@ -1,9 +1,9 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply } from "fastify";
 import cookie from "@fastify/cookie";
 import { z } from "zod";
 import type { AuthConfig } from "../config.js";
 import { verifyPassword } from "./password.js";
-import { signSession, verifySession } from "./session.js";
+import { signSession, readSession } from "./session.js";
 import { LoginRateLimiter } from "./rate-limit.js";
 
 export const SESSION_COOKIE = "spindle_session";
@@ -13,16 +13,30 @@ const OPEN_PATHS = new Set(["/health", "/ingest", "/api/auth/login", "/api/auth/
 
 export function registerAuth(app: FastifyInstance, cfg: AuthConfig, now: () => number): void {
   app.register(cookie);
-  const limiter = new LoginRateLimiter(5, 15 * 60 * 1000);
+  const limiter = new LoginRateLimiter(5, 15 * 60 * 1000, 50, 15 * 60 * 1000);
+
+  const sessionCookieOpts = {
+    httpOnly: true,
+    secure: cfg.cookieSecure,
+    sameSite: "strict" as const,
+    path: "/",
+    maxAge: cfg.sessionDays * 86400,
+  };
+  function issueSession(reply: FastifyReply, exp: number): void {
+    reply.setCookie(SESSION_COOKIE, signSession({ exp }, cfg.sessionSecret), sessionCookieOpts);
+  }
 
   app.addHook("onRequest", async (req, reply) => {
     const path = req.url.split("?")[0];
     if (OPEN_PATHS.has(path)) return;
     if (!path.startsWith("/api/")) return;
     const token = req.cookies?.[SESSION_COOKIE];
-    if (!token || !verifySession(token, cfg.sessionSecret, now())) {
+    const payload = token ? readSession(token, cfg.sessionSecret, now()) : null;
+    if (!payload) {
       return reply.code(401).send({ error: "unauthorized" });
     }
+    const full = cfg.sessionDays * 86400;
+    if (payload.exp - now() < full / 2) issueSession(reply, now() + full);
   });
 
   app.post("/api/auth/login", async (req, reply) => {
@@ -39,14 +53,7 @@ export function registerAuth(app: FastifyInstance, cfg: AuthConfig, now: () => n
       return reply.code(401).send({ error: "invalid credentials" });
     }
     limiter.reset(req.ip);
-    const exp = now() + cfg.sessionDays * 86400;
-    reply.setCookie(SESSION_COOKIE, signSession({ exp }, cfg.sessionSecret), {
-      httpOnly: true,
-      secure: cfg.cookieSecure,
-      sameSite: "strict",
-      path: "/",
-      maxAge: cfg.sessionDays * 86400,
-    });
+    issueSession(reply, now() + cfg.sessionDays * 86400);
     return { authenticated: true };
   });
 
@@ -57,6 +64,6 @@ export function registerAuth(app: FastifyInstance, cfg: AuthConfig, now: () => n
 
   app.get("/api/auth/me", async (req) => {
     const token = req.cookies?.[SESSION_COOKIE];
-    return { authenticated: !!token && verifySession(token, cfg.sessionSecret, now()) };
+    return { authenticated: !!token && readSession(token, cfg.sessionSecret, now()) !== null };
   });
 }
