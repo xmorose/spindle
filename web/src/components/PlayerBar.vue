@@ -58,15 +58,15 @@ function nudge(by: number) {
   <div v-if="showQueue && p.current" class="fixed inset-0 z-10" @click="showQueue = false"></div>
   <Transition name="player">
     <div v-if="p.current" class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-[color-mix(in_oklch,var(--color-bg),transparent_8%)] backdrop-blur">
-      <div class="flex items-center gap-4 px-5 py-3">
+      <div class="flex items-center gap-2 px-3 py-3 sm:gap-4 sm:px-5">
         <CoverArt :id="p.current.coverId" :name="p.current.title" :size="80" class="h-11 w-11 flex-none rounded-sm" />
-        <div class="min-w-0 w-48 flex-none">
+        <div class="min-w-0 w-28 flex-none sm:w-48">
           <div class="truncate text-sm font-semibold">{{ p.current.title }}</div>
           <div class="truncate text-xs text-faint">{{ cleanArtist(p.current.artist) }}</div>
         </div>
 
         <button
-          class="flex-none rounded-full p-1.5 text-muted transition-colors hover:text-text disabled:opacity-40"
+          class="hidden flex-none rounded-full p-1.5 text-muted transition-colors hover:text-text disabled:opacity-40 sm:block"
           :disabled="p.queue.length < 3" @click="p.shuffleUpcoming()" aria-label="Shuffle upcoming"
         >
           <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -89,7 +89,7 @@ function nudge(by: number) {
           <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true"><path d="M16 6h2v12h-2zM4 6l11 6L4 18V6z" /></svg>
         </button>
         <button
-          class="relative flex-none rounded-full p-1.5 transition-colors hover:text-text"
+          class="relative hidden flex-none rounded-full p-1.5 transition-colors hover:text-text sm:block"
           :class="p.repeat === 'off' ? 'text-muted' : 'text-[var(--accent)]'"
           @click="p.cycleRepeat()" :aria-label="`Repeat: ${p.repeat}`"
         >
@@ -99,7 +99,7 @@ function nudge(by: number) {
           <span v-if="p.repeat === 'one'" class="tabular absolute right-0 top-0 grid h-3 w-3 place-items-center rounded-full bg-[var(--accent)] text-[8px] font-black text-[color:var(--color-bg)]">1</span>
         </button>
 
-        <span class="tabular w-12 flex-none text-right text-xs text-faint">{{ elapsed }}</span>
+        <span class="tabular hidden w-12 flex-none text-right text-xs text-faint sm:block">{{ elapsed }}</span>
         <div
           ref="bar"
           class="group relative h-6 flex-1 cursor-pointer touch-none select-none rounded outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
@@ -117,9 +117,9 @@ function nudge(by: number) {
             :style="{ left: fill + '%', background: 'var(--accent)', boxShadow: '0 0 0 4px var(--color-bg)' }"
           ></div>
         </div>
-        <span class="tabular w-12 flex-none text-xs text-faint">{{ formatClock(p.duration) }}</span>
+        <span class="tabular hidden w-12 flex-none text-xs text-faint sm:block">{{ formatClock(p.duration) }}</span>
 
-        <div class="relative flex-none" @pointerenter="showVol = true" @pointerleave="showVol = false">
+        <div class="relative hidden flex-none sm:block" @pointerenter="showVol = true" @pointerleave="showVol = false">
           <button class="rounded-full p-1.5 text-muted transition-colors hover:text-text" @click="p.toggleMute()" :aria-label="p.muted ? 'Unmute' : 'Mute'">
             <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />

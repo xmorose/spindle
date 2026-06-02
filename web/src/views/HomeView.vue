@@ -51,19 +51,19 @@ function playAll(startIndex: number) {
     <div v-else class="stagger flex flex-col gap-12">
       <section class="grid grid-cols-2 gap-x-8 gap-y-9 md:grid-cols-4">
         <div>
-          <div class="tabular text-5xl font-black leading-none lg:text-6xl" :style="{ color: 'var(--accent)' }">{{ formatNumber(totals.data.value?.plays ?? 0) }}</div>
+          <div class="tabular text-4xl font-black leading-none sm:text-5xl lg:text-6xl" :style="{ color: 'var(--accent)' }">{{ formatNumber(totals.data.value?.plays ?? 0) }}</div>
           <div class="label mt-3">Songs played</div>
         </div>
         <div>
-          <div class="tabular text-5xl font-black leading-none lg:text-6xl">{{ formatDuration(totals.data.value?.seconds ?? 0) }}</div>
+          <div class="tabular text-4xl font-black leading-none sm:text-5xl lg:text-6xl">{{ formatDuration(totals.data.value?.seconds ?? 0) }}</div>
           <div class="label mt-3">Listening time</div>
         </div>
         <div>
-          <div class="tabular text-5xl font-black leading-none lg:text-6xl">{{ formatNumber(totals.data.value?.distinctArtists ?? 0) }}</div>
+          <div class="tabular text-4xl font-black leading-none sm:text-5xl lg:text-6xl">{{ formatNumber(totals.data.value?.distinctArtists ?? 0) }}</div>
           <div class="label mt-3">Artists</div>
         </div>
         <div>
-          <div class="tabular text-5xl font-black leading-none lg:text-6xl">{{ formatNumber(totals.data.value?.distinctAlbums ?? 0) }}</div>
+          <div class="tabular text-4xl font-black leading-none sm:text-5xl lg:text-6xl">{{ formatNumber(totals.data.value?.distinctAlbums ?? 0) }}</div>
           <div class="label mt-3">Albums</div>
         </div>
       </section>
