@@ -39,7 +39,7 @@ function addQueue(i: number) {
 </script>
 
 <template>
-  <div v-if="rows.length" class="stagger flex flex-col">
+  <div v-if="rows.length" class="flex flex-col">
     <component
       :is="row.to ? 'RouterLink' : 'div'"
       v-for="(row, i) in rows"

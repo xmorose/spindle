@@ -17,12 +17,13 @@ const totals = useRangedResource((range) => api.totals({ range }));
 const series = useRangedResource((range) => api.timeseries({ range, bucket: "day" }));
 const artists = useRangedResource((range) => api.topArtists({ range, limit: 1 }));
 const tracks = useRangedResource((range) => api.topTracks({ range, limit: 4 }));
-const heat = useRangedResource(() => api.heatmap({ range: "all" }));
+const heat = useRangedResource((range) => api.heatmap({ range }));
 
 const topArtist = computed(() => artists.data.value?.[0] ?? null);
 const topTrack = computed(() => tracks.data.value?.[0] ?? null);
 const restTracks = computed(() => tracks.data.value?.slice(1) ?? []);
 const playValues = computed(() => (series.data.value ?? []).map((p) => p.plays));
+const hasSeries = computed(() => playValues.value.some((v) => v > 0));
 const hourly = computed(() => hourlyFromHeatmap(heat.data.value ?? []));
 const peak = computed(() => peakHour(hourly.value));
 const firstLoad = computed(() => totals.loading.value && totals.data.value === null);
@@ -85,7 +86,8 @@ function playAll(startIndex: number) {
       <section>
         <div class="label mb-4">Listening over time</div>
         <div class="rounded-2xl border border-line/70 bg-surface/40 p-5">
-          <LineArea :values="playValues" :height="190" />
+          <LineArea v-if="hasSeries" :values="playValues" :height="190" />
+          <div v-else class="grid h-[190px] place-items-center text-center text-sm text-faint">Not enough plays in this range yet. Try a longer window.</div>
         </div>
       </section>
 
