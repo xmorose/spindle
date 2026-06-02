@@ -42,6 +42,8 @@ const queueTracks = computed<PlayerTrack[]>(() =>
   (data.value?.related ?? []).map((r) => ({ id: r.id, title: r.title, artist: r.artist, coverId: r.hasCoverArt ? r.id : null })),
 );
 
+const noTimestamps = computed(() => !!data.value && data.value.plays > 0 && data.value.firstPlayedAt === null && data.value.lastPlayedAt === null);
+
 const historyValues = computed(() => (data.value?.history ?? []).map((h) => h.plays));
 const historyLabels = computed(() =>
   (data.value?.history ?? []).map((h) => new Date(h.day * 86_400_000).toLocaleDateString("en-US", { month: "short", day: "numeric" })),
@@ -79,22 +81,37 @@ const relatedRows = computed<RankedRow[]>(() =>
             Play
           </button>
           <button
+            v-if="queueTracks.length > 1"
+            class="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-semibold text-muted transition-colors hover:bg-surface hover:text-text"
+            @click="player.playShuffled(queueTracks)"
+          >
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="16 3 21 3 21 8" /><line x1="4" y1="20" x2="21" y2="3" /><polyline points="21 16 21 21 16 21" /><line x1="15" y1="15" x2="21" y2="21" /><line x1="4" y1="4" x2="9" y2="9" />
+            </svg>
+            Shuffle
+          </button>
+          <button
             class="rounded-full border border-line px-4 py-2 text-sm font-semibold text-muted transition-colors hover:bg-surface hover:text-text"
             @click="player.addToQueue(queueTracks)"
           >Add to queue</button>
         </div>
       </header>
 
-      <div class="mb-9 flex flex-wrap gap-8 border-y border-line/50 py-4">
-        <div><div class="tabular text-2xl font-extrabold">{{ formatNumber(data.plays) }}</div><div class="text-[11px] text-faint">plays</div></div>
-        <div><div class="tabular text-2xl font-extrabold">{{ formatDuration(data.seconds) }}</div><div class="text-[11px] text-faint">listening time</div></div>
-        <div><div class="tabular text-2xl font-extrabold">{{ formatDate(data.firstPlayedAt) }}</div><div class="text-[11px] text-faint">first play</div></div>
-        <div><div class="tabular text-2xl font-extrabold">{{ formatDate(data.lastPlayedAt) }}</div><div class="text-[11px] text-faint">last play</div></div>
+      <div class="mb-9">
+        <div class="flex flex-wrap gap-8 border-y border-line/50 py-4">
+          <div><div class="tabular text-2xl font-extrabold">{{ formatNumber(data.plays) }}</div><div class="text-[11px] text-faint">plays</div></div>
+          <div><div class="tabular text-2xl font-extrabold">{{ formatDuration(data.seconds) }}</div><div class="text-[11px] text-faint">listening time</div></div>
+          <div><div class="tabular text-2xl font-extrabold" :title="data.firstPlayedAt === null ? 'No timestamp — from baseline library history' : undefined">{{ formatDate(data.firstPlayedAt) }}</div><div class="text-[11px] text-faint">first play</div></div>
+          <div><div class="tabular text-2xl font-extrabold" :title="data.lastPlayedAt === null ? 'No timestamp — from baseline library history' : undefined">{{ formatDate(data.lastPlayedAt) }}</div><div class="text-[11px] text-faint">last play</div></div>
+        </div>
+        <p v-if="noTimestamps" class="mt-2.5 text-xs text-faint">
+          First and last play need a live or imported timestamp. This entity's plays come from your baseline library history, which has none.
+        </p>
       </div>
 
       <section v-if="historyValues.length" class="mb-9">
         <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Plays over time</div>
-        <LineArea :values="historyValues" :labels="historyLabels" :height="140" />
+        <LineArea :values="historyValues" :labels="historyLabels" :height="140" zoomable />
       </section>
 
       <section v-if="relatedRows.length">

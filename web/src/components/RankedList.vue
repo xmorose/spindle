@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { getActivePinia } from "pinia";
 import CoverArt from "./CoverArt.vue";
-import { usePlayerStore } from "@/stores/player";
+import { usePlayerStore, type PlayerTrack } from "@/stores/player";
 
 export interface RankedRow {
   id: string;
@@ -20,10 +20,21 @@ function pct(v: number) {
   return `${Math.max(2, Math.round((v / max.value) * 100))}%`;
 }
 
+const trackOf = (r: RankedRow): PlayerTrack => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null });
+
 function play(i: number) {
   if (!getActivePinia()) return;
-  const player = usePlayerStore();
-  player.playQueue(props.rows.map((r) => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null })), i);
+  usePlayerStore().playQueue(props.rows.map(trackOf), i);
+}
+
+const openIdx = ref<number | null>(null);
+function playNext(i: number) {
+  if (getActivePinia()) usePlayerStore().playNext([trackOf(props.rows[i])]);
+  openIdx.value = null;
+}
+function addQueue(i: number) {
+  if (getActivePinia()) usePlayerStore().addToQueue([trackOf(props.rows[i])]);
+  openIdx.value = null;
 }
 </script>
 
@@ -50,8 +61,24 @@ function play(i: number) {
           <div data-bar class="h-1 rounded-full" :style="{ width: pct(row.value), background: 'var(--accent)' }" />
         </div>
       </div>
-      <span class="tabular text-[12.5px] font-semibold text-muted">{{ row.valueLabel ?? row.value }}</span>
+      <div class="relative flex items-center gap-1.5">
+        <span class="tabular text-[12.5px] font-semibold text-muted">{{ row.valueLabel ?? row.value }}</span>
+        <template v-if="playable">
+          <button
+            class="flex-none rounded p-0.5 text-faint opacity-0 transition-opacity hover:text-text group-hover:opacity-100"
+            :class="{ '!opacity-100 text-text': openIdx === i }"
+            @click.prevent.stop="openIdx = openIdx === i ? null : i" aria-label="More actions"
+          >
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+          </button>
+          <div v-if="openIdx === i" class="absolute right-0 top-full z-20 mt-1 w-40 overflow-hidden rounded-lg border border-line bg-surface py-1 shadow-xl">
+            <button class="block w-full px-3 py-1.5 text-left text-[13px] font-medium hover:bg-surface-2" @click.prevent.stop="playNext(i)">Play next</button>
+            <button class="block w-full px-3 py-1.5 text-left text-[13px] font-medium hover:bg-surface-2" @click.prevent.stop="addQueue(i)">Add to queue</button>
+          </div>
+        </template>
+      </div>
     </component>
   </div>
   <div v-else class="py-10 text-center text-sm text-faint">Nothing here yet.</div>
+  <div v-if="openIdx !== null" class="fixed inset-0 z-10" @click="openIdx = null"></div>
 </template>

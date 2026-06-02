@@ -85,10 +85,30 @@ export const usePlayerStore = defineStore("player", () => {
     if (i < index.value) index.value--;
     else if (wasCurrent) { if (index.value > queue.value.length - 1) index.value = queue.value.length - 1; load(); }
   }
+  function shuffleUpcoming() {
+    const start = index.value + 1;
+    const head = queue.value.slice(0, start);
+    const tail = queue.value.slice(start);
+    for (let i = tail.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tail[i], tail[j]] = [tail[j], tail[i]];
+    }
+    queue.value = [...head, ...tail];
+  }
+  function playShuffled(tracks: PlayerTrack[]) {
+    if (!tracks.length) return;
+    const arr = tracks.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    playQueue(arr, 0);
+  }
+
   function stop() {
     const a = el(); if (a) { a.pause(); a.removeAttribute("src"); }
     queue.value = []; index.value = 0; playing.value = false; currentTime.value = 0; duration.value = 0;
   }
 
-  return { queue, index, playing, currentTime, duration, volume, current, playQueue, playNow, toggle, next, prev, seek, setVolume, jumpTo, addToQueue, playNext, removeAt, stop };
+  return { queue, index, playing, currentTime, duration, volume, current, playQueue, playNow, toggle, next, prev, seek, setVolume, jumpTo, addToQueue, playNext, removeAt, shuffleUpcoming, playShuffled, stop };
 });

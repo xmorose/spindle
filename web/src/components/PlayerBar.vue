@@ -50,6 +50,14 @@ function nudge(by: number) {
           <div class="truncate text-xs text-faint">{{ cleanArtist(p.current.artist) }}</div>
         </div>
 
+        <button
+          class="flex-none rounded-full p-1.5 text-muted transition-colors hover:text-text disabled:opacity-40"
+          :disabled="p.queue.length < 3" @click="p.shuffleUpcoming()" aria-label="Shuffle upcoming"
+        >
+          <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="16 3 21 3 21 8" /><line x1="4" y1="20" x2="21" y2="3" /><polyline points="21 16 21 21 16 21" /><line x1="15" y1="15" x2="21" y2="21" /><line x1="4" y1="4" x2="9" y2="9" />
+          </svg>
+        </button>
         <button class="flex-none rounded-full p-1.5 text-muted transition-colors hover:text-text" @click="p.prev()" aria-label="Previous">
           <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true"><path d="M6 6h2v12H6zM20 6L9 12l11 6V6z" /></svg>
         </button>
