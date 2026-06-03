@@ -20,6 +20,15 @@ export function openStatsDb(path: string): DB {
       ON play_events (user, played_at);
     CREATE INDEX IF NOT EXISTS idx_play_events_track
       ON play_events (nd_track_id);
+    CREATE TABLE IF NOT EXISTS shares (
+      token       TEXT PRIMARY KEY,
+      kind        TEXT    NOT NULL,        -- 'track' | 'album' | 'queue'
+      track_ids   TEXT    NOT NULL,        -- JSON array of nd track ids, in order
+      label       TEXT,
+      created_at  INTEGER NOT NULL,        -- Unix seconds
+      expires_at  INTEGER NOT NULL         -- created_at + 86400
+    );
+    CREATE INDEX IF NOT EXISTS idx_shares_expires ON shares (expires_at);
   `);
   return db;
 }
