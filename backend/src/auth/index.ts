@@ -29,6 +29,7 @@ export function registerAuth(app: FastifyInstance, cfg: AuthConfig, now: () => n
   app.addHook("onRequest", async (req, reply) => {
     const path = req.url.split("?")[0];
     if (OPEN_PATHS.has(path)) return;
+    if (path.startsWith("/api/public/")) return;
     if (!path.startsWith("/api/")) return;
     const token = req.cookies?.[SESSION_COOKIE];
     const payload = token ? readSession(token, cfg.sessionSecret, now()) : null;
