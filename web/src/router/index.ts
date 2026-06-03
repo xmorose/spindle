@@ -5,6 +5,7 @@ import AppShell from "@/components/AppShell.vue";
 
 const routes: RouteRecordRaw[] = [
   { path: "/login", name: "login", component: () => import("@/views/LoginView.vue"), meta: { public: true } },
+  { path: "/s/:token", name: "share", component: () => import("@/views/ShareView.vue"), meta: { public: true } },
   {
     path: "/",
     component: AppShell,
@@ -46,7 +47,12 @@ router.isReady().then(() => {
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
   if (!auth.ready) await auth.checkAuth();
-  const result = resolveGuard({ authenticated: auth.authenticated, to: to.fullPath, isLoginRoute: to.path === "/login" });
+  const result = resolveGuard({
+    authenticated: auth.authenticated,
+    to: to.fullPath,
+    isLoginRoute: to.path === "/login",
+    isPublicRoute: !!(to.meta as { public?: boolean }).public && to.path !== "/login",
+  });
   if ("allow" in result) return true;
   return { path: result.redirect, query: result.query };
 });
