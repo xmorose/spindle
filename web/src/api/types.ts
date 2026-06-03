@@ -25,3 +25,27 @@ export interface EntityDetail {
   history: { day: number; plays: number }[]; related: RelatedTrack[];
 }
 export interface AuthStatus { authenticated: boolean; }
+
+export type ShareKind = "track" | "album" | "queue";
+
+export interface CreateShareRequest {
+  kind: ShareKind;
+  trackIds: string[];
+  label?: string;
+}
+export interface CreateShareResponse { token: string }
+
+export interface PublicShareTrack {
+  id: string;
+  title: string;
+  artist: string;
+  album: string;
+  duration: number;
+  hasCover: boolean;
+}
+export interface PublicShare {
+  kind: ShareKind;
+  label: string | null;
+  expiresAt: number;
+  tracks: PublicShareTrack[];
+}

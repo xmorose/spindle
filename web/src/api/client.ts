@@ -1,5 +1,6 @@
 import type {
   RangeParams, Totals, ArtistTop, AlbumTop, TrackTop, GenreTop, HeatCell, TimePoint, Session, RecentPlay, SearchResult, EntityDetail, AuthStatus,
+  CreateShareRequest, CreateShareResponse, PublicShare,
 } from "./types";
 
 export class ApiError extends Error {
@@ -54,4 +55,19 @@ export const api = {
   me: () => get<AuthStatus>("/auth/me"),
   login: (password: string) => post<AuthStatus>("/auth/login", { password }),
   logout: () => post<AuthStatus>("/auth/logout", {}),
+  createShare: (body: CreateShareRequest) => post<CreateShareResponse>("/shares", body),
 };
+
+export async function fetchPublicShare(token: string): Promise<PublicShare> {
+  const res = await fetch(`/api/public/share/${encodeURIComponent(token)}`);
+  if (!res.ok) throw new ApiError(res.status, `share ${res.status}`);
+  return res.json() as Promise<PublicShare>;
+}
+
+export function publicStreamUrl(token: string, trackId: string): string {
+  return `/api/public/share/${encodeURIComponent(token)}/stream/${encodeURIComponent(trackId)}`;
+}
+
+export function publicCoverUrl(token: string, trackId: string, size = 300): string {
+  return `/api/public/share/${encodeURIComponent(token)}/cover/${encodeURIComponent(trackId)}?size=${size}`;
+}
