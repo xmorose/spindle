@@ -4,7 +4,10 @@ import { coverUrl } from "@/api/client";
 
 const BRAND_FALLBACK = "oklch(0.76 0.15 50)";
 
-export function useCoverAccent(coverId: () => string | null | undefined): void {
+export function useCoverAccent(
+  coverId: () => string | null | undefined,
+  urlFor: (id: string) => string = (id) => coverUrl(id, 64),
+): void {
   const root = typeof document !== "undefined" ? document.documentElement : null;
   if (!root) return;
 
@@ -30,6 +33,6 @@ export function useCoverAccent(coverId: () => string | null | undefined): void {
       }
     };
     img.onerror = reset;
-    img.src = coverUrl(id, 64);
+    img.src = urlFor(id);
   }, { immediate: true });
 }

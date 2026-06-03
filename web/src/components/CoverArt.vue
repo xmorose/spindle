@@ -2,11 +2,19 @@
 import { computed, ref, watch } from "vue";
 import { coverUrl } from "@/api/client";
 
-const props = withDefaults(defineProps<{ id: string | null; name?: string; size?: number }>(), { size: 300, name: "" });
+const props = withDefaults(
+  defineProps<{ id: string | null; name?: string; size?: number; srcOverride?: string | null }>(),
+  { size: 300, name: "" },
+);
 const failed = ref(false);
-watch(() => props.id, () => { failed.value = false; });
+watch(() => [props.id, props.srcOverride], () => { failed.value = false; });
 
-const src = computed(() => (props.id && !failed.value ? coverUrl(props.id, props.size) : null));
+const src = computed(() => {
+  if (props.srcOverride !== undefined) {
+    return props.srcOverride && !failed.value ? props.srcOverride : null;
+  }
+  return props.id && !failed.value ? coverUrl(props.id, props.size) : null;
+});
 const initial = computed(() => (props.name?.trim()?.[0] ?? "·").toUpperCase());
 </script>
 

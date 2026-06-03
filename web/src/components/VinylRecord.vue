@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import CoverArt from "@/components/CoverArt.vue";
 
-defineProps<{ id: string | null; name?: string; playing?: boolean }>();
+defineProps<{ id: string | null; name?: string; playing?: boolean; srcOverride?: string | null }>();
 </script>
 
 <template>
   <div class="vinyl relative aspect-square" :class="{ 'is-spinning': playing }">
     <div class="vinyl-disc absolute inset-0 rounded-full"></div>
-    <CoverArt :id="id" :name="name" :size="80" class="absolute inset-[28%] !rounded-full ring-1 ring-black/40" />
+    <CoverArt :id="id" :name="name" :src-override="srcOverride" :size="80" class="absolute inset-[28%] !rounded-full ring-1 ring-black/40" />
     <div class="absolute left-1/2 top-1/2 h-[9%] w-[9%] -translate-x-1/2 -translate-y-1/2 rounded-full" :style="{ background: 'var(--color-bg)' }"></div>
   </div>
 </template>
