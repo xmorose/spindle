@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { getActivePinia } from "pinia";
 import CoverArt from "./CoverArt.vue";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
+import { createShareLink } from "@/composables/useShare";
 
 export interface RankedRow {
   id: string;
@@ -34,6 +35,10 @@ function playNext(i: number) {
 }
 function addQueue(i: number) {
   if (getActivePinia()) usePlayerStore().addToQueue([trackOf(props.rows[i])]);
+  openIdx.value = null;
+}
+function share(i: number) {
+  void createShareLink({ kind: "track", trackIds: [props.rows[i].id] });
   openIdx.value = null;
 }
 </script>
@@ -74,6 +79,7 @@ function addQueue(i: number) {
           <div v-if="openIdx === i" class="absolute right-0 top-full z-20 mt-1 w-40 overflow-hidden rounded-lg border border-line bg-surface py-1 shadow-xl">
             <button class="block w-full px-3 py-1.5 text-left text-[13px] font-medium hover:bg-surface-2" @click.prevent.stop="playNext(i)">Play next</button>
             <button class="block w-full px-3 py-1.5 text-left text-[13px] font-medium hover:bg-surface-2" @click.prevent.stop="addQueue(i)">Add to queue</button>
+            <button class="block w-full px-3 py-1.5 text-left text-[13px] font-medium hover:bg-surface-2" @click.prevent.stop="share(i)">Teilen</button>
           </div>
         </template>
       </div>

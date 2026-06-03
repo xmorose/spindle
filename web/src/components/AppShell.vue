@@ -2,6 +2,7 @@
 import SideNav from "./SideNav.vue";
 import RangeBar from "./RangeBar.vue";
 import PlayerBar from "./PlayerBar.vue";
+import ShareToast from "@/components/ShareToast.vue";
 import { computed, ref, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter, useRoute } from "vue-router";
@@ -20,6 +21,7 @@ async function logout() {
 
 <template>
   <div class="min-h-screen md:grid md:grid-cols-[210px_1fr]">
+    <ShareToast />
     <div v-if="navOpen" class="fixed inset-0 z-40 bg-[oklch(0.1_0.02_50/0.6)] md:hidden" @click="navOpen = false"></div>
     <aside
       class="fixed inset-y-0 left-0 z-50 w-[210px] border-r border-line bg-[oklch(0.185_0.013_60)] transition-transform duration-300 ease-out md:static md:z-auto md:translate-x-0"

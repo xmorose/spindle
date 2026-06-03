@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { usePlayerStore } from "@/stores/player";
+import { createShareLink } from "@/composables/useShare";
 import { cleanArtist, formatClock } from "@/lib/format";
 import VinylRecord from "@/components/VinylRecord.vue";
 
@@ -51,6 +52,12 @@ function up(e: PointerEvent) {
 }
 function nudge(by: number) {
   if (p.duration) p.seek(Math.max(0, Math.min(p.duration, p.currentTime + by)));
+}
+function shareCurrent() {
+  if (p.current) void createShareLink({ kind: "track", trackIds: [p.current.id] });
+}
+function shareQueue() {
+  if (p.queue.length) { void createShareLink({ kind: "queue", trackIds: p.queue.map((t) => t.id) }); showQueue.value = false; }
 }
 </script>
 
@@ -135,6 +142,15 @@ function nudge(by: number) {
         </div>
 
         <button
+          class="flex-none rounded-full p-1.5 text-muted transition-colors hover:text-text"
+          @click="shareCurrent" aria-label="Diesen Song teilen"
+        >
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+            <line x1="8.6" y1="13.5" x2="15.4" y2="17.5" /><line x1="15.4" y1="6.5" x2="8.6" y2="10.5" />
+          </svg>
+        </button>
+        <button
           class="flex-none rounded-full p-1.5 transition-colors hover:text-text"
           :class="showQueue ? 'text-text' : 'text-muted'"
           @click="showQueue = !showQueue" aria-label="Queue"
@@ -149,7 +165,10 @@ function nudge(by: number) {
         <div v-if="showQueue" class="absolute bottom-full right-4 mb-3 flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-2xl">
           <div class="flex items-center justify-between border-b border-line/60 px-4 py-2.5">
             <span class="label">Queue · {{ p.queue.length }}</span>
-            <button class="text-xs font-semibold text-faint transition-colors hover:text-text" @click="p.stop()">Clear</button>
+            <div class="flex items-center gap-2">
+              <button class="text-xs font-semibold text-faint transition-colors hover:text-text" @click="shareQueue">Teilen</button>
+              <button class="text-xs font-semibold text-faint transition-colors hover:text-text" @click="p.stop()">Clear</button>
+            </div>
           </div>
           <div class="min-h-0 flex-1 overflow-y-auto py-1">
             <div

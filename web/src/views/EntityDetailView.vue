@@ -8,6 +8,7 @@ import { useCoverAccent } from "@/composables/useCoverAccent";
 import { formatNumber, formatDuration, formatDate, cleanArtist } from "@/lib/format";
 import type { EntityDetail, RelatedTrack } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
+import { createShareLink } from "@/composables/useShare";
 import CoverArt from "@/components/CoverArt.vue";
 import LineArea from "@/components/charts/LineArea.vue";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
@@ -41,6 +42,15 @@ const player = usePlayerStore();
 const queueTracks = computed<PlayerTrack[]>(() =>
   (data.value?.related ?? []).map((r) => ({ id: r.id, title: r.title, artist: r.artist, coverId: r.hasCoverArt ? r.id : null })),
 );
+
+const canShare = computed(() => kind.value === "track" || (kind.value === "album" && queueTracks.value.length > 0));
+function shareEntity() {
+  if (kind.value === "track") {
+    void createShareLink({ kind: "track", trackIds: [id.value] });
+  } else if (kind.value === "album") {
+    void createShareLink({ kind: "album", trackIds: queueTracks.value.map((t) => t.id), label: data.value?.name });
+  }
+}
 
 const noTimestamps = computed(() => !!data.value && data.value.plays > 0 && data.value.firstPlayedAt === null && data.value.lastPlayedAt === null);
 
@@ -94,6 +104,11 @@ const relatedRows = computed<RankedRow[]>(() =>
             class="rounded-full border border-line px-4 py-2 text-sm font-semibold text-muted transition-colors hover:bg-surface hover:text-text"
             @click="player.addToQueue(queueTracks)"
           >Add to queue</button>
+          <button
+            v-if="canShare"
+            class="rounded-full border border-line px-4 py-2 text-sm font-semibold text-muted transition-colors hover:bg-surface hover:text-text"
+            @click="shareEntity"
+          >Teilen</button>
         </div>
       </header>
 
