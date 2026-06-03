@@ -1,102 +1,64 @@
 # Spindle
 
-A self-hosted listening-stats dashboard for a [Navidrome](https://www.navidrome.org/) music server. Spindle records every scrobble, folds in your historical play counts and (optionally) your full Spotify streaming history, and renders it as a fast, art-first dashboard: top artists/albums/tracks, a record-shaped listening clock, a weekday/hour heatmap, sessions, an all-time view, a year-in-review, a chronological feed, and an in-app player.
+Listening stats for your own Navidrome server. Think Last.fm or Spotify Wrapped, except the data is yours and it lives right next to your music.
 
-It is a single-user app behind a password gate, designed to run as one small Docker container next to Navidrome.
+I self-host Navidrome and always missed having real stats. Last.fm scrobbling sort of works, but the site feels ancient and my history isn't really mine. So I built this. It watches what you play, keeps the history in its own little SQLite database, and turns it into top artists/albums/tracks, when you actually listen (an hour-of-day clock and a weekday heatmap), your listening sessions, an all-time view, and a year in review. The whole interface recolors itself from the cover art of whatever you've been playing, which I'm probably too proud of.
 
-## What it looks like
+It's single-user and sits behind a password, so it's fine to put on a real domain.
 
-- **Warm vinyl-room dark theme** in OKLCH, with the accent color extracted at runtime from the active period's top cover art, so the page recolors to whatever you have been listening to.
-- **Editorial big numbers**, cover-art-heavy layouts, and a signature **radial listening clock** (a vinyl record with a spindle hole at the center) for hour-of-day repartition.
-- Hand-rolled SVG charts (no chart library), full-viewport fluid width.
+## Screenshots
 
+_(coming, drop a couple here)_
 
-## Architecture
+## What you get
 
-```
-Navidrome ──scrobble──▶ Rust/WASM plugin ──POST /ingest──▶ Spindle backend ──┐
-                                                            (Fastify + SQLite) │
-   navidrome.db (read-only) ◀───────────────────────────────────────────────┤
-                                                                              │
-                                              Vue 3 SPA  ◀── serves /api + SPA ┘
-```
+- A home dashboard with your headline numbers, top artist, and current favourite song
+- Tops: artists / albums / tracks, sort by plays or by time, with a filter
+- Browse the whole library and click into any artist, album, or track for its own page (rank, first/last play, a history chart, related tracks)
+- Pulse: a weekday by hour heatmap and a record-shaped listening clock
+- Recent: a plain feed of what you played, grouped by day
+- An all-time view and a Spotify-Wrapped style year page
+- A built-in player, so you can actually play things without leaving the page. Queue, shuffle, repeat, volume, media keys, all streamed straight from Navidrome
+- Search across your whole library
 
-- **Plugin** (Rust compiled to WASM): a Navidrome scrobble plugin that POSTs each play to the backend's `/ingest` with a shared secret.
-- **Backend** (`backend/`): [Fastify](https://fastify.dev/) + [better-sqlite3](https://github.com/WiseLibs/better-sqlite3). Owns `stats.db` (the `play_events` log) and reads `navidrome.db` read-only for track/album/artist metadata and cover-art ids. Computes all stats on demand with a small in-memory cache invalidated on ingest. Proxies cover art and audio streams from Navidrome's Subsonic API. Serves the built SPA in production.
-- **Web** (`web/`): [Vue 3](https://vuejs.org/) + [Vite](https://vite.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) + TypeScript + [Pinia](https://pinia.vuejs.org/). Typed API client, cookie-based auth, hand-rolled SVG charts.
+## How it works
 
-### Play sources
+Three small pieces:
 
-Every row in `play_events` carries a `source`:
+- a Navidrome scrobble plugin that POSTs every play to the backend
+- the backend (Fastify + SQLite) that stores those plays and computes the stats on the fly. It reads your `navidrome.db` read-only for track/artist/album info and cover-art ids, and proxies the actual images and audio from Navidrome
+- the frontend (Vue 3 + Vite + Tailwind). The charts are all hand-rolled SVG, no chart library
 
-- `baseline` — historical play **counts** imported from Navidrome's own `annotation` table. These have no real timestamp, so they feed totals and top lists but not time-of-day / heatmap / session / first-and-last views.
-- `live` — real scrobbles arriving from the plugin going forward.
-- `import` — real, timestamped plays matched from a Spotify Extended Streaming History export (see below).
+Every play has a source. `baseline` is your existing Navidrome play counts, imported once so day one isn't a blank page (counts only, no real timestamps). `live` is new scrobbles coming in. `import` is your Spotify history (below). Anything time-based skips `baseline`, since those plays don't have a real timestamp to put on a clock.
 
-Time-based views query `source <> 'baseline'`; count-based views use everything.
+The ingest side is just a `POST /ingest` with a shared secret, so if you don't want the plugin you can point anything that knows your scrobbles at it.
 
-## Features
+## Running it
 
-- Home with a top-artist banner, four headline stats, listening-over-time, and a best song.
-- Tops (artists / albums / tracks) with plays-vs-time sort, a search filter, and a result-count selector.
-- Browse artists / albums / tracks, each with per-page search.
-- Entity detail pages (artist / album / track) with rank, first/last play, a zoomable play-history chart, related tracks, and play / shuffle / add-to-queue.
-- Pulse (heatmap + radial clock), Sessions, All-time, and a Spotify-Wrapped-style year view.
-- Recent: a chronological feed grouped by day.
-- Global search across the whole library.
-- In-app player: queue, play-next / add-to-queue, shuffle, repeat, volume, a draggable seek bar, and media-key shortcuts. Audio is streamed through the backend from Navidrome.
-- Accent color extracted from cover art at runtime.
+It's one Docker image: the frontend gets built and served together with the API. The easy path is a `docker compose` service sitting next to your Navidrome container, with your `navidrome.db` mounted read-only and a shared secret between the plugin and the backend.
 
-## Local development
+The full walkthrough (env vars, reverse proxy, Let's Encrypt) is in [docs/DEPLOY.md](docs/DEPLOY.md). The short version of what you need:
 
-You need Node 20+ and a copy of a `navidrome.db`.
+- `navidrome.db` mounted read-only (for metadata + cover art)
+- the scrobble plugin installed in Navidrome, pointed at the backend with a matching `INGEST_SECRET`
+- a login password (there's a `hash-password` script to generate the hash)
+- `NAVIDROME_URL` / user / password if you want cover art and the in-app player
 
-```bash
-# backend
-cd backend
-cp .env.example .env   # then edit paths + auth (see below)
-npm install
-npm run dev            # http://127.0.0.1:3590
+Local dev is just `npm install` + `npm run dev` in `backend/` and `web/` (Vite proxies `/api` to the backend). You'll need Node 20+ and a copy of a `navidrome.db`.
 
-# web (separate terminal)
-cd web
-npm install
-npm run dev            # http://localhost:5173, proxies /api -> :3590
-```
+## Bringing your history with you
 
-Backend `.env` essentials:
+Two ways to not start from scratch:
 
-```
-INGEST_SECRET=dev-secret
-NAVIDROME_DB_PATH=./data/navidrome.db
-STATS_DB_PATH=./data/stats.db
-# auth (omit SPINDLE_PASSWORD_HASH to run without a login gate in dev)
-SPINDLE_PASSWORD_HASH=...   # see `npm run hash-password`
-SESSION_SECRET=...
-# cover art + streaming (optional in dev)
-NAVIDROME_URL=http://127.0.0.1:4533
-NAVIDROME_USER=you
-NAVIDROME_PASSWORD=...
-```
+- the baseline import runs on first boot and pulls your existing Navidrome play counts
+- if you have a Spotify **Extended Streaming History** export, the backend's `import-spotify` script matches it against your library by artist + title (it deals with `feat.`, remixes, `- Remastered` tails, and the usual tagging mess), then inserts the matched plays with their real timestamps. It writes a report of what matched and what didn't, and it's fully reversible. There's a playlist importer too that turns your Spotify playlists into Navidrome `.m3u8` files.
 
-Generate a password hash with the auth CLI (`backend/src/auth/hash-cli.ts`). The hash format is colon-separated (`scrypt:salt:hash`) on purpose, so it survives docker-compose `env_file` interpolation.
+For me that backfilled about 76k real plays going back years, which is what makes the year view and the clocks actually interesting.
 
+## Stack
 
-## Importing Spotify history
+Backend is Node, Fastify, better-sqlite3, and zod. Frontend is Vue 3, Vite, Tailwind v4, Pinia, TypeScript. The plugin is Rust compiled to WASM. It all builds into one Docker image and runs behind nginx on my server.
 
-Spindle can match your Spotify **Extended Streaming History** export to tracks in your Navidrome library and insert the matched plays with their real timestamps:
+## Heads up
 
-```bash
-npm --prefix backend run import-spotify -- /path/to/history --commit \
-  --navidrome=/path/to/navidrome.db --stats=/path/to/stats.db --user=you
-```
-
-It matches on normalized artist + title (handling `feat.`/`ft.`, collaborator suffixes, version tails, and multi-artist commas), writes a `report.md`, and is idempotent and reversible (`DELETE FROM play_events WHERE source='import'`). Playlists from the separate Spotify **Account-data** export can be migrated to Navidrome `.m3u8` files with `npm run import-playlists`.
-
-## Deployment
-
-One Docker image builds the SPA and runs the API, served behind a reverse proxy. See [docs/DEPLOY.md](docs/DEPLOY.md).
-
-## License
-
-Not yet licensed. Add a `LICENSE` file before publishing.
+This is a personal project built around my own setup, so it assumes one user and a Navidrome instance you control. It runs great for me, but I'm not selling it as a polished product. If you self-host Navidrome and want your own stats, go for it, and PRs are welcome if you build something neat on top of it.
