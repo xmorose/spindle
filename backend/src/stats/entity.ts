@@ -9,7 +9,7 @@ export interface RelatedTrack {
   id: string; title: string; artist: string; plays: number; seconds: number; hasCoverArt: boolean;
 }
 export interface EntityDetail {
-  kind: EntityKind; id: string; name: string; artist?: string; album?: string;
+  kind: EntityKind; id: string; name: string; artist?: string; artistId?: string; album?: string;
   plays: number; seconds: number; rank: number;
   firstPlayedAt: number | null; lastPlayedAt: number | null;
   coverArt: string | null;
@@ -78,6 +78,7 @@ export function entityDetail(
   return {
     kind, id, name,
     artist: kind === "artist" ? undefined : sample.artist,
+    artistId: kind === "artist" ? undefined : sample.artistId,
     album: kind === "track" ? sample.album : undefined,
     plays: totalPlays, seconds: totalSeconds, rank,
     firstPlayedAt: span.first ?? null, lastPlayedAt: span.last ?? null,

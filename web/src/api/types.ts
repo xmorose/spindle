@@ -19,7 +19,7 @@ export interface SearchResult {
 }
 export interface RelatedTrack { id: string; title: string; artist: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface EntityDetail {
-  kind: "artist" | "album" | "track"; id: string; name: string; artist?: string; album?: string;
+  kind: "artist" | "album" | "track"; id: string; name: string; artist?: string; artistId?: string; album?: string;
   plays: number; seconds: number; rank: number; firstPlayedAt: number | null; lastPlayedAt: number | null;
   coverArt: string | null;
   history: { day: number; plays: number }[]; related: RelatedTrack[];
