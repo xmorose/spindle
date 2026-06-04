@@ -4,6 +4,7 @@ import { usePlayerStore } from "@/stores/player";
 import { createShareLink } from "@/composables/useShare";
 import { cleanArtist, formatClock } from "@/lib/format";
 import VinylRecord from "@/components/VinylRecord.vue";
+import NowPlayingBars from "@/components/NowPlayingBars.vue";
 
 const p = usePlayerStore();
 const showQueue = ref(false);
@@ -180,8 +181,8 @@ function shareQueue() {
                 <div class="truncate text-[13px] font-semibold" :style="i === p.index ? { color: 'var(--accent)' } : undefined">{{ t.title }}</div>
                 <div class="truncate text-[11px] text-faint">{{ cleanArtist(t.artist) }}</div>
               </button>
-              <span v-if="i === p.index && p.playing" class="flex-none text-[var(--accent)]" aria-label="Now playing">
-                <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor" aria-hidden="true"><rect x="4" y="10" width="3" height="8" rx="1" /><rect x="10" y="5" width="3" height="13" rx="1" /><rect x="16" y="12" width="3" height="6" rx="1" /></svg>
+              <span v-if="i === p.index && p.playing" class="flex-none text-[var(--accent)]">
+                <NowPlayingBars />
               </span>
               <button class="flex-none text-faint opacity-0 transition-opacity hover:text-text group-hover:opacity-100" @click="p.removeAt(i)" aria-label="Remove from queue">
                 <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
