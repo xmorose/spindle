@@ -71,8 +71,8 @@ const relatedRows = computed<RankedRow[]>(() =>
       <div class="h-9 w-9 animate-spin rounded-full border-2 border-line border-t-[var(--accent)]" />
     </div>
 
-    <EmptyState v-else-if="notFound || !data" title="No plays in this range"
-      hint="This entity has no plays in the selected window. Switch to All to see its full history." />
+    <EmptyState v-else-if="notFound || !data" title="Not found"
+      hint="We couldn't find this in your library." />
 
     <template v-else>
       <header class="mb-8 flex flex-wrap items-end gap-5">
@@ -84,7 +84,7 @@ const relatedRows = computed<RankedRow[]>(() =>
         </button>
         <CoverArt v-else :id="coverId" :name="data.name" :size="240" class="h-28 w-28 flex-none rounded-xl" />
         <div class="flex-1">
-          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-faint">{{ kind }} · rank #{{ data.rank }}</div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-faint">{{ kind }}<span v-if="data.rank > 0"> · rank #{{ data.rank }}</span></div>
           <h1 class="text-4xl font-black tracking-tight">{{ kind === 'artist' ? cleanArtist(data.name) : data.name }}</h1>
           <RouterLink v-if="data.artist && kind !== 'artist' && data.artistId" :to="`/artists/${data.artistId}`"
             class="text-sm text-muted transition-colors hover:text-text hover:underline">{{ cleanArtist(data.artist) }}</RouterLink>
@@ -138,7 +138,7 @@ const relatedRows = computed<RankedRow[]>(() =>
       </section>
 
       <section v-if="relatedRows.length">
-        <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">{{ kind === 'track' ? 'Related' : 'Top tracks' }}</div>
+        <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">{{ kind === 'track' ? 'Related' : 'Tracks' }}</div>
         <RankedList :rows="relatedRows" playable />
       </section>
     </template>

@@ -29,6 +29,20 @@ export class NavidromeReader {
         : source;
   }
 
+  private mapTrackRows(rows: any[]): TrackMeta[] {
+    return rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      artist: r.artist,
+      artistId: r.artist_id,
+      album: r.album,
+      albumId: r.album_id,
+      duration: r.duration,
+      genre: r.genre ?? "",
+      hasCoverArt: !!r.has_cover_art,
+    }));
+  }
+
   tracksById(ids: string[]): Map<string, TrackMeta> {
     const result = new Map<string, TrackMeta>();
     if (ids.length === 0) return result;
@@ -39,20 +53,30 @@ export class NavidromeReader {
          FROM media_file WHERE id IN (${placeholders})`,
       )
       .all(...ids) as any[];
-    for (const r of rows) {
-      result.set(r.id, {
-        id: r.id,
-        title: r.title,
-        artist: r.artist,
-        artistId: r.artist_id,
-        album: r.album,
-        albumId: r.album_id,
-        duration: r.duration,
-        genre: r.genre ?? "",
-        hasCoverArt: !!r.has_cover_art,
-      });
-    }
+    for (const m of this.mapTrackRows(rows)) result.set(m.id, m);
     return result;
+  }
+
+  // Full catalog tracklist for an album, in disc/track order — independent of play history.
+  albumTrackMetas(albumId: string): TrackMeta[] {
+    const rows = this.db
+      .prepare(
+        `SELECT id,title,artist,artist_id,album,album_id,duration,genre,has_cover_art
+         FROM media_file WHERE album_id=? ORDER BY disc_number, track_number, title`,
+      )
+      .all(albumId) as any[];
+    return this.mapTrackRows(rows);
+  }
+
+  // Full catalog of every track by an artist, grouped by album then disc/track order.
+  artistTrackMetas(artistId: string): TrackMeta[] {
+    const rows = this.db
+      .prepare(
+        `SELECT id,title,artist,artist_id,album,album_id,duration,genre,has_cover_art
+         FROM media_file WHERE artist_id=? ORDER BY album, disc_number, track_number, title`,
+      )
+      .all(artistId) as any[];
+    return this.mapTrackRows(rows);
   }
 
   albumTracks(albumId: string): { id: string; title: string; artist: string; duration: number; hasCover: boolean }[] {
