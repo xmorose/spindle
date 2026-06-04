@@ -5,7 +5,7 @@ import type { Timeframe } from "./timeframe.js";
 export type Sort = "plays" | "time";
 
 export interface ArtistTop { artistId: string; name: string; plays: number; seconds: number; coverArt: string | null; }
-export interface AlbumTop { albumId: string; name: string; artist: string; plays: number; seconds: number; }
+export interface AlbumTop { albumId: string; name: string; artist: string; artistId: string; plays: number; seconds: number; }
 export interface TrackTop { id: string; title: string; artist: string; artistId: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface GenreTop { genre: string; plays: number; seconds: number; }
 
@@ -62,7 +62,7 @@ export function topAlbums(db: Database, reader: NavidromeReader, tf: Timeframe, 
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);
     if (!m) continue;
-    const cur = acc.get(m.albumId) ?? { albumId: m.albumId, name: m.album, artist: m.artist, plays: 0, seconds: 0 };
+    const cur = acc.get(m.albumId) ?? { albumId: m.albumId, name: m.album, artist: m.artist, artistId: m.artistId, plays: 0, seconds: 0 };
     cur.plays += p.plays;
     cur.seconds += p.plays * m.duration;
     acc.set(m.albumId, cur);

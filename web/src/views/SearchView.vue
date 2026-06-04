@@ -53,24 +53,28 @@ const empty = computed(() => !!res.value && !res.value.artists.length && !res.va
 
       <section v-if="res.albums.length">
         <div class="label mb-2">Albums</div>
-        <RouterLink v-for="al in res.albums" :key="al.id" :to="`/albums/${al.id}`" class="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-surface">
-          <CoverArt :id="al.id" :name="al.name" :size="80" class="h-9 w-9 flex-none rounded" />
+        <div v-for="al in res.albums" :key="al.id" class="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-surface">
+          <RouterLink :to="`/albums/${al.id}`" class="flex-none">
+            <CoverArt :id="al.id" :name="al.name" :size="80" class="h-9 w-9 rounded" />
+          </RouterLink>
           <div class="min-w-0">
-            <div class="truncate text-sm font-semibold">{{ al.name }}</div>
-            <div class="truncate text-xs text-faint">{{ cleanArtist(al.artist) }}</div>
+            <RouterLink :to="`/albums/${al.id}`" class="block truncate text-sm font-semibold hover:underline">{{ al.name }}</RouterLink>
+            <RouterLink :to="`/artists/${al.artistId}`" class="block truncate text-xs text-faint transition-colors hover:text-text hover:underline">{{ cleanArtist(al.artist) }}</RouterLink>
           </div>
-        </RouterLink>
+        </div>
       </section>
 
       <section v-if="res.tracks.length">
         <div class="label mb-2">Tracks</div>
-        <RouterLink v-for="t in res.tracks" :key="t.id" :to="`/tracks/${t.id}`" class="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-surface">
-          <CoverArt :id="t.hasCoverArt ? t.id : null" :name="t.title" :size="80" class="h-9 w-9 flex-none rounded" />
+        <div v-for="t in res.tracks" :key="t.id" class="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-surface">
+          <RouterLink :to="`/tracks/${t.id}`" class="flex-none">
+            <CoverArt :id="t.hasCoverArt ? t.id : null" :name="t.title" :size="80" class="h-9 w-9 rounded" />
+          </RouterLink>
           <div class="min-w-0">
-            <div class="truncate text-sm font-semibold">{{ t.title }}</div>
-            <div class="truncate text-xs text-faint">{{ cleanArtist(t.artist) }}</div>
+            <RouterLink :to="`/tracks/${t.id}`" class="block truncate text-sm font-semibold hover:underline">{{ t.title }}</RouterLink>
+            <RouterLink :to="`/artists/${t.artistId}`" class="block truncate text-xs text-faint transition-colors hover:text-text hover:underline">{{ cleanArtist(t.artist) }}</RouterLink>
           </div>
-        </RouterLink>
+        </div>
       </section>
     </div>
   </div>

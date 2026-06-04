@@ -60,7 +60,7 @@ const historyLabels = computed(() =>
 );
 const relatedRows = computed<RankedRow[]>(() =>
   (data.value?.related ?? []).map((r: RelatedTrack) => ({
-    id: r.id, title: r.title, subtitle: cleanArtist(r.artist), value: r.plays, coverId: r.hasCoverArt ? r.id : null, to: `/tracks/${r.id}`,
+    id: r.id, title: r.title, subtitle: cleanArtist(r.artist), value: r.plays, coverId: r.hasCoverArt ? r.id : null, to: `/tracks/${r.id}`, artistId: r.artistId,
   })),
 );
 </script>

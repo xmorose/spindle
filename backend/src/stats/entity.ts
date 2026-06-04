@@ -6,7 +6,7 @@ import { topArtists, topAlbums, topTracks } from "./tops.js";
 export type EntityKind = "artist" | "album" | "track";
 
 export interface RelatedTrack {
-  id: string; title: string; artist: string; plays: number; seconds: number; hasCoverArt: boolean;
+  id: string; title: string; artist: string; artistId: string; plays: number; seconds: number; hasCoverArt: boolean;
 }
 export interface EntityDetail {
   kind: EntityKind; id: string; name: string; artist?: string; artistId?: string; album?: string;
@@ -50,7 +50,7 @@ export function entityDetail(
   for (const { meta: m, plays: pl } of matched) {
     totalPlays += pl;
     totalSeconds += pl * m.duration;
-    related.push({ id: m.id, title: m.title, artist: m.artist, plays: pl, seconds: pl * m.duration, hasCoverArt: m.hasCoverArt });
+    related.push({ id: m.id, title: m.title, artist: m.artist, artistId: m.artistId, plays: pl, seconds: pl * m.duration, hasCoverArt: m.hasCoverArt });
   }
   related.sort((a, b) => b.plays - a.plays);
 

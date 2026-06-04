@@ -2,7 +2,7 @@
 import CoverArt from "./CoverArt.vue";
 
 export interface CoverItem {
-  id: string; title: string; subtitle?: string; value?: string; coverId: string | null; to: string;
+  id: string; title: string; subtitle?: string; value?: string; coverId: string | null; to: string; artistId?: string | null;
 }
 withDefaults(
   defineProps<{ items: CoverItem[]; playable?: boolean; shareable?: boolean; busyId?: string | null }>(),
@@ -35,7 +35,8 @@ const emit = defineEmits<{ play: [item: CoverItem]; share: [item: CoverItem] }>(
         </button>
       </div>
       <RouterLink :to="it.to" class="mt-2 block truncate text-sm font-semibold group-hover:text-text">{{ it.title }}</RouterLink>
-      <div v-if="it.subtitle" class="truncate text-xs text-faint">{{ it.subtitle }}</div>
+      <RouterLink v-if="it.subtitle && it.artistId" :to="`/artists/${it.artistId}`" class="block truncate text-xs text-faint transition-colors hover:text-text hover:underline">{{ it.subtitle }}</RouterLink>
+      <div v-else-if="it.subtitle" class="truncate text-xs text-faint">{{ it.subtitle }}</div>
       <div v-if="it.value" class="tabular mt-0.5 text-xs text-muted">{{ it.value }}</div>
     </div>
   </div>

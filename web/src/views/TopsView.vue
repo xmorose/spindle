@@ -40,7 +40,7 @@ async function load() {
   if (kind.value === "artists") {
     mapped = (await api.topArtists(p)).map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.coverArt, to: `/artists/${a.artistId}` }));
   } else if (kind.value === "albums") {
-    mapped = (await api.topAlbums(p)).map((a) => ({ id: a.albumId, title: a.name, subtitle: cleanArtist(a.artist), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.albumId, to: `/albums/${a.albumId}` }));
+    mapped = (await api.topAlbums(p)).map((a) => ({ id: a.albumId, title: a.name, subtitle: cleanArtist(a.artist), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.albumId, to: `/albums/${a.albumId}`, artistId: a.artistId }));
   } else {
     mapped = (await api.topTracks(p)).map((t) => ({ id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: sort.value === "time" ? t.seconds : t.plays, valueLabel: label(t.plays, t.seconds), coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}`, artistId: t.artistId }));
   }
