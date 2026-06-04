@@ -76,7 +76,13 @@ const relatedRows = computed<RankedRow[]>(() =>
 
     <template v-else>
       <header class="mb-8 flex flex-wrap items-end gap-5">
-        <CoverArt :id="coverId" :name="data.name" :size="240" class="h-28 w-28 flex-none rounded-xl" />
+        <button v-if="queueTracks.length" class="group relative h-28 w-28 flex-none" @click="player.playQueue(queueTracks, 0)" aria-label="Play">
+          <CoverArt :id="coverId" :name="data.name" :size="240" class="h-28 w-28 rounded-xl" />
+          <span class="absolute inset-0 grid place-items-center rounded-xl bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100">
+            <svg viewBox="0 0 24 24" class="h-9 w-9 translate-x-px" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+          </span>
+        </button>
+        <CoverArt v-else :id="coverId" :name="data.name" :size="240" class="h-28 w-28 flex-none rounded-xl" />
         <div class="flex-1">
           <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-faint">{{ kind }} · rank #{{ data.rank }}</div>
           <h1 class="text-4xl font-black tracking-tight">{{ kind === 'artist' ? cleanArtist(data.name) : data.name }}</h1>

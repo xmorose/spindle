@@ -6,8 +6,10 @@ import { useRangeStore } from "@/stores/range";
 import { formatDuration, cleanArtist } from "@/lib/format";
 import type { Sort } from "@/api/types";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
+import ListActionBar from "@/components/ListActionBar.vue";
 import SearchInput from "@/components/SearchInput.vue";
 import Spinner from "@/components/ui/Spinner.vue";
+import type { PlayerTrack } from "@/stores/player";
 
 type Kind = "artists" | "albums" | "tracks";
 const kinds: Kind[] = ["artists", "albums", "tracks"];
@@ -47,6 +49,13 @@ async function load() {
 }
 
 watch([kind, sort, range, limitN], load, { immediate: true });
+
+const rowKind = computed<"track" | "album" | "artist">(() =>
+  kind.value === "tracks" ? "track" : kind.value === "albums" ? "album" : "artist",
+);
+const trackList = computed<PlayerTrack[]>(() =>
+  kind.value === "tracks" ? filtered.value.map((r) => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null })) : [],
+);
 </script>
 
 <template>
@@ -80,6 +89,9 @@ watch([kind, sort, range, limitN], load, { immediate: true });
     </div>
 
     <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
-    <RankedList v-else :rows="filtered" :playable="kind === 'tracks'" />
+    <template v-else>
+      <ListActionBar v-if="kind === 'tracks'" :tracks="trackList" :count="filtered.length" />
+      <RankedList :rows="filtered" playable :kind="rowKind" />
+    </template>
   </div>
 </template>

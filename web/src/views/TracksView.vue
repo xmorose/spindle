@@ -4,8 +4,10 @@ import { api } from "@/api/client";
 import { useRangedResource } from "@/composables/useRangedResource";
 import { cleanArtist } from "@/lib/format";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
+import ListActionBar from "@/components/ListActionBar.vue";
 import SearchInput from "@/components/SearchInput.vue";
 import Spinner from "@/components/ui/Spinner.vue";
+import type { PlayerTrack } from "@/stores/player";
 
 const res = useRangedResource((range) => api.topTracks({ range, limit: 200 }));
 const q = ref("");
@@ -19,6 +21,9 @@ const filtered = computed(() => {
   return s ? rows.value.filter((r) => r.title.toLowerCase().includes(s) || (r.subtitle ?? "").toLowerCase().includes(s)) : rows.value;
 });
 const firstLoad = computed(() => res.loading.value && res.data.value === null);
+const trackList = computed<PlayerTrack[]>(() =>
+  filtered.value.map((r) => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null })),
+);
 </script>
 
 <template>
@@ -28,6 +33,9 @@ const firstLoad = computed(() => res.loading.value && res.data.value === null);
       <SearchInput v-model="q" placeholder="Search tracks…" />
     </div>
     <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
-    <RankedList v-else :rows="filtered" playable />
+    <template v-else>
+      <ListActionBar :tracks="trackList" :count="filtered.length" />
+      <RankedList :rows="filtered" playable />
+    </template>
   </div>
 </template>

@@ -42,11 +42,11 @@ const tiles = computed(() => totals.value ? [
     <div class="grid grid-cols-1 gap-10 lg:grid-cols-2">
       <section>
         <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Top artists</div>
-        <RankedList :rows="artistRows" />
+        <RankedList :rows="artistRows" playable kind="artist" />
       </section>
       <section>
         <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Top tracks</div>
-        <RankedList :rows="trackRows" />
+        <RankedList :rows="trackRows" playable />
       </section>
     </div>
   </div>
