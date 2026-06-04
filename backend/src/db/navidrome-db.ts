@@ -55,6 +55,18 @@ export class NavidromeReader {
     return result;
   }
 
+  albumTracks(albumId: string): { id: string; title: string; artist: string; duration: number; hasCover: boolean }[] {
+    const rows = this.db
+      .prepare(
+        `SELECT id,title,artist,duration,has_cover_art
+         FROM media_file WHERE album_id=? ORDER BY disc_number, track_number, title`,
+      )
+      .all(albumId) as any[];
+    return rows.map((r) => ({
+      id: r.id, title: r.title, artist: r.artist, duration: r.duration, hasCover: !!r.has_cover_art,
+    }));
+  }
+
   search(q: string, perKind: number): {
     artists: { id: string; name: string }[];
     albums: { id: string; name: string; artist: string }[];

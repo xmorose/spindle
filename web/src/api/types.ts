@@ -49,3 +49,5 @@ export interface PublicShare {
   expiresAt: number;
   tracks: PublicShareTrack[];
 }
+
+export interface AlbumTrack { id: string; title: string; artist: string; duration: number; hasCover: boolean; }

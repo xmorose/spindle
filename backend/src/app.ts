@@ -11,6 +11,7 @@ import { registerCover } from "./routes/cover.js";
 import { registerStream } from "./routes/stream.js";
 import { registerEntity } from "./routes/entity.js";
 import { registerShares } from "./routes/shares.js";
+import { registerAlbumTracks } from "./routes/album.js";
 import type { AuthConfig, CoverConfig } from "./config.js";
 
 export interface Deps {
@@ -49,6 +50,7 @@ export function buildApp(deps: Deps): FastifyInstance {
 
   registerEntity(app, { statsDb: deps.statsDb, reader: deps.reader, cache, now, defaultUser });
   registerShares(app, { statsDb: deps.statsDb, reader: deps.reader, cover: deps.cover, now });
+  registerAlbumTracks(app, { reader: deps.reader });
 
   if (deps.cover) registerCover(app, deps.cover);
   if (deps.cover) registerStream(app, deps.cover);
