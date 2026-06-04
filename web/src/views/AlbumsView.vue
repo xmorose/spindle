@@ -4,6 +4,7 @@ import { api } from "@/api/client";
 import { useRangedResource } from "@/composables/useRangedResource";
 import { cleanArtist, formatNumber } from "@/lib/format";
 import CoverGrid, { type CoverItem } from "@/components/CoverGrid.vue";
+import { usePlayEntity } from "@/composables/usePlayEntity";
 import SearchInput from "@/components/SearchInput.vue";
 import Spinner from "@/components/ui/Spinner.vue";
 
@@ -19,6 +20,7 @@ const filtered = computed(() => {
   return s ? items.value.filter((i) => i.title.toLowerCase().includes(s) || (i.subtitle ?? "").toLowerCase().includes(s)) : items.value;
 });
 const firstLoad = computed(() => res.loading.value && res.data.value === null);
+const { playAlbum, shareAlbum, busyId } = usePlayEntity();
 </script>
 
 <template>
@@ -28,6 +30,7 @@ const firstLoad = computed(() => res.loading.value && res.data.value === null);
       <SearchInput v-model="q" placeholder="Search albums…" />
     </div>
     <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
-    <CoverGrid v-else :items="filtered" />
+    <CoverGrid v-else :items="filtered" playable shareable :busy-id="busyId"
+      @play="(it) => playAlbum(it.id)" @share="(it) => shareAlbum(it.id, it.title)" />
   </div>
 </template>
