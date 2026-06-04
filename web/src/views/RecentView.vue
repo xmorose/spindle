@@ -62,9 +62,9 @@ function playFrom(i: number) {
               </span>
             </div>
             <div class="min-w-0 flex-1">
-              <RouterLink :to="`/tracks/${item.play.id}`" @click.stop class="block truncate text-sm font-semibold transition-colors group-hover:text-text hover:underline">{{ item.play.title }}</RouterLink>
+              <RouterLink :to="`/tracks/${item.play.id}`" @click.stop class="block w-fit max-w-full truncate text-sm font-semibold transition-colors group-hover:text-text hover:underline">{{ item.play.title }}</RouterLink>
               <component :is="item.play.artistId ? 'RouterLink' : 'span'" :to="item.play.artistId ? `/artists/${item.play.artistId}` : undefined" @click.stop
-                class="block truncate text-xs text-faint" :class="item.play.artistId ? 'transition-colors hover:text-text hover:underline' : ''">{{ cleanArtist(item.play.artist) }}</component>
+                class="block w-fit max-w-full truncate text-xs text-faint" :class="item.play.artistId ? 'transition-colors hover:text-text hover:underline' : ''">{{ cleanArtist(item.play.artist) }}</component>
             </div>
             <span class="tabular flex-none text-xs text-faint">{{ formatTimeOfDay(item.play.playedAt) }}</span>
           </div>

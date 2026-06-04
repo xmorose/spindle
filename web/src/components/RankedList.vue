@@ -89,7 +89,7 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
           <NowPlayingBars v-if="isCurrent(row) && player.playing" class="flex-none text-[var(--accent)]" />
         </div>
         <RouterLink v-if="row.subtitle && row.artistId" :to="`/artists/${row.artistId}`" @click.stop
-          class="block truncate text-[11.5px] text-faint transition-colors hover:text-text hover:underline">{{ row.subtitle }}</RouterLink>
+          class="block w-fit max-w-full truncate text-[11.5px] text-faint transition-colors hover:text-text hover:underline">{{ row.subtitle }}</RouterLink>
         <div v-else-if="row.subtitle" class="truncate text-[11.5px] text-faint">{{ row.subtitle }}</div>
         <div class="mt-1 h-1 rounded-full bg-surface-2">
           <div data-bar class="h-1 rounded-full" :style="{ width: pct(row.value), background: 'var(--accent)' }" />
