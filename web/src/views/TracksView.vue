@@ -13,7 +13,7 @@ const res = useRangedResource((range) => api.topTracks({ range, limit: 200 }));
 const q = ref("");
 const rows = computed<RankedRow[]>(() =>
   (res.data.value ?? []).map((t) => ({
-    id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: t.plays, coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}`,
+    id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: t.plays, coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}`, artistId: t.artistId,
   })),
 );
 const filtered = computed(() => {

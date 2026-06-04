@@ -11,7 +11,7 @@ function writeLS(k: string, v: string) {
   try { if (typeof localStorage !== "undefined") localStorage.setItem(k, v); } catch {  }
 }
 
-export interface PlayerTrack { id: string; title: string; artist: string; coverId: string | null; }
+export interface PlayerTrack { id: string; title: string; artist: string; coverId: string | null; artistId?: string | null; }
 
 let audio: HTMLAudioElement | null = null;
 function el(): HTMLAudioElement | null {

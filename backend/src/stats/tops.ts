@@ -6,7 +6,7 @@ export type Sort = "plays" | "time";
 
 export interface ArtistTop { artistId: string; name: string; plays: number; seconds: number; coverArt: string | null; }
 export interface AlbumTop { albumId: string; name: string; artist: string; plays: number; seconds: number; }
-export interface TrackTop { id: string; title: string; artist: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
+export interface TrackTop { id: string; title: string; artist: string; artistId: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface GenreTop { genre: string; plays: number; seconds: number; }
 
 interface PlayRow { nd_track_id: string; plays: number; }
@@ -34,7 +34,7 @@ export function topTracks(db: Database, reader: NavidromeReader, tf: Timeframe, 
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);
     if (!m) continue;
-    rows.push({ id: m.id, title: m.title, artist: m.artist, album: m.album, plays: p.plays, seconds: p.plays * m.duration, hasCoverArt: m.hasCoverArt });
+    rows.push({ id: m.id, title: m.title, artist: m.artist, artistId: m.artistId, album: m.album, plays: p.plays, seconds: p.plays * m.duration, hasCoverArt: m.hasCoverArt });
   }
   return sortRows(rows, sort, limit);
 }

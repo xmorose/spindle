@@ -29,7 +29,7 @@ const groups = computed(() => {
 const isEmpty = computed(() => !loading.value && plays.value.length === 0);
 
 function toTrack(p: RecentPlay): PlayerTrack {
-  return { id: p.id, title: p.title, artist: p.artist, coverId: p.hasCoverArt ? p.id : null };
+  return { id: p.id, title: p.title, artist: p.artist, coverId: p.hasCoverArt ? p.id : null, artistId: p.artistId };
 }
 function playFrom(i: number) {
   player.playQueue(plays.value.map(toTrack), i);
@@ -50,9 +50,9 @@ function playFrom(i: number) {
       <section v-for="g in groups" :key="g.label">
         <div class="label mb-2 border-b border-line/50 pb-2">{{ g.label }}</div>
         <div class="flex flex-col">
-          <button
+          <div
             v-for="item in g.items" :key="item.i"
-            class="group flex items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors duration-150 hover:bg-surface"
+            class="group flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors duration-150 hover:bg-surface"
             @click="playFrom(item.i)"
           >
             <div class="relative h-10 w-10 flex-none">
@@ -62,11 +62,12 @@ function playFrom(i: number) {
               </span>
             </div>
             <div class="min-w-0 flex-1">
-              <div class="truncate text-sm font-semibold group-hover:text-text">{{ item.play.title }}</div>
-              <div class="truncate text-xs text-faint">{{ cleanArtist(item.play.artist) }}</div>
+              <RouterLink :to="`/tracks/${item.play.id}`" @click.stop class="block truncate text-sm font-semibold transition-colors group-hover:text-text hover:underline">{{ item.play.title }}</RouterLink>
+              <component :is="item.play.artistId ? 'RouterLink' : 'span'" :to="item.play.artistId ? `/artists/${item.play.artistId}` : undefined" @click.stop
+                class="block truncate text-xs text-faint" :class="item.play.artistId ? 'transition-colors hover:text-text hover:underline' : ''">{{ cleanArtist(item.play.artist) }}</component>
             </div>
             <span class="tabular flex-none text-xs text-faint">{{ formatTimeOfDay(item.play.playedAt) }}</span>
-          </button>
+          </div>
         </div>
       </section>
     </div>

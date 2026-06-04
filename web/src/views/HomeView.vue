@@ -34,7 +34,7 @@ useCoverAccent(() => heroCover.value);
 
 const player = usePlayerStore();
 function toPlayerTrack(t: TrackTop) {
-  return { id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null };
+  return { id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null, artistId: t.artistId };
 }
 function playAll(startIndex: number) {
   const all = tracks.data.value ?? [];
@@ -108,8 +108,8 @@ function playAll(startIndex: number) {
             <CoverArt :id="topTrack.hasCoverArt ? topTrack.id : null" :name="topTrack.title" :size="160" class="h-16 w-16 flex-none" />
             <div>
               <div class="label" :style="{ color: 'var(--accent)', fontSize: '11px' }">{{ formatNumber(topTrack.plays) }} plays</div>
-              <div class="text-xl font-bold leading-tight">{{ topTrack.title }}</div>
-              <div class="text-sm text-muted">{{ cleanArtist(topTrack.artist) }}</div>
+              <RouterLink :to="`/tracks/${topTrack.id}`" @click.stop class="block text-xl font-bold leading-tight hover:underline">{{ topTrack.title }}</RouterLink>
+              <RouterLink :to="`/artists/${topTrack.artistId}`" @click.stop class="block text-sm text-muted transition-colors hover:text-text hover:underline">{{ cleanArtist(topTrack.artist) }}</RouterLink>
             </div>
           </div>
           <div class="border-t border-line/60">
@@ -118,7 +118,10 @@ function playAll(startIndex: number) {
               @click="playAll(i + 1)">
               <span class="tabular w-5 text-right text-sm font-bold text-faint">{{ i + 2 }}</span>
               <CoverArt :id="t.hasCoverArt ? t.id : null" :name="t.title" :size="80" class="h-9 w-9 flex-none" />
-              <span class="min-w-0 flex-1 truncate text-sm font-semibold">{{ t.title }}<span class="block truncate text-xs font-normal text-faint">{{ cleanArtist(t.artist) }}</span></span>
+              <span class="min-w-0 flex-1">
+                <RouterLink :to="`/tracks/${t.id}`" @click.stop class="block truncate text-sm font-semibold hover:underline">{{ t.title }}</RouterLink>
+                <RouterLink :to="`/artists/${t.artistId}`" @click.stop class="block truncate text-xs text-faint transition-colors hover:text-text hover:underline">{{ cleanArtist(t.artist) }}</RouterLink>
+              </span>
               <span class="tabular text-sm font-semibold text-muted">{{ formatNumber(t.plays) }}</span>
             </div>
           </div>

@@ -6,7 +6,7 @@ export interface RangeParams { range?: Range; from?: number; to?: number; sort?:
 export interface Totals { plays: number; seconds: number; distinctTracks: number; distinctArtists: number; distinctAlbums: number; avgPlaysPerActiveDay: number; }
 export interface ArtistTop { artistId: string; name: string; plays: number; seconds: number; coverArt: string | null; }
 export interface AlbumTop { albumId: string; name: string; artist: string; plays: number; seconds: number; }
-export interface TrackTop { id: string; title: string; artist: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
+export interface TrackTop { id: string; title: string; artist: string; artistId: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface GenreTop { genre: string; plays: number; seconds: number; }
 export interface HeatCell { weekday: number; hour: number; plays: number; }
 export interface TimePoint { bucket: number; plays: number; seconds: number; }

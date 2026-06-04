@@ -33,7 +33,7 @@ const topTrack = computed(() => tracks.value[0] ?? null);
 useCoverAccent(() => (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
 
 const artistRows = computed<RankedRow[]>(() => artists.value.map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: a.plays, coverId: a.coverArt, to: `/artists/${a.artistId}` })));
-const trackRows = computed<RankedRow[]>(() => tracks.value.map((t) => ({ id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: t.plays, coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}` })));
+const trackRows = computed<RankedRow[]>(() => tracks.value.map((t) => ({ id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: t.plays, coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}`, artistId: t.artistId })));
 const seriesValues = computed(() => series.value.map((p) => p.plays));
 const genreMax = computed(() => Math.max(1, ...genres.value.map((g) => g.plays)));
 </script>

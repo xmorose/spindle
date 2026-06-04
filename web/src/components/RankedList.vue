@@ -14,6 +14,7 @@ export interface RankedRow {
   valueLabel?: string;
   coverId?: string | null;
   to?: string;
+  artistId?: string | null;
 }
 
 const props = withDefaults(
@@ -27,7 +28,7 @@ const entity = usePlayEntity();
 const max = computed(() => Math.max(...props.rows.map((r) => r.value), 1));
 function pct(v: number) { return `${Math.max(2, Math.round((v / max.value) * 100))}%`; }
 
-const trackOf = (r: RankedRow): PlayerTrack => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null });
+const trackOf = (r: RankedRow): PlayerTrack => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null, artistId: r.artistId ?? null });
 
 const isTrack = computed(() => props.kind === "track");
 function isCurrent(r: RankedRow) { return isTrack.value && player.current?.id === r.id; }
@@ -71,7 +72,8 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
         :aria-label="isCurrent(row) && player.playing ? 'Pause' : 'Play'"
       >
         <CoverArt :id="row.coverId ?? null" :name="row.title" :size="80" class="h-9 w-9" />
-        <span class="absolute inset-0 grid place-items-center rounded-lg bg-black/45 text-white">
+        <span class="absolute inset-0 grid place-items-center rounded-lg bg-black/45 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+          :class="{ '!opacity-100': busy(row) || (isCurrent(row) && player.playing) }">
           <svg v-if="busy(row)" viewBox="0 0 24 24" class="h-4 w-4 animate-spin" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke-opacity="0.3" /><path d="M21 12a9 9 0 0 0-9-9" /></svg>
           <svg v-else-if="isCurrent(row) && player.playing" viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
           <svg v-else viewBox="0 0 24 24" class="h-4 w-4 translate-x-px" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
@@ -86,7 +88,9 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
             :style="isCurrent(row) ? { color: 'var(--accent)' } : undefined">{{ row.title }}</component>
           <NowPlayingBars v-if="isCurrent(row) && player.playing" class="flex-none text-[var(--accent)]" />
         </div>
-        <div v-if="row.subtitle" class="truncate text-[11.5px] text-faint">{{ row.subtitle }}</div>
+        <RouterLink v-if="row.subtitle && row.artistId" :to="`/artists/${row.artistId}`" @click.stop
+          class="block truncate text-[11.5px] text-faint transition-colors hover:text-text hover:underline">{{ row.subtitle }}</RouterLink>
+        <div v-else-if="row.subtitle" class="truncate text-[11.5px] text-faint">{{ row.subtitle }}</div>
         <div class="mt-1 h-1 rounded-full bg-surface-2">
           <div data-bar class="h-1 rounded-full" :style="{ width: pct(row.value), background: 'var(--accent)' }" />
         </div>
