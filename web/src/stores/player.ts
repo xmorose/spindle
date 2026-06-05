@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed, watch } from "vue";
-import { streamUrl } from "@/api/client";
+import { streamUrl, coverUrl } from "@/api/client";
 
 export type RepeatMode = "off" | "all" | "one";
 
@@ -61,11 +61,29 @@ export const usePlayerStore = defineStore("player", () => {
       if (repeat.value === "one") { a.currentTime = 0; const p = a.play(); if (p?.catch) p.catch(() => {}); return; }
       next();
     };
+    if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
+      const ms = navigator.mediaSession;
+      ms.setActionHandler("play", () => toggle());
+      ms.setActionHandler("pause", () => toggle());
+      ms.setActionHandler("previoustrack", () => prev());
+      ms.setActionHandler("nexttrack", () => next());
+    }
+  }
+  function setMediaMetadata() {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    if (typeof MediaMetadata === "undefined") return;
+    const c = current.value;
+    if (!c) { navigator.mediaSession.metadata = null; return; }
+    const artwork = c.coverId
+      ? [96, 256, 512].map((s) => ({ src: coverUrl(c.coverId as string, s), sizes: `${s}x${s}` }))
+      : [];
+    navigator.mediaSession.metadata = new MediaMetadata({ title: c.title, artist: c.artist, artwork });
   }
   function load(autoplay = true) {
     const a = el(); if (!a || !current.value) return;
     if (!attached) { attach(a); attached = true; }
     a.src = streamUrl(current.value.id);
+    setMediaMetadata();
     a.volume = volume.value;
     currentTime.value = 0;
     if (autoplay) { try { const p = a.play(); if (p && typeof p.catch === "function") p.catch(() => {}); } catch {  } }
