@@ -46,6 +46,7 @@ function onWheel(e: WheelEvent) {
   const newSpan = Math.max(4, Math.min(n, Math.round(span * (e.deltaY < 0 ? 0.8 : 1.25))));
   const s = Math.max(0, Math.min(n - newSpan, Math.round(center - ratio * newSpan)));
   win.value = { s, e: s + newSpan };
+  hover.value = null; // the visible window changed — the old hover index is stale
 }
 
 const hover = ref<number | null>(null);
@@ -73,9 +74,10 @@ function onMove(e: PointerEvent) {
 }
 function onUp() { pan = null; }
 
-const hx = computed(() => (hover.value === null ? 0 : points.value[hover.value].x));
-const leftPct = computed(() => (hover.value === null ? 0 : (hx.value / W) * 100));
-const topPct = computed(() => (hover.value === null ? 0 : (points.value[hover.value].y / props.height) * 100));
+const hoverPoint = computed(() => (hover.value === null ? null : points.value[hover.value] ?? null));
+const hx = computed(() => hoverPoint.value?.x ?? 0);
+const leftPct = computed(() => (hoverPoint.value ? (hoverPoint.value.x / W) * 100 : 0));
+const topPct = computed(() => (hoverPoint.value ? (hoverPoint.value.y / props.height) * 100 : 0));
 </script>
 
 <template>
@@ -95,11 +97,11 @@ const topPct = computed(() => (hover.value === null ? 0 : (points.value[hover.va
         <template v-if="visible.length">
           <path :key="'a' + drawKey" class="area-in" :d="paths.area" fill="url(#la-fill)" />
           <path :key="'l' + drawKey" class="line-in" pathLength="1" :d="paths.line" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
-          <line v-if="hover !== null" :x1="hx" :y1="PAD" :x2="hx" :y2="height - PAD" stroke="var(--color-faint)" stroke-width="1" vector-effect="non-scaling-stroke" />
+          <line v-if="hoverPoint" :x1="hx" :y1="PAD" :x2="hx" :y2="height - PAD" stroke="var(--color-faint)" stroke-width="1" vector-effect="non-scaling-stroke" />
         </template>
       </svg>
 
-      <template v-if="hover !== null && visible.length">
+      <template v-if="hoverPoint !== null && hover !== null">
         <div class="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
           :style="{ left: leftPct + '%', top: topPct + '%', background: 'var(--accent)', boxShadow: '0 0 0 3px var(--color-bg)' }" />
         <div class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[140%] whitespace-nowrap rounded-md border border-line bg-surface-2 px-2 py-1 text-center shadow-lg"
