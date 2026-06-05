@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed, watch } from "vue";
-import { streamUrl, coverUrl } from "@/api/client";
+import { api, streamUrl, coverUrl } from "@/api/client";
 
 export type RepeatMode = "off" | "all" | "one";
 
@@ -51,14 +51,36 @@ export const usePlayerStore = defineStore("player", () => {
   }
   function stopTick() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
 
+  // Spindle's player streams via a proxy that does not scrobble, so plays would never reach
+  // the stats. We scrobble to Navidrome ourselves: a "now playing" ping on load, then a
+  // submission once the track is genuinely listened to (Last.fm/Subsonic threshold: 4 min
+  // or half its length). `scrobbled` guards against double-submitting a single play.
+  let scrobbled = false;
+  let playStartMs = 0;
+  function sendScrobble(id: string, submission: boolean, time?: number) {
+    api.scrobble(id, submission, time).catch(() => {});
+  }
+  function maybeSubmitScrobble() {
+    const a = el(); const c = current.value;
+    if (scrobbled || !a || !c || !duration.value) return;
+    if (a.currentTime >= Math.min(240, duration.value * 0.5)) {
+      scrobbled = true;
+      sendScrobble(c.id, true, playStartMs || undefined);
+    }
+  }
+
   let attached = false;
   function attach(a: HTMLAudioElement) {
-    a.ontimeupdate = () => { currentTime.value = a.currentTime; };
+    a.ontimeupdate = () => { currentTime.value = a.currentTime; maybeSubmitScrobble(); };
     a.ondurationchange = () => { duration.value = Number.isFinite(a.duration) ? a.duration : 0; };
     a.onplay = () => { playing.value = true; startTick(); };
     a.onpause = () => { playing.value = false; stopTick(); };
     a.onended = () => {
-      if (repeat.value === "one") { a.currentTime = 0; const p = a.play(); if (p?.catch) p.catch(() => {}); return; }
+      maybeSubmitScrobble();
+      if (repeat.value === "one") {
+        a.currentTime = 0; scrobbled = false; playStartMs = Date.now();
+        const p = a.play(); if (p?.catch) p.catch(() => {}); return;
+      }
       next();
     };
     if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
@@ -86,6 +108,9 @@ export const usePlayerStore = defineStore("player", () => {
     setMediaMetadata();
     a.volume = volume.value;
     currentTime.value = 0;
+    scrobbled = false;
+    playStartMs = Date.now();
+    sendScrobble(current.value.id, false);
     if (autoplay) { try { const p = a.play(); if (p && typeof p.catch === "function") p.catch(() => {}); } catch {  } }
   }
   function playQueue(tracks: PlayerTrack[], start = 0) {

@@ -57,6 +57,7 @@ export const api = {
   login: (password: string) => post<AuthStatus>("/auth/login", { password }),
   logout: () => post<AuthStatus>("/auth/logout", {}),
   createShare: (body: CreateShareRequest) => post<CreateShareResponse>("/shares", body),
+  scrobble: (id: string, submission: boolean, time?: number) => post<{ ok: boolean }>("/scrobble", { id, submission, time }),
 };
 
 export async function fetchPublicShare(token: string): Promise<PublicShare> {
