@@ -8,7 +8,19 @@ It's single-user and sits behind a password, so it's fine to put on a real domai
 
 ## Screenshots
 
-_(coming, drop a couple here)_
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="Home dashboard" width="100%"><br>
+  <sub>Home: headline numbers, top artist, listening over time, and the hour-of-day clock</sub>
+</p>
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/wrapped.png" alt="Year in review"><br><sub>Your year in review</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/artists.png" alt="Library browse"><br><sub>Browsing the library (artist view)</sub></td>
+  </tr>
+</table>
+
+The accent recolors itself from the cover art, so each of these is a different shade.
 
 ## What you get
 
