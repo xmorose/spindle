@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onUnmounted } from "vue";
 import { buildSeriesPaths } from "@/lib/chart";
 
 const props = withDefaults(
@@ -16,11 +16,13 @@ watch(() => props.values.length, (n) => { win.value = { s: 0, e: n }; });
 const drawKey = ref(0);
 watch(() => props.values, () => { drawKey.value++; });
 
-const visible = computed(() => (props.zoomable ? props.values.slice(win.value.s, win.value.e) : props.values));
-const visibleLabels = computed(() =>
-  props.labels ? (props.zoomable ? props.labels.slice(win.value.s, win.value.e) : props.labels) : undefined,
+const visible = computed(() =>
+  props.zoomable ? props.values.slice(Math.round(win.value.s), Math.round(win.value.e)) : props.values,
 );
-const zoomed = computed(() => props.zoomable && (win.value.s > 0 || win.value.e < props.values.length));
+const visibleLabels = computed(() =>
+  props.labels ? (props.zoomable ? props.labels.slice(Math.round(win.value.s), Math.round(win.value.e)) : props.labels) : undefined,
+);
+const zoomed = computed(() => props.zoomable && (win.value.s > 0.5 || win.value.e < props.values.length - 0.5));
 
 const paths = computed(() => buildSeriesPaths(visible.value, W, props.height, PAD));
 const max = computed(() => Math.max(...visible.value, 1));
@@ -33,46 +35,67 @@ const points = computed(() => {
   }));
 });
 
-function reset() { win.value = { s: 0, e: props.values.length }; }
-
-function onWheel(e: WheelEvent) {
-  if (!props.zoomable || !box.value) return;
-  e.preventDefault();
-  const n = props.values.length;
-  const span = win.value.e - win.value.s;
-  const rect = box.value.getBoundingClientRect();
-  const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  const center = win.value.s + ratio * span;
-  const newSpan = Math.max(4, Math.min(n, Math.round(span * (e.deltaY < 0 ? 0.8 : 1.25))));
-  const s = Math.max(0, Math.min(n - newSpan, Math.round(center - ratio * newSpan)));
-  win.value = { s, e: s + newSpan };
-  hover.value = null; // the visible window changed — the old hover index is stale
+// Animated window changes (tween the index window so zoom/reset glides instead of snapping).
+const reduceMotion = typeof window !== "undefined" && window.matchMedia
+  ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+let raf = 0;
+function setWindow(target: { s: number; e: number }) {
+  const to = { s: Math.max(0, target.s), e: Math.min(props.values.length, target.e) };
+  cancelAnimationFrame(raf);
+  if (reduceMotion) { win.value = to; return; }
+  const from = { ...win.value };
+  const start = performance.now();
+  const dur = 260;
+  const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+  function frame(now: number) {
+    const t = Math.min(1, (now - start) / dur);
+    const k = ease(t);
+    win.value = { s: from.s + (to.s - from.s) * k, e: from.e + (to.e - from.e) * k };
+    if (t < 1) raf = requestAnimationFrame(frame); else win.value = to;
+  }
+  raf = requestAnimationFrame(frame);
 }
+onUnmounted(() => cancelAnimationFrame(raf));
+
+function reset() { setWindow({ s: 0, e: props.values.length }); }
 
 const hover = ref<number | null>(null);
-let pan: { x: number; s: number; e: number } | null = null;
+const sel = ref<{ a: number; b: number } | null>(null); // drag selection, ratios 0..1 across the box
+
+function ratioOf(e: PointerEvent): number {
+  const rect = box.value!.getBoundingClientRect();
+  return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+}
 function onDown(e: PointerEvent) {
   if (!props.zoomable || !box.value) return;
-  pan = { x: e.clientX, s: win.value.s, e: win.value.e };
+  const r = ratioOf(e);
+  sel.value = { a: r, b: r };
+  hover.value = null;
   box.value.setPointerCapture(e.pointerId);
 }
 function onMove(e: PointerEvent) {
-  if (pan && box.value) {
-    const span = pan.e - pan.s;
-    const rect = box.value.getBoundingClientRect();
-    const dxIdx = ((e.clientX - pan.x) / rect.width) * span;
-    const s = Math.max(0, Math.min(props.values.length - span, Math.round(pan.s - dxIdx)));
-    win.value = { s, e: s + span };
-    hover.value = null;
-    return;
-  }
+  if (!box.value) return;
+  if (sel.value) { sel.value = { a: sel.value.a, b: ratioOf(e) }; return; }
   const n = visible.value.length;
   if (!n) return;
-  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-  const ratio = (e.clientX - rect.left) / rect.width;
-  hover.value = Math.max(0, Math.min(n - 1, Math.round(ratio * (n - 1))));
+  hover.value = Math.max(0, Math.min(n - 1, Math.round(ratioOf(e) * (n - 1))));
 }
-function onUp() { pan = null; }
+function onUp() {
+  const s = sel.value;
+  sel.value = null;
+  if (!s) return;
+  const lo = Math.min(s.a, s.b), hi = Math.max(s.a, s.b);
+  const span = win.value.e - win.value.s;
+  const a0 = win.value.s + lo * span;
+  const a1 = win.value.s + hi * span;
+  if (hi - lo >= 0.03 && a1 - a0 >= 2) setWindow({ s: Math.round(a0), e: Math.round(a1) });
+}
+
+const selStyle = computed(() =>
+  sel.value
+    ? { left: Math.min(sel.value.a, sel.value.b) * 100 + "%", width: Math.abs(sel.value.b - sel.value.a) * 100 + "%" }
+    : null,
+);
 
 const hoverPoint = computed(() => (hover.value === null ? null : points.value[hover.value] ?? null));
 const hx = computed(() => hoverPoint.value?.x ?? 0);
@@ -83,8 +106,8 @@ const topPct = computed(() => (hoverPoint.value ? (hoverPoint.value.y / props.he
 <template>
   <div>
     <div
-      ref="box" class="relative" :class="zoomable ? 'cursor-ew-resize touch-none select-none' : ''"
-      @pointermove="onMove" @pointerleave="hover = null" @pointerdown="onDown" @pointerup="onUp" @wheel="onWheel"
+      ref="box" class="relative" :class="zoomable ? 'cursor-crosshair touch-none select-none' : ''"
+      @pointermove="onMove" @pointerleave="hover = null" @pointerdown="onDown" @pointerup="onUp"
     >
       <svg :viewBox="`0 0 ${W} ${height}`" preserveAspectRatio="none" class="block w-full" :style="{ height: height + 'px' }">
         <defs>
@@ -101,6 +124,8 @@ const topPct = computed(() => (hoverPoint.value ? (hoverPoint.value.y / props.he
         </template>
       </svg>
 
+      <div v-if="selStyle" class="pointer-events-none absolute inset-y-0 rounded-sm bg-[var(--accent)] opacity-20" :style="selStyle"></div>
+
       <template v-if="hoverPoint !== null && hover !== null">
         <div class="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
           :style="{ left: leftPct + '%', top: topPct + '%', background: 'var(--accent)', boxShadow: '0 0 0 3px var(--color-bg)' }" />
@@ -112,11 +137,11 @@ const topPct = computed(() => (hoverPoint.value ? (hoverPoint.value.y / props.he
       </template>
     </div>
 
-    <div v-if="zoomable && visibleLabels && visibleLabels.length" class="mt-1.5 flex items-center justify-between text-[10px] text-faint">
-      <span class="tabular">{{ visibleLabels[0] }}</span>
-      <button v-if="zoomed" class="font-semibold uppercase tracking-wide hover:text-text" @click="reset">Reset zoom</button>
-      <span v-else class="uppercase tracking-wide opacity-70">scroll to zoom · drag to pan</span>
-      <span class="tabular">{{ visibleLabels[visibleLabels.length - 1] }}</span>
+    <div v-if="zoomable" class="mt-1.5 flex items-center justify-between text-[10px] text-faint">
+      <span class="tabular">{{ visibleLabels ? visibleLabels[0] : "" }}</span>
+      <button v-if="zoomed" class="font-semibold uppercase tracking-wide transition-colors hover:text-text" @click="reset">Reset zoom</button>
+      <span v-else class="uppercase tracking-wide opacity-70">Ziehen zum Zoomen</span>
+      <span class="tabular">{{ visibleLabels ? visibleLabels[visibleLabels.length - 1] : "" }}</span>
     </div>
   </div>
 </template>

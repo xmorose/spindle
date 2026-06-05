@@ -65,7 +65,7 @@ const genreMax = computed(() => Math.max(1, ...genres.value.map((g) => g.plays))
       <section v-if="seriesValues.length">
         <div class="label mb-4">Across the year</div>
         <div class="rounded-2xl border border-line/70 bg-surface/40 p-5">
-          <LineArea :values="seriesValues" :height="170" />
+          <LineArea :values="seriesValues" :height="170" zoomable />
         </div>
       </section>
 

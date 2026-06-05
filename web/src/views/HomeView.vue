@@ -86,7 +86,7 @@ function playAll(startIndex: number) {
       <section>
         <div class="label mb-4">Listening over time</div>
         <div class="rounded-2xl border border-line/70 bg-surface/40 p-5">
-          <LineArea v-if="hasSeries" :values="playValues" :height="190" />
+          <LineArea v-if="hasSeries" :values="playValues" :height="190" zoomable />
           <div v-else class="grid h-[190px] place-items-center text-center text-sm text-faint">Not enough plays in this range yet. Try a longer window.</div>
         </div>
       </section>
