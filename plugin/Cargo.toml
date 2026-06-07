@@ -1,0 +1,15 @@
+[package]
+name = "spindle-collector"
+version = "0.1.0"
+edition = "2021"
+description = "Forwards Navidrome scrobbles to the Spindle stats backend"
+license = "GPL-3.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+nd-pdk = { path = "../../pdk/rust/nd-pdk" }
+extism-pdk = "1.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

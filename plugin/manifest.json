@@ -1,0 +1,41 @@
+{
+  "name": "Spindle Collector",
+  "author": "morose",
+  "version": "0.1.0",
+  "description": "Forwards Navidrome scrobbles to the Spindle stats backend",
+  "config": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "backend_url": {
+          "type": "string",
+          "title": "Backend URL",
+          "description": "Base URL of the Spindle backend ingest service (no trailing slash)",
+          "default": "http://spindle-backend:3590"
+        },
+        "shared_secret": {
+          "type": "string",
+          "title": "Shared Secret",
+          "description": "Must match the Spindle backend's INGEST_SECRET"
+        }
+      },
+      "required": ["backend_url", "shared_secret"]
+    },
+    "uiSchema": {
+      "type": "VerticalLayout",
+      "elements": [
+        { "type": "Control", "scope": "#/properties/backend_url" },
+        { "type": "Control", "scope": "#/properties/shared_secret" }
+      ]
+    }
+  },
+  "permissions": {
+    "http": {
+      "reason": "POST each scrobble to the Spindle backend ingest endpoint",
+      "requiredHosts": ["*"]
+    },
+    "users": {
+      "reason": "Receive scrobble events for users assigned to this plugin"
+    }
+  }
+}
