@@ -37,7 +37,7 @@ The accent recolors itself from the cover art, so each of these is a different s
 
 Three small pieces:
 
-- a Navidrome scrobble plugin that POSTs every play to the backend
+- a Navidrome scrobble plugin ([`plugin/`](plugin/)) that POSTs every play to the backend
 - the backend (Fastify + SQLite) that stores those plays and computes the stats on the fly. It reads your `navidrome.db` read-only for track/artist/album info and cover-art ids, and proxies the actual images and audio from Navidrome
 - the frontend (Vue 3 + Vite + Tailwind). The charts are all hand-rolled SVG, no chart library
 

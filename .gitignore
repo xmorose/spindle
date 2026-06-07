@@ -12,3 +12,7 @@ LOGIN-PASSWORD.txt
 
 # Generated import reports
 import-report/
+
+# Rust plugin build output
+plugin/target/
+*.ndp
