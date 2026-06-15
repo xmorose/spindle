@@ -139,12 +139,13 @@ export function renderSharePage(shell: string | null, s: ShareData, token: strin
   const title = `${esc(heading(s))} · Spindle`;
   if (shell) {
     return shell
-      .replace("<title>web</title>", `<title>${title}</title>`)
+      .replace("<title>Spindle</title>", `<title>${title}</title>`)
       .replace("</head>", `${extras}</head>`)
       .replace('<div id="app"></div>', `<div id="app">${body}</div>`);
   }
   return `<!doctype html><html lang="de"><head><meta charset="utf-8" />` +
-    `<meta name="viewport" content="width=device-width,initial-scale=1" /><title>${title}</title>` +
+    `<meta name="viewport" content="width=device-width,initial-scale=1" />` +
+    `<link rel="icon" type="image/svg+xml" href="/favicon.svg" /><title>${title}</title>` +
     `${extras}</head><body>${body}</body></html>`;
 }
 
