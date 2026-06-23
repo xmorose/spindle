@@ -19,6 +19,11 @@ export async function bootApp(env?: Record<string, string | undefined>): Promise
   const store = new EventStore(statsDb);
   importBaseline(statsDb, store, reader);
 
+  const knownUsers = (statsDb.prepare("SELECT DISTINCT user FROM play_events").all() as { user: string }[]).map((r) => r.user);
+  if (knownUsers.length && !knownUsers.includes(cfg.defaultUser)) {
+    console.warn(`[spindle] DEFAULT_USER='${cfg.defaultUser}' has no plays — the dashboard will be empty. Users with data: ${knownUsers.join(", ")}. Set DEFAULT_USER to your Navidrome username.`);
+  }
+
   return buildApp({
     statsDb,
     reader,
