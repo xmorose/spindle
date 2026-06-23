@@ -1,17 +1,17 @@
-# Spindle — example deployment. One image serves the Vue SPA and the /api backend.
+# Spindle — example deployment. Pulls the prebuilt image; no clone or build needed.
 #
-#   1. git clone the repo and cd into it
-#   2. cp docker-compose.example.yml docker-compose.yml
-#   3. cp backend/.env.example spindle.env   and fill in the secrets
-#   4. edit the two CHANGE-ME lines below
-#   5. docker compose up -d --build
+#   1. Save this as docker-compose.yml (or paste it into your stack manager).
+#   2. Put your secrets in spindle.env next to it (see backend/.env.example / docs/DEPLOY.md).
+#   3. Edit the two CHANGE-ME lines below.
+#   4. docker compose up -d
 #
+# To build from source instead, uncomment `build: .` below and run with --build.
 # Spindle joins your existing Navidrome network so the scrobble plugin can reach
 # it by name, and so it can read navidrome.db and proxy cover art + audio.
 services:
   spindle-backend:
-    build: .
-    image: spindle-backend:latest
+    image: ghcr.io/xmorose/spindle:latest
+    # build: .                            # build from source instead of pulling
     container_name: spindle-backend       # plugin reaches it at http://spindle-backend:3590
     restart: unless-stopped
     env_file:
