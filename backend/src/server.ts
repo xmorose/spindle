@@ -9,6 +9,7 @@ import type { FastifyInstance } from "fastify";
 export async function bootApp(env?: Record<string, string | undefined>): Promise<FastifyInstance> {
   const cfg = loadConfig(env);
   if (!cfg.auth) console.warn("[spindle] AUTH DISABLED — set SPINDLE_PASSWORD_HASH and SESSION_SECRET to require login");
+  if (!cfg.cover) console.warn("[spindle] cover/stream proxy DISABLED — set NAVIDROME_URL/USER/PASSWORD to enable cover art and the in-app player");
   const statsDb = openStatsDb(cfg.statsDbPath);
   const reader =
     cfg.navidromeDbPath === ":memory:"

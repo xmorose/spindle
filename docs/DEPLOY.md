@@ -28,7 +28,7 @@ services:
       COVER_CACHE_DIR: /app/data/covers
     volumes:
       - spindle-data:/app/data                       # stats.db + cover cache
-      - /path/to/navidrome/data:/nddata:ro           # navidrome.db, read-only
+      - /path/to/navidrome/data:/nddata               # navidrome.db (opened read-only at the connection level)
     ports:
       - "127.0.0.1:3590:3590"            # publish to localhost; the proxy terminates TLS
     networks: [navidrome_default]
@@ -62,6 +62,8 @@ Notes:
 - **`TRUST_PROXY=true`** makes `req.ip` the real client (the login rate limiter keys on it). Only set it when actually behind a proxy; on a direct bind it would let clients spoof `X-Forwarded-For`.
 - **`AUTH_COOKIE_SECURE=true`** requires HTTPS (the proxy provides it).
 - Omit `SPINDLE_PASSWORD_HASH` to run without the login gate (local only, never on a public bind).
+- **`DEFAULT_USER` must match your Navidrome login name.** The dashboard only queries this user, so a wrong or unset value shows an empty dashboard with no error.
+- **Mount Navidrome's data dir read-write.** Spindle opens the database read-only at the connection level, but SQLite needs to manage the WAL sidecar files, so a `:ro` filesystem mount can fail to open or return stale data.
 
 ## Reverse proxy + TLS
 

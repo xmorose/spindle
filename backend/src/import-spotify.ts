@@ -25,7 +25,7 @@ function parseArgs(argv: string[]): {
     historyDir,
     commit: args.includes("--commit"),
     threshold: Number(flag("threshold", "30000")),
-    user: flag("user", "morose"),
+    user: flag("user", process.env["DEFAULT_USER"] ?? ""),
     out: flag("out", "./import-report"),
     navidrome: flag("navidrome", "") || null,
     stats: flag("stats", "") || null,
@@ -51,7 +51,12 @@ async function main() {
   const cfg = parseArgs(process.argv);
 
   if (!cfg.historyDir) {
-    console.error("Usage: import-spotify <historyDir> [--commit] [--threshold=30000] [--user=morose] [--out=./import-report] [--navidrome=<path>] [--stats=<path>]");
+    console.error("Usage: import-spotify <historyDir> [--commit] [--threshold=30000] [--user=<navidrome-username>] [--out=./import-report] [--navidrome=<path>] [--stats=<path>]");
+    process.exit(1);
+  }
+
+  if (!cfg.user) {
+    console.error("Error: user required. Use --user=<navidrome-username> or set DEFAULT_USER env var.");
     process.exit(1);
   }
 

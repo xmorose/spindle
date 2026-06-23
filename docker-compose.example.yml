@@ -21,12 +21,13 @@ services:
       STATS_DB_PATH: /app/data/stats.db
       COVER_CACHE_DIR: /app/data/covers
       NAVIDROME_DB_PATH: /nddata/navidrome.db
+      DEFAULT_USER: your-navidrome-username
     ports:
       - "127.0.0.1:3590:3590"             # localhost only; terminate TLS in a proxy in front
     volumes:
       - spindle-data:/app/data                          # stats.db + cover cache
       # CHANGE-ME: your Navidrome data dir (the folder that contains navidrome.db)
-      - /path/to/navidrome/data:/nddata:ro
+      - /path/to/navidrome/data:/nddata
     networks:
       - navidrome
 
