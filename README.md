@@ -49,6 +49,14 @@ The ingest side is just a `POST /ingest` with a shared secret, so if you don't w
 
 It's one Docker image: the frontend gets built and served together with the API. The easy path is a `docker compose` service sitting next to your Navidrome container, with your `navidrome.db` mounted read-only and a shared secret between the plugin and the backend.
 
+From a clone of this repo:
+
+```bash
+cp docker-compose.example.yml docker-compose.yml   # then edit the two CHANGE-ME lines
+cp backend/.env.example spindle.env                # then fill in the secrets
+docker compose up -d --build
+```
+
 The full walkthrough (env vars, reverse proxy, Let's Encrypt) is in [docs/DEPLOY.md](docs/DEPLOY.md). The short version of what you need:
 
 - `navidrome.db` mounted read-only (for metadata + cover art)

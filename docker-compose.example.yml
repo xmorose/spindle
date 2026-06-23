@@ -1,0 +1,41 @@
+# Spindle — example deployment. One image serves the Vue SPA and the /api backend.
+#
+#   1. git clone the repo and cd into it
+#   2. cp docker-compose.example.yml docker-compose.yml
+#   3. cp backend/.env.example spindle.env   and fill in the secrets
+#   4. edit the two CHANGE-ME lines below
+#   5. docker compose up -d --build
+#
+# Spindle joins your existing Navidrome network so the scrobble plugin can reach
+# it by name, and so it can read navidrome.db and proxy cover art + audio.
+services:
+  spindle-backend:
+    build: .
+    image: spindle-backend:latest
+    container_name: spindle-backend       # plugin reaches it at http://spindle-backend:3590
+    restart: unless-stopped
+    env_file:
+      - spindle.env
+    environment:
+      WEB_DIR: /app/web
+      STATS_DB_PATH: /app/data/stats.db
+      COVER_CACHE_DIR: /app/data/covers
+      NAVIDROME_DB_PATH: /nddata/navidrome.db
+    ports:
+      - "127.0.0.1:3590:3590"             # localhost only; terminate TLS in a proxy in front
+    volumes:
+      - spindle-data:/app/data                          # stats.db + cover cache
+      # CHANGE-ME: your Navidrome data dir (the folder that contains navidrome.db)
+      - /path/to/navidrome/data:/nddata:ro
+    networks:
+      - navidrome
+
+volumes:
+  spindle-data:
+
+networks:
+  navidrome:
+    # CHANGE-ME: the network your Navidrome container is already on. Find it with:
+    #   docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' navidrome
+    name: navidrome_default
+    external: true

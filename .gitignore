@@ -10,6 +10,9 @@ dist/
 spindle.env
 LOGIN-PASSWORD.txt
 
+# Your real compose lives only on the serv self-hosters copy docker-compose.example.ymler;
+docker-compose.yml
+
 # Generated import reports
 import-report/
 

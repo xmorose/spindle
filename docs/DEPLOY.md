@@ -12,7 +12,7 @@ docker build -t spindle-backend:latest .
 
 ## Compose
 
-Run it on the same Docker network as Navidrome so the plugin can reach it by service name, and bind-mount Navidrome's data directory read-only for `navidrome.db`.
+A ready-to-edit version of the file below ships as [`docker-compose.example.yml`](../docker-compose.example.yml) — copy it to `docker-compose.yml` and change the two marked lines. Run it on the same Docker network as Navidrome so the plugin can reach it by service name, and bind-mount Navidrome's data directory read-only for `navidrome.db`.
 
 ```yaml
 services:
@@ -39,7 +39,6 @@ networks:
     external: true
 volumes:
   spindle-data:
-    external: true
 ```
 
 ## Environment (`spindle.env`, mode 600, never committed)
