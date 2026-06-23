@@ -35,7 +35,12 @@ export function buildApp(deps: Deps): FastifyInstance {
   const defaultUser = deps.defaultUser ?? "morose";
 
   const now = deps.nowProvider ?? (() => Math.floor(Date.now() / 1000));
-  if (deps.auth) registerAuth(app, deps.auth, now);
+  if (deps.auth) {
+    registerAuth(app, deps.auth, now);
+  } else {
+    app.get("/api/auth/me", async () => ({ authenticated: true }));
+    app.post("/api/auth/logout", async () => ({ authenticated: true }));
+  }
 
   app.get("/health", async () => ({ status: "ok" }));
   registerIngest(app, { store, cache, secret: deps.ingestSecret, defaultUser });
