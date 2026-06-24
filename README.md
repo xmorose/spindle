@@ -47,15 +47,17 @@ The ingest side is just a `POST /ingest` with a shared secret, so if you don't w
 
 ## Running it
 
-It's one Docker image: the frontend gets built and served together with the API. The easy path is a `docker compose` service sitting next to your Navidrome container, with your `navidrome.db` mounted (Spindle only ever reads it) and a shared secret between the plugin and the backend.
+It's one Docker image: the frontend gets built and served together with the API, and I publish it to `ghcr.io/xmorose/spindle` so you don't have to clone the repo or build anything. The easy path is a `docker compose` service sitting next to your Navidrome container, with your `navidrome.db` mounted (Spindle only ever reads it) and a shared secret between the plugin and the backend.
 
-From a clone of this repo:
+You really just need two files next to each other — the example compose and the env template (copy them out of the repo, or paste them straight into something like Portainer):
 
 ```bash
-cp docker-compose.example.yml docker-compose.yml   # then edit the two CHANGE-ME lines
-cp backend/.env.example spindle.env                # then fill in the secrets
-docker compose up -d --build
+cp docker-compose.example.yml docker-compose.yml   # edit the two CHANGE-ME lines
+cp backend/.env.example spindle.env                # fill in the secrets
+docker compose up -d
 ```
+
+If you'd rather build it yourself, uncomment `build: .` in the compose and run with `--build`.
 
 The full walkthrough (env vars, reverse proxy, Let's Encrypt) is in [docs/DEPLOY.md](docs/DEPLOY.md). The short version of what you need:
 

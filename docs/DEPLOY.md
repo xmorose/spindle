@@ -4,7 +4,13 @@ Spindle ships as a single Docker image: the root `Dockerfile` builds the Vue SPA
 
 ## Image
 
-The build is multi-stage (web build, then the backend with the built SPA copied in). The backend serves the SPA from `WEB_DIR`.
+There's a prebuilt image on GHCR for amd64 and arm64 — just pull it:
+
+```bash
+docker pull ghcr.io/xmorose/spindle:latest
+```
+
+Or build it yourself; it's multi-stage (web build, then the backend with the built SPA copied in), and the backend serves the SPA from `WEB_DIR`:
 
 ```bash
 docker build -t spindle-backend:latest .
@@ -12,14 +18,13 @@ docker build -t spindle-backend:latest .
 
 ## Compose
 
-A ready-to-edit version of the file below ships as [`docker-compose.example.yml`](../docker-compose.example.yml) — copy it to `docker-compose.yml` and change the two marked lines. Run it on the same Docker network as Navidrome so the plugin can reach it by service name, and bind-mount Navidrome's data directory read-only for `navidrome.db`.
+A ready-to-edit version of the file below ships as [`docker-compose.example.yml`](../docker-compose.example.yml) — copy it to `docker-compose.yml` and change the two marked lines. Run it on the same Docker network as Navidrome so the plugin can reach it by service name, and bind-mount Navidrome's data directory for `navidrome.db` (Spindle opens it read-only at the connection level).
 
 ```yaml
 services:
   spindle-backend:
-    image: spindle-backend:latest
-    container_name: spindle-backend      # service name == container name so the
-    build: .                             # plugin's http://spindle-backend:3590 resolves
+    image: ghcr.io/xmorose/spindle:latest   # or `build: .` to build from source
+    container_name: spindle-backend         # so the plugin can reach http://spindle-backend:3590
     env_file: ./spindle.env
     environment:
       WEB_DIR: /app/web
