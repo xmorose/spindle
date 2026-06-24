@@ -99,7 +99,7 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
       <div class="flex flex-none items-center gap-1">
         <span class="tabular mr-1 text-[12.5px] font-semibold text-muted">{{ row.valueLabel ?? row.value }}</span>
         <template v-if="playable">
-          <button v-if="showShare" class="rounded p-1 text-faint transition-colors hover:text-text" @click.stop="share(row)" aria-label="Teilen">
+          <button v-if="showShare" class="rounded p-1 text-faint transition-colors hover:text-text" @click.stop="share(row)" aria-label="Share">
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.6" y1="13.5" x2="15.4" y2="17.5" /><line x1="15.4" y1="6.5" x2="8.6" y2="10.5" /></svg>
           </button>
           <button v-if="showQueueActions" class="rounded p-1 text-faint transition-colors hover:text-text" @click.stop="addQueue(row)" aria-label="Add to queue">

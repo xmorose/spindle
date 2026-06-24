@@ -78,8 +78,8 @@ onUnmounted(() => player.dispose());
     <div v-if="loading" class="h-9 w-9 animate-spin rounded-full border-2 border-line border-t-[var(--accent)]" />
 
     <div v-else-if="expired || !data" class="text-center">
-      <div class="text-2xl font-black">Dieser Link ist abgelaufen</div>
-      <p class="mt-2 text-sm text-faint">Geteilte Links gelten 24 Stunden.</p>
+      <div class="text-2xl font-black">This link has expired</div>
+      <p class="mt-2 text-sm text-faint">Shared links expire after 24 hours.</p>
     </div>
 
     <div v-else class="flex w-full max-w-md flex-col items-center">
@@ -143,7 +143,7 @@ onUnmounted(() => player.dispose());
       </div>
 
       <div class="mt-10 flex flex-col items-center gap-1">
-        <span class="text-[11px] text-faint">Läuft in {{ hoursLeft }} h ab</span>
+        <span class="text-[11px] text-faint">Expires in {{ hoursLeft }}h</span>
         <span class="text-xs font-black tracking-tight text-muted">Spindle</span>
       </div>
     </div>

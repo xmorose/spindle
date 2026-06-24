@@ -16,18 +16,18 @@ export async function createShareLink(req: CreateShareRequest): Promise<string |
   if (!req.trackIds.length) return null;
   try {
     const { token } = await api.createShare(req);
-    if (!token) { flash("Teilen fehlgeschlagen", "error"); return null; }
+    if (!token) { flash("Share failed", "error"); return null; }
     const url = `${window.location.origin}/s/${token}`;
     try {
       await navigator.clipboard.writeText(url);
-      flash("Link kopiert · gilt 24 h", "ok");
+      flash("Link copied · expires in 24h", "ok");
     } catch {
       // Clipboard blocked (e.g. no HTTPS) — show the link so it can be copied manually.
       flash(url, "ok");
     }
     return url;
   } catch {
-    flash("Teilen fehlgeschlagen", "error");
+    flash("Share failed", "error");
     return null;
   }
 }

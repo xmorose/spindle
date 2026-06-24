@@ -147,7 +147,7 @@ function shareQueue() {
 
         <button
           class="flex-none rounded-full p-1.5 text-muted transition-colors hover:text-text"
-          @click="shareCurrent" aria-label="Diesen Song teilen"
+          @click="shareCurrent" aria-label="Share this song"
         >
           <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
@@ -170,7 +170,7 @@ function shareQueue() {
           <div class="flex items-center justify-between border-b border-line/60 px-4 py-2.5">
             <span class="label">Queue · {{ p.queue.length }}</span>
             <div class="flex items-center gap-2">
-              <button class="text-xs font-semibold text-faint transition-colors hover:text-text" @click="shareQueue">Teilen</button>
+              <button class="text-xs font-semibold text-faint transition-colors hover:text-text" @click="shareQueue">Share</button>
               <button class="text-xs font-semibold text-faint transition-colors hover:text-text" @click="p.stop()">Clear</button>
             </div>
           </div>

@@ -98,7 +98,7 @@ function fallbackBody(s: ShareData, token: string, nowSec: number): string {
   const artist = s.tracks.length === 1 ? esc(cleanArtist(s.tracks[0].artist)) : esc(subheading(s));
   return `<div id="share-fb"><div class="card">${vinyl(s, token)}<h1>${title}</h1>` +
     `<div class="artist">${artist}</div>${player}` +
-    `<div class="foot"><span class="exp">Läuft in ${hoursLeft(s.expiresAt, nowSec)} h ab</span>` +
+    `<div class="foot"><span class="exp">Expires in ${hoursLeft(s.expiresAt, nowSec)}h</span>` +
     `<span class="brand">Spindle</span></div></div></div>`;
 }
 
@@ -143,7 +143,7 @@ export function renderSharePage(shell: string | null, s: ShareData, token: strin
       .replace("</head>", `${extras}</head>`)
       .replace('<div id="app"></div>', `<div id="app">${body}</div>`);
   }
-  return `<!doctype html><html lang="de"><head><meta charset="utf-8" />` +
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8" />` +
     `<meta name="viewport" content="width=device-width,initial-scale=1" />` +
     `<link rel="icon" type="image/svg+xml" href="/favicon.svg" /><title>${title}</title>` +
     `${extras}</head><body>${body}</body></html>`;
@@ -156,9 +156,9 @@ export function renderExpiredPage(): string {
     `h1{font-size:24px;font-weight:800;margin:0 0 8px;}` +
     `p{font-size:14px;margin:0;color:#9a9389;color:oklch(0.67 0.014 72);}` +
     `.brand{margin-top:28px;font-size:12px;font-weight:800;color:#b9b2a7;color:oklch(0.80 0.012 78);}`;
-  return `<!doctype html><html lang="de"><head><meta charset="utf-8" />` +
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8" />` +
     `<meta name="viewport" content="width=device-width,initial-scale=1" />` +
-    `<title>Link abgelaufen · Spindle</title><meta name="theme-color" content="#221f1c" />` +
-    `<style>${style}</style></head><body><div><h1>Dieser Link ist abgelaufen</h1>` +
-    `<p>Geteilte Links gelten 24 Stunden.</p><div class="brand">Spindle</div></div></body></html>`;
+    `<title>Link expired · Spindle</title><meta name="theme-color" content="#221f1c" />` +
+    `<style>${style}</style></head><body><div><h1>This link has expired</h1>` +
+    `<p>Shared links expire after 24 hours.</p><div class="brand">Spindle</div></div></body></html>`;
 }

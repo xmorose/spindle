@@ -116,7 +116,7 @@ const relatedRows = computed<RankedRow[]>(() =>
             v-if="canShare"
             class="rounded-full border border-line px-4 py-2 text-sm font-semibold text-muted transition-colors hover:bg-surface hover:text-text"
             @click="shareEntity"
-          >Teilen</button>
+          >Share</button>
         </div>
       </header>
 
