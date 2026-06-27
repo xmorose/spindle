@@ -140,7 +140,7 @@ const topPct = computed(() => (hoverPoint.value ? (hoverPoint.value.y / props.he
     <div v-if="zoomable" class="mt-1.5 flex items-center justify-between text-[10px] text-faint">
       <span class="tabular">{{ visibleLabels ? visibleLabels[0] : "" }}</span>
       <button v-if="zoomed" class="font-semibold uppercase tracking-wide transition-colors hover:text-text" @click="reset">Reset zoom</button>
-      <span v-else class="uppercase tracking-wide opacity-70">Ziehen zum Zoomen</span>
+      <span v-else class="uppercase tracking-wide opacity-70">Drag to zoom</span>
       <span class="tabular">{{ visibleLabels ? visibleLabels[visibleLabels.length - 1] : "" }}</span>
     </div>
   </div>
