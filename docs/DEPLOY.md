@@ -51,7 +51,7 @@ volumes:
 ```
 INGEST_SECRET=<shared with the Navidrome plugin>
 SESSION_SECRET=<random 32+ bytes>
-SPINDLE_PASSWORD_HASH=<from `npm run hash-password`>
+SPINDLE_PASSWORD_HASH=<generate — see notes>
 DEFAULT_USER=<your Navidrome username>
 TRUST_PROXY=true
 AUTH_COOKIE_SECURE=true
@@ -64,6 +64,7 @@ NAVIDROME_PASSWORD=<password>
 Notes:
 
 - **Hash format is colon-separated** (`scrypt:salt:hash`, not `$`-separated) on purpose. docker-compose interpolates `env_file` values and would mangle a `$`. Keep it `$`-free.
+- **Generating the hash needs no checkout:** `docker run --rm ghcr.io/xmorose/spindle:latest node dist/auth/hash-cli.js "your passphrase"` prints the `scrypt:...` hash — paste the whole line in. (Or `npm run hash-password -- "..."` from a clone.) `SESSION_SECRET` must be set too, or it won't boot.
 - **`TRUST_PROXY=true`** makes `req.ip` the real client (the login rate limiter keys on it). Only set it when actually behind a proxy; on a direct bind it would let clients spoof `X-Forwarded-For`.
 - **`AUTH_COOKIE_SECURE=true`** requires HTTPS (the proxy provides it).
 - Omit `SPINDLE_PASSWORD_HASH` to run without the login gate (local only, never on a public bind).

@@ -64,7 +64,7 @@ The full walkthrough (env vars, reverse proxy, Let's Encrypt) is in [docs/DEPLOY
 - your Navidrome data dir mounted (Spindle opens the db read-only at the connection level) for metadata + cover art
 - `DEFAULT_USER` set to your Navidrome username — the dashboard only shows that user's plays
 - the scrobble plugin installed in Navidrome, pointed at the backend with a matching `INGEST_SECRET`
-- a login password (there's a `hash-password` script to generate the hash)
+- a login password — generate the hash with `docker run --rm ghcr.io/xmorose/spindle:latest node dist/auth/hash-cli.js "your passphrase"` (no clone needed; or `npm run hash-password` from a checkout)
 - `NAVIDROME_URL` / user / password if you want cover art and the in-app player
 
 Local dev is just `npm install` + `npm run dev` in `backend/` and `web/` (Vite proxies `/api` to the backend). You'll need Node 20+ and a copy of a `navidrome.db`.
