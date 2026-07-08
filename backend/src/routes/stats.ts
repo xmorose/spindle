@@ -2,6 +2,7 @@
 import type { Database } from "better-sqlite3";
 import type { NavidromeReader } from "../db/navidrome-db.js";
 import type { MemoCache } from "../cache.js";
+import type { EventStore } from "../events/store.js";
 import { resolveTimeframe, type TimeframeQuery } from "../stats/timeframe.js";
 import { topArtists, topAlbums, topTracks, topGenres, type Sort } from "../stats/tops.js";
 import { computeTotals } from "../stats/totals.js";
@@ -13,6 +14,7 @@ import { recentPlays } from "../stats/recent.js";
 interface Opts {
   statsDb: Database;
   reader: NavidromeReader;
+  store: EventStore;
   cache: MemoCache;
   now: () => number;
   sessionGapSeconds: number;
@@ -83,5 +85,8 @@ export function registerStats(app: FastifyInstance, o: Opts): void {
     const term = String((req.query as { q?: string }).q ?? "").trim();
     if (!term) return { artists: [], albums: [], tracks: [] };
     return o.cache.get(key(["search", term]), () => o.reader.search(term, 8));
+  });
+  app.get("/api/users", async () => {
+    return { users: o.store.users(), default: o.defaultUser };
   });
 }

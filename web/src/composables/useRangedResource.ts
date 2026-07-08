@@ -1,6 +1,7 @@
 import { ref, watch, type Ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useRangeStore } from "@/stores/range";
+import { useUserStore } from "@/stores/user";
 import type { Range } from "@/api/types";
 
 export interface RangedResource<T> {
@@ -12,6 +13,7 @@ export interface RangedResource<T> {
 
 export function useRangedResource<T>(fetcher: (range: Range) => Promise<T>): RangedResource<T> {
   const { range } = storeToRefs(useRangeStore());
+  const { user } = storeToRefs(useUserStore());
   const data = ref<T | null>(null) as Ref<T | null>;
   const loading = ref(true);
   const error = ref<unknown>(null);
@@ -28,6 +30,6 @@ export function useRangedResource<T>(fetcher: (range: Range) => Promise<T>): Ran
     }
   }
 
-  watch(range, (r) => void run(r), { immediate: true });
+  watch([range, user], () => void run(range.value), { immediate: true });
   return { data, loading, error, reload: () => void run(range.value) };
 }

@@ -48,6 +48,7 @@ export function buildApp(deps: Deps): FastifyInstance {
   registerStats(app, {
     statsDb: deps.statsDb,
     reader: deps.reader,
+    store,
     cache,
     now,
     sessionGapSeconds: deps.sessionGapMinutes * 60,

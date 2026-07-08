@@ -50,4 +50,11 @@ export class EventStore {
       .get();
     return !!row;
   }
+
+  users(): string[] {
+    const rows = this.db
+      .prepare("SELECT DISTINCT user FROM play_events ORDER BY user")
+      .all() as { user: string }[];
+    return rows.map((r) => r.user);
+  }
 }

@@ -1,6 +1,6 @@
 import type {
   RangeParams, Totals, ArtistTop, AlbumTop, TrackTop, GenreTop, HeatCell, TimePoint, Session, RecentPlay, SearchResult, EntityDetail, AuthStatus,
-  CreateShareRequest, CreateShareResponse, PublicShare, AlbumTrack,
+  CreateShareRequest, CreateShareResponse, PublicShare, AlbumTrack, UsersResponse,
 } from "./types";
 
 export class ApiError extends Error {
@@ -11,9 +11,13 @@ export class AuthError extends ApiError {
   constructor() { super(401, "unauthorized"); this.name = "AuthError"; }
 }
 
+let currentUser: string | undefined;
+export function setCurrentUser(u?: string): void { currentUser = u || undefined; }
+
 function qs(params: RangeParams = {}): string {
   const sp = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null) sp.set(k, String(v));
+  if (currentUser && !sp.has("user")) sp.set("user", currentUser);
   const s = sp.toString();
   return s ? `?${s}` : "";
 }
@@ -53,6 +57,7 @@ export const api = {
   search: (q: string) => get<SearchResult>(`/search?q=${encodeURIComponent(q)}`),
   entity: (kind: string, id: string, p?: RangeParams) => get<EntityDetail>(`/entity/${kind}/${encodeURIComponent(id)}${qs(p)}`),
   albumTracks: (id: string) => get<AlbumTrack[]>(`/album/${encodeURIComponent(id)}/tracks`),
+  users: () => get<UsersResponse>("/users"),
   me: () => get<AuthStatus>("/auth/me"),
   login: (password: string) => post<AuthStatus>("/auth/login", { password }),
   logout: () => post<AuthStatus>("/auth/logout", {}),

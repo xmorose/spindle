@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
+import { storeToRefs } from "pinia";
 import { api } from "@/api/client";
+import { useUserStore } from "@/stores/user";
 import { useCoverAccent } from "@/composables/useCoverAccent";
 import { formatNumber, formatDuration, cleanArtist } from "@/lib/format";
 import type { Totals, ArtistTop, TrackTop, GenreTop, TimePoint } from "@/api/types";
@@ -15,8 +17,10 @@ const tracks = ref<TrackTop[]>([]);
 const genres = ref<GenreTop[]>([]);
 const series = ref<TimePoint[]>([]);
 const loading = ref(true);
+const { user } = storeToRefs(useUserStore());
 
-onMounted(async () => {
+async function load() {
+  loading.value = true;
   const [t, ar, tr, ge, ts] = await Promise.all([
     api.totals({ range: "year" }),
     api.topArtists({ range: "year", limit: 5 }),
@@ -26,7 +30,8 @@ onMounted(async () => {
   ]);
   totals.value = t; artists.value = ar; tracks.value = tr; genres.value = ge; series.value = ts;
   loading.value = false;
-});
+}
+watch(user, load, { immediate: true });
 
 const isEmpty = computed(() => !loading.value && (totals.value?.plays ?? 0) === 0);
 const topTrack = computed(() => tracks.value[0] ?? null);

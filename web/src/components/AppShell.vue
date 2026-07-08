@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import SideNav from "./SideNav.vue";
 import RangeBar from "./RangeBar.vue";
+import UserSwitcher from "./UserSwitcher.vue";
 import PlayerBar from "./PlayerBar.vue";
 import ShareToast from "@/components/ShareToast.vue";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { useRouter, useRoute } from "vue-router";
 
 const auth = useAuthStore();
+const userStore = useUserStore();
 const router = useRouter();
 const route = useRoute();
+onMounted(() => void userStore.init());
 const fixedLabel = computed(() => (route.meta.fixedRange as string | undefined) ?? null);
 const navOpen = ref(false);
 watch(() => route.fullPath, () => { navOpen.value = false; });
@@ -38,9 +42,12 @@ async function logout() {
           <RangeBar v-if="!fixedLabel" />
           <span v-else class="label truncate">{{ fixedLabel }}</span>
         </div>
-        <button
-          class="flex-none rounded-lg border border-line px-3 py-1.5 text-[13px] font-semibold text-muted transition-colors duration-150 hover:bg-surface hover:text-text"
-          @click="logout">Sign out</button>
+        <div class="flex flex-none items-center gap-2.5">
+          <UserSwitcher />
+          <button
+            class="rounded-lg border border-line px-3 py-1.5 text-[13px] font-semibold text-muted transition-colors duration-150 hover:bg-surface hover:text-text"
+            @click="logout">Sign out</button>
+        </div>
       </header>
       <main class="min-w-0 flex-1 px-4 pb-28 pt-7 sm:px-8"><RouterView /></main>
     </div>

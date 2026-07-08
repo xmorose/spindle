@@ -24,7 +24,7 @@ const isEmpty = computed(() => !res.loading.value && sessions.value.length === 0
         <span class="tabular w-6 text-right text-xs font-bold text-faint">{{ i + 1 }}</span>
         <div class="flex-1">
           <div class="text-sm font-semibold">{{ formatDate(s.startedAt) }}</div>
-          <div class="tabular text-xs text-faint">{{ s.trackCount }} tracks</div>
+          <div class="tabular text-xs text-faint">{{ s.trackCount }} {{ s.trackCount === 1 ? 'track' : 'tracks' }}</div>
         </div>
         <span class="tabular text-sm font-bold" :style="{ color: 'var(--accent)' }">{{ formatDuration(s.seconds) }}</span>
       </div>

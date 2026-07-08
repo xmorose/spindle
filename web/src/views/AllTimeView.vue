@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
+import { storeToRefs } from "pinia";
 import { api } from "@/api/client";
+import { useUserStore } from "@/stores/user";
 import { formatNumber, formatDuration, cleanArtist } from "@/lib/format";
 import type { Totals } from "@/api/types";
 import StatTile from "@/components/StatTile.vue";
@@ -9,8 +11,9 @@ import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 const totals = ref<Totals | null>(null);
 const artistRows = ref<RankedRow[]>([]);
 const trackRows = ref<RankedRow[]>([]);
+const { user } = storeToRefs(useUserStore());
 
-onMounted(async () => {
+async function load() {
   const [t, ar, tr] = await Promise.all([
     api.totals({ range: "all" }),
     api.topArtists({ range: "all", limit: 10 }),
@@ -19,7 +22,8 @@ onMounted(async () => {
   totals.value = t;
   artistRows.value = ar.map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: a.plays, coverId: a.coverArt, to: `/artists/${a.artistId}` }));
   trackRows.value = tr.map((x) => ({ id: x.id, title: x.title, subtitle: cleanArtist(x.artist), value: x.plays, coverId: x.hasCoverArt ? x.id : null, to: `/tracks/${x.id}`, artistId: x.artistId }));
-});
+}
+watch(user, load, { immediate: true });
 
 const tiles = computed(() => totals.value ? [
   { label: "Total plays", value: formatNumber(totals.value.plays) },

@@ -3,6 +3,7 @@ import { ref, computed, watch } from "vue";
 import { api } from "@/api/client";
 import { storeToRefs } from "pinia";
 import { useRangeStore } from "@/stores/range";
+import { useUserStore } from "@/stores/user";
 import { formatDuration, cleanArtist } from "@/lib/format";
 import type { Sort } from "@/api/types";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
@@ -19,6 +20,7 @@ const sort = ref<Sort>("plays");
 const limitN = ref(50);
 const q = ref("");
 const { range } = storeToRefs(useRangeStore());
+const { user } = storeToRefs(useUserStore());
 
 const rows = ref<RankedRow[]>([]);
 const loading = ref(true);
@@ -48,7 +50,7 @@ async function load() {
   loading.value = false;
 }
 
-watch([kind, sort, range, limitN], load, { immediate: true });
+watch([kind, sort, range, limitN, user], load, { immediate: true });
 
 const rowKind = computed<"track" | "album" | "artist">(() =>
   kind.value === "tracks" ? "track" : kind.value === "albums" ? "album" : "artist",

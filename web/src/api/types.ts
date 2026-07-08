@@ -25,6 +25,7 @@ export interface EntityDetail {
   history: { day: number; plays: number }[]; related: RelatedTrack[];
 }
 export interface AuthStatus { authenticated: boolean; }
+export interface UsersResponse { users: string[]; default: string; }
 
 export type ShareKind = "track" | "album" | "queue";
 

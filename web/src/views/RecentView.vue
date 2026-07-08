@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
+import { storeToRefs } from "pinia";
 import { api } from "@/api/client";
+import { useUserStore } from "@/stores/user";
 import { cleanArtist, formatTimeOfDay, formatDayLabel } from "@/lib/format";
 import type { RecentPlay } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
@@ -10,10 +12,13 @@ import Spinner from "@/components/ui/Spinner.vue";
 const player = usePlayerStore();
 const plays = ref<RecentPlay[]>([]);
 const loading = ref(true);
+const { user } = storeToRefs(useUserStore());
 
-onMounted(async () => {
+async function load() {
+  loading.value = true;
   try { plays.value = await api.recent({ limit: 200 }); } finally { loading.value = false; }
-});
+}
+watch(user, load, { immediate: true });
 
 const groups = computed(() => {
   const out: { label: string; items: { play: RecentPlay; i: number }[] }[] = [];

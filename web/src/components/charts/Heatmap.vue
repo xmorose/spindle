@@ -18,7 +18,7 @@ function opacity(v: number) { return v === 0 ? 0.06 : 0.18 + 0.82 * (v / max.val
         <div v-for="(v, h) in row" :key="h" data-cell
           class="h-3.5 w-3.5 rounded-[3px] transition-opacity duration-500 ease-out motion-reduce:transition-none"
           :style="{ background: 'var(--accent)', opacity: opacity(v) }"
-          :title="`${days[d]} ${String(h).padStart(2,'0')}:00 — ${v} plays`" />
+          :title="`${days[d]} ${String(h).padStart(2,'0')}:00 — ${v} ${v === 1 ? 'play' : 'plays'}`" />
       </div>
     </div>
   </div>

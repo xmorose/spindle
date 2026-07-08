@@ -79,7 +79,7 @@ function playAll(startIndex: number) {
         <div class="relative flex h-full flex-col justify-end p-8">
           <div class="label" style="color:oklch(0.97 0.02 80 / 0.9)">Top artist</div>
           <div class="mt-1 text-5xl font-black text-white" style="text-shadow:0 2px 24px oklch(0.1 0.02 40 / 0.5)">{{ cleanArtist(topArtist.name) }}</div>
-          <div class="tabular mt-2 text-[15px] font-semibold" style="color:oklch(0.97 0.02 80 / 0.85)">{{ formatNumber(topArtist.plays) }} plays · {{ formatDuration(topArtist.seconds) }}</div>
+          <div class="tabular mt-2 text-[15px] font-semibold" style="color:oklch(0.97 0.02 80 / 0.85)">{{ formatNumber(topArtist.plays) }} {{ topArtist.plays === 1 ? 'play' : 'plays' }} · {{ formatDuration(topArtist.seconds) }}</div>
         </div>
       </RouterLink>
 
@@ -107,7 +107,7 @@ function playAll(startIndex: number) {
           <div class="mb-3 flex items-center gap-4 cursor-pointer" @click="playAll(0)">
             <CoverArt :id="topTrack.hasCoverArt ? topTrack.id : null" :name="topTrack.title" :size="160" class="h-16 w-16 flex-none" />
             <div>
-              <div class="label" :style="{ color: 'var(--accent)', fontSize: '11px' }">{{ formatNumber(topTrack.plays) }} plays</div>
+              <div class="label" :style="{ color: 'var(--accent)', fontSize: '11px' }">{{ formatNumber(topTrack.plays) }} {{ topTrack.plays === 1 ? 'play' : 'plays' }}</div>
               <RouterLink :to="`/tracks/${topTrack.id}`" @click.stop class="block w-fit max-w-full text-xl font-bold leading-tight hover:underline">{{ topTrack.title }}</RouterLink>
               <RouterLink :to="`/artists/${topTrack.artistId}`" @click.stop class="block w-fit max-w-full text-sm text-muted transition-colors hover:text-text hover:underline">{{ cleanArtist(topTrack.artist) }}</RouterLink>
             </div>
