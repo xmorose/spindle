@@ -23,6 +23,7 @@ export function registerIngest(app: FastifyInstance, opts: Opts): void {
       return reply.code(400).send({ error: "invalid body", details: parsed.error.issues });
     }
     const user = parsed.data.user.trim() || opts.defaultUser;
+    console.log(`[ingest] raw user=${JSON.stringify(parsed.data.user)} -> stored as ${JSON.stringify(user)} (track ${parsed.data.nd_track_id})`);
     const inserted = opts.store.insertLive({ ...parsed.data, user });
     if (inserted) opts.cache.invalidateAll();
     return reply.code(202).send({ inserted });
