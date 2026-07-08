@@ -26,6 +26,7 @@ interface Q extends TimeframeQuery {
   limit?: string;
   user?: string;
   bucket?: Bucketing;
+  tz?: string;
 }
 
 export function registerStats(app: FastifyInstance, o: Opts): void {
@@ -35,6 +36,7 @@ export function registerStats(app: FastifyInstance, o: Opts): void {
   function user(q: Q) { return q.user ?? o.defaultUser; }
   function sort(q: Q): Sort { return q.sort === "time" ? "time" : "plays"; }
   function limit(q: Q) { return Math.min(Number(q.limit ?? 50), 200); }
+  function tz(q: Q) { const n = Number(q.tz); return Number.isFinite(n) ? Math.max(-50400, Math.min(50400, Math.trunc(n))) : 0; }
 
   app.get("/api/tops/artists", async (req) => {
     const q = req.query as Q;
@@ -64,13 +66,13 @@ export function registerStats(app: FastifyInstance, o: Opts): void {
   app.get("/api/heatmap", async (req) => {
     const q = req.query as Q;
     const t = tf(q);
-    return o.cache.get(key(["heatmap", q, t]), () => computeHeatmap(o.statsDb, t, user(q)));
+    return o.cache.get(key(["heatmap", q, t]), () => computeHeatmap(o.statsDb, t, user(q), tz(q)));
   });
   app.get("/api/timeseries", async (req) => {
     const q = req.query as Q;
     const t = tf(q);
     const bucket: Bucketing = q.bucket === "week" || q.bucket === "month" ? q.bucket : "day";
-    return o.cache.get(key(["timeseries", q, t, bucket]), () => computeTimeseries(o.statsDb, o.reader, t, user(q), bucket));
+    return o.cache.get(key(["timeseries", q, t, bucket]), () => computeTimeseries(o.statsDb, o.reader, t, user(q), bucket, tz(q)));
   });
   app.get("/api/sessions", async (req) => {
     const q = req.query as Q;

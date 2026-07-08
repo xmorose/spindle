@@ -19,17 +19,18 @@ export function computeTimeseries(
   tf: Timeframe,
   user: string,
   bucketing: Bucketing,
+  tzOffset = 0,
 ): SeriesPoint[] {
   const div = DIVISOR[bucketing];
   const rows = db
     .prepare(
-      `SELECT played_at/${div} AS bucket, nd_track_id, COUNT(*) AS plays
+      `SELECT (played_at + ?)/${div} AS bucket, nd_track_id, COUNT(*) AS plays
        FROM play_events
        WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ?
        GROUP BY bucket, nd_track_id
        ORDER BY bucket ASC`,
     )
-    .all(user, tf.fromTs, tf.toTs) as Row[];
+    .all(tzOffset, user, tf.fromTs, tf.toTs) as Row[];
   const meta = reader.tracksById([...new Set(rows.map((r) => r.nd_track_id))]);
 
   const byBucket = new Map<number, SeriesPoint>();

@@ -14,10 +14,13 @@ export class AuthError extends ApiError {
 let currentUser: string | undefined;
 export function setCurrentUser(u?: string): void { currentUser = u || undefined; }
 
+const tzOffsetSeconds = -new Date().getTimezoneOffset() * 60;
+
 function qs(params: RangeParams = {}): string {
   const sp = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null) sp.set(k, String(v));
   if (currentUser && !sp.has("user")) sp.set("user", currentUser);
+  if (!sp.has("tz")) sp.set("tz", String(tzOffsetSeconds));
   const s = sp.toString();
   return s ? `?${s}` : "";
 }
