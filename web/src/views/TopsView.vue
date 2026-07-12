@@ -19,7 +19,7 @@ const kind = ref<Kind>("artists");
 const sort = ref<Sort>("plays");
 const limitN = ref(50);
 const q = ref("");
-const { range } = storeToRefs(useRangeStore());
+const { params } = storeToRefs(useRangeStore());
 const { user } = storeToRefs(useUserStore());
 
 const rows = ref<RankedRow[]>([]);
@@ -37,7 +37,7 @@ function label(v: number, seconds: number) {
 
 async function load() {
   loading.value = true;
-  const p = { range: range.value, sort: sort.value, limit: limitN.value };
+  const p = { ...params.value, sort: sort.value, limit: limitN.value };
   let mapped: RankedRow[] = [];
   if (kind.value === "artists") {
     mapped = (await api.topArtists(p)).map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.coverArt, to: `/artists/${a.artistId}` }));
@@ -50,7 +50,7 @@ async function load() {
   loading.value = false;
 }
 
-watch([kind, sort, range, limitN, user], load, { immediate: true });
+watch([kind, sort, params, limitN, user], load, { immediate: true });
 
 const rowKind = computed<"track" | "album" | "artist">(() =>
   kind.value === "tracks" ? "track" : kind.value === "albums" ? "album" : "artist",

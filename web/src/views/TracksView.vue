@@ -9,7 +9,7 @@ import SearchInput from "@/components/SearchInput.vue";
 import Spinner from "@/components/ui/Spinner.vue";
 import type { PlayerTrack } from "@/stores/player";
 
-const res = useRangedResource((range) => api.topTracks({ range, limit: 200 }));
+const res = useRangedResource((p) => api.topTracks({ ...p, limit: 200 }));
 const q = ref("");
 const rows = computed<RankedRow[]>(() =>
   (res.data.value ?? []).map((t) => ({

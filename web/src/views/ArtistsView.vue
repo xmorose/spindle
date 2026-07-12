@@ -8,7 +8,7 @@ import { usePlayEntity } from "@/composables/usePlayEntity";
 import SearchInput from "@/components/SearchInput.vue";
 import Spinner from "@/components/ui/Spinner.vue";
 
-const res = useRangedResource((range) => api.topArtists({ range, limit: 200 }));
+const res = useRangedResource((p) => api.topArtists({ ...p, limit: 200 }));
 const q = ref("");
 const items = computed<CoverItem[]>(() =>
   (res.data.value ?? []).map((a) => ({

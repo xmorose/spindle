@@ -5,7 +5,7 @@ import { useRangedResource } from "@/composables/useRangedResource";
 import { formatDuration, formatDate } from "@/lib/format";
 import Spinner from "@/components/ui/Spinner.vue";
 
-const res = useRangedResource((range) => api.sessions({ range, limit: 30 }));
+const res = useRangedResource((p) => api.sessions({ ...p, limit: 30 }));
 const sessions = computed(() => res.data.value ?? []);
 const firstLoad = computed(() => res.loading.value && res.data.value === null);
 const isEmpty = computed(() => !res.loading.value && sessions.value.length === 0);

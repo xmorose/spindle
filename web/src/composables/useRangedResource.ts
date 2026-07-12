@@ -2,7 +2,7 @@ import { ref, watch, type Ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useRangeStore } from "@/stores/range";
 import { useUserStore } from "@/stores/user";
-import type { Range } from "@/api/types";
+import type { RangeParams } from "@/api/types";
 
 export interface RangedResource<T> {
   data: Ref<T | null>;
@@ -11,18 +11,18 @@ export interface RangedResource<T> {
   reload: () => void;
 }
 
-export function useRangedResource<T>(fetcher: (range: Range) => Promise<T>): RangedResource<T> {
-  const { range } = storeToRefs(useRangeStore());
+export function useRangedResource<T>(fetcher: (params: RangeParams) => Promise<T>): RangedResource<T> {
+  const { params } = storeToRefs(useRangeStore());
   const { user } = storeToRefs(useUserStore());
   const data = ref<T | null>(null) as Ref<T | null>;
   const loading = ref(true);
   const error = ref<unknown>(null);
 
-  async function run(r: Range) {
+  async function run(p: RangeParams) {
     loading.value = true;
     error.value = null;
     try {
-      data.value = await fetcher(r);
+      data.value = await fetcher(p);
     } catch (e) {
       error.value = e;
     } finally {
@@ -30,6 +30,6 @@ export function useRangedResource<T>(fetcher: (range: Range) => Promise<T>): Ran
     }
   }
 
-  watch([range, user], () => void run(range.value), { immediate: true });
-  return { data, loading, error, reload: () => void run(range.value) };
+  watch([params, user], () => void run(params.value), { immediate: true });
+  return { data, loading, error, reload: () => void run(params.value) };
 }

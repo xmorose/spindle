@@ -7,7 +7,7 @@ import Heatmap from "@/components/charts/Heatmap.vue";
 import RadialClock from "@/components/charts/RadialClock.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
 
-const res = useRangedResource((range) => api.heatmap({ range }));
+const res = useRangedResource((p) => api.heatmap(p));
 const cells = computed(() => res.data.value ?? []);
 const hourly = computed(() => hourlyFromHeatmap(cells.value));
 const peak = computed(() => peakHour(hourly.value));

@@ -16,7 +16,7 @@ import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
 
 const route = useRoute();
-const { range } = storeToRefs(useRangeStore());
+const { params } = storeToRefs(useRangeStore());
 const { user } = storeToRefs(useUserStore());
 const kind = computed(() => String((route.meta as Record<string, unknown>).entityKind ?? "artist"));
 const id = computed(() => String(route.params.id));
@@ -28,14 +28,14 @@ const notFound = ref(false);
 async function load() {
   loading.value = true; notFound.value = false;
   try {
-    data.value = await api.entity(kind.value, id.value, { range: range.value });
+    data.value = await api.entity(kind.value, id.value, { ...params.value });
   } catch {
     data.value = null; notFound.value = true;
   } finally {
     loading.value = false;
   }
 }
-watch([id, range, user], load, { immediate: true });
+watch([id, params, user], load, { immediate: true });
 
 const coverId = computed(() => data.value?.coverArt ?? data.value?.id ?? null);
 useCoverAccent(() => coverId.value);

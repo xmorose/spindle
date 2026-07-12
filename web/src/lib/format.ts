@@ -47,3 +47,14 @@ export function cleanArtist(name: string): string {
   }
   return out.join(", ");
 }
+
+export function formatRangeLabel(from: number, to: number): string {
+  const a = new Date(from * 1000);
+  const b = new Date(to * 1000);
+  const crossYear = a.getFullYear() !== b.getFullYear();
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("en-US", crossYear
+      ? { month: "short", day: "numeric", year: "2-digit" }
+      : { month: "short", day: "numeric" });
+  return `${fmt(a)} – ${fmt(b)}`;
+}

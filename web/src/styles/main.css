@@ -1,23 +1,27 @@
 @import "tailwindcss";
 
-/* Warm vinyl-room dark — lifted out of the "black hole" for legibility.
-   Earlier values (bg 0.165, faint 0.52) were too dark/low-contrast to read. */
 @theme {
-  --color-bg: oklch(0.205 0.014 60);        /* dark, warm, but not pitch */
+  --color-bg: oklch(0.205 0.014 60);
   --color-surface: oklch(0.245 0.015 60);
   --color-surface-2: oklch(0.285 0.016 60);
-  --color-line: oklch(0.365 0.014 60);       /* visible hairlines → structure reads */
+  --color-line: oklch(0.365 0.014 60);
   --color-text: oklch(0.97 0.008 85);
-  --color-muted: oklch(0.80 0.012 78);       /* readable secondary text (was 0.70) */
-  --color-faint: oklch(0.67 0.014 72);       /* readable labels (was 0.52) */
+  --color-muted: oklch(0.80 0.012 78);
+  --color-faint: oklch(0.67 0.014 72);
   --color-accent: oklch(0.79 0.15 55);
+  --color-ink: oklch(0.22 0.03 55);
+  --color-heat: oklch(0.74 0.026 66);
 
   --font-sans: "Hanken Grotesk", system-ui, sans-serif;
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-deal-in: dealIn 400ms var(--ease-out-quint) backwards;
 }
 
-/* Register --accent as a real color so it can animate: the page recolors with a smooth
-   OKLCH cross-fade when the top cover (and thus the extracted accent) changes. */
+@keyframes dealIn {
+  from { opacity: 0; transform: translateY(7px) scale(0.86); }
+  to   { opacity: 1; transform: none; }
+}
+
 @property --accent {
   syntax: "<color>";
   inherits: true;
@@ -25,13 +29,10 @@
 }
 
 :root {
-  /* Runtime-overridable accent (set from the active period's top cover). */
   --accent: var(--color-accent);
-  /* a soft accent wash for hovers/fills, derived from --accent */
   --accent-soft: color-mix(in oklch, var(--accent) 16%, transparent);
 }
 
-/* Smoothly cross-fade the accent (and everything keyed off it) on navigation/range change. */
 html { transition: --accent 600ms var(--ease-out-quint); }
 
 @keyframes vinyl-rotate { to { transform: rotate(360deg); } }
@@ -51,8 +52,6 @@ body {
 
 .tabular { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 
-/* One consistent, legible eyebrow/label (replaces scattered 9–11px faint labels).
-   Uses muted (not faint) and a comfortable size so labels are actually readable. */
 .label {
   font-size: 12px;
   font-weight: 700;
@@ -61,7 +60,6 @@ body {
   color: var(--color-muted);
 }
 
-/* Motion foundation. Gentle, exponential ease-out; staggered content entrance. */
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 .rise { animation: rise 0.6s var(--ease-out-quint) both; }

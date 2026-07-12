@@ -13,16 +13,20 @@ import CoverArt from "@/components/CoverArt.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
 import AnimatedNumber from "@/components/ui/AnimatedNumber.vue";
 
-const totals = useRangedResource((range) => api.totals({ range }));
-const series = useRangedResource((range) => api.timeseries({ range, bucket: "day" }));
-const artists = useRangedResource((range) => api.topArtists({ range, limit: 1 }));
-const tracks = useRangedResource((range) => api.topTracks({ range, limit: 4 }));
-const heat = useRangedResource((range) => api.heatmap({ range }));
+const totals = useRangedResource((p) => api.totals(p));
+const series = useRangedResource((p) => api.timeseries({ ...p, bucket: "day" }));
+const artists = useRangedResource((p) => api.topArtists({ ...p, limit: 1 }));
+const tracks = useRangedResource((p) => api.topTracks({ ...p, limit: 4 }));
+const heat = useRangedResource((p) => api.heatmap(p));
 
 const topArtist = computed(() => artists.data.value?.[0] ?? null);
 const topTrack = computed(() => tracks.data.value?.[0] ?? null);
 const restTracks = computed(() => tracks.data.value?.slice(1) ?? []);
 const playValues = computed(() => (series.data.value ?? []).map((p) => p.plays));
+const seriesLabels = computed(() =>
+  (series.data.value ?? []).map((p) =>
+    new Date(p.bucket * 86_400_000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })),
+);
 const hasSeries = computed(() => playValues.value.some((v) => v > 0));
 const hourly = computed(() => hourlyFromHeatmap(heat.data.value ?? []));
 const peak = computed(() => peakHour(hourly.value));
@@ -86,7 +90,7 @@ function playAll(startIndex: number) {
       <section>
         <div class="label mb-4">Listening over time</div>
         <div class="rounded-2xl border border-line/70 bg-surface/40 p-5">
-          <LineArea v-if="hasSeries" :values="playValues" :height="190" zoomable />
+          <LineArea v-if="hasSeries" :values="playValues" :labels="seriesLabels" :height="190" zoomable />
           <div v-else class="grid h-[190px] place-items-center text-center text-sm text-faint">Not enough plays in this range yet. Try a longer window.</div>
         </div>
       </section>
