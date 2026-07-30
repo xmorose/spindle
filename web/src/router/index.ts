@@ -6,6 +6,7 @@ import AppShell from "@/components/AppShell.vue";
 const routes: RouteRecordRaw[] = [
   { path: "/login", name: "login", component: () => import("@/views/LoginView.vue"), meta: { public: true } },
   { path: "/s/:token", name: "share", component: () => import("@/views/ShareView.vue"), meta: { public: true } },
+  { path: "/wrapped", name: "wrapped", component: () => import("@/views/WrappedView.vue") },
   {
     path: "/",
     component: AppShell,
@@ -23,7 +24,6 @@ const routes: RouteRecordRaw[] = [
       { path: "tracks/:id", name: "track", component: () => import("@/views/EntityDetailView.vue"), meta: { entityKind: "track" } },
       { path: "pulse", name: "pulse", component: () => import("@/views/PulseView.vue") },
       { path: "sessions", name: "sessions", component: () => import("@/views/SessionsView.vue") },
-      { path: "wrapped", name: "wrapped", component: () => import("@/views/WrappedView.vue"), meta: { fixedRange: "This year" } },
     ],
   },
 ];
