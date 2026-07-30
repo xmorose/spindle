@@ -6,7 +6,7 @@ import { cleanArtist, formatNumber } from "@/lib/format";
 import CoverGrid, { type CoverItem } from "@/components/CoverGrid.vue";
 import { usePlayEntity } from "@/composables/usePlayEntity";
 import SearchInput from "@/components/SearchInput.vue";
-import Spinner from "@/components/ui/Spinner.vue";
+import SkeletonGrid from "@/components/ui/SkeletonGrid.vue";
 
 const res = useRangedResource((p) => api.topArtists({ ...p, limit: 200 }));
 const q = ref("");
@@ -29,7 +29,7 @@ const { playArtist, busyId } = usePlayEntity();
       <h1 class="text-3xl font-black tracking-tight">Artists</h1>
       <SearchInput v-model="q" placeholder="Search artists…" />
     </div>
-    <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
+    <SkeletonGrid v-if="firstLoad" />
     <CoverGrid v-else :items="filtered" playable :busy-id="busyId" @play="(it) => playArtist(it.id)" />
   </div>
 </template>

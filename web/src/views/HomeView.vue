@@ -4,24 +4,35 @@ import { api } from "@/api/client";
 import { useRangedResource } from "@/composables/useRangedResource";
 import { useCoverAccent } from "@/composables/useCoverAccent";
 import { formatNumber, formatDuration, cleanArtist } from "@/lib/format";
-import { usePlayerStore } from "@/stores/player";
-import type { TrackTop } from "@/api/types";
 import { hourlyFromHeatmap, peakHour } from "@/lib/stats";
 import LineArea from "@/components/charts/LineArea.vue";
 import RadialClock from "@/components/charts/RadialClock.vue";
 import CoverArt from "@/components/CoverArt.vue";
+import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
 import AnimatedNumber from "@/components/ui/AnimatedNumber.vue";
+import Skeleton from "@/components/ui/Skeleton.vue";
 
 const totals = useRangedResource((p) => api.totals(p));
 const series = useRangedResource((p) => api.timeseries({ ...p, bucket: "day" }));
 const artists = useRangedResource((p) => api.topArtists({ ...p, limit: 1 }));
-const tracks = useRangedResource((p) => api.topTracks({ ...p, limit: 4 }));
+const tracks = useRangedResource((p) => api.topTracks({ ...p, limit: 5 }));
 const heat = useRangedResource((p) => api.heatmap(p));
 
 const topArtist = computed(() => artists.data.value?.[0] ?? null);
 const topTrack = computed(() => tracks.data.value?.[0] ?? null);
-const restTracks = computed(() => tracks.data.value?.slice(1) ?? []);
+const trackRows = computed<RankedRow[]>(() =>
+  (tracks.data.value ?? []).map((t) => ({
+    id: t.id,
+    title: t.title,
+    subtitle: cleanArtist(t.artist),
+    value: t.plays,
+    valueLabel: formatNumber(t.plays),
+    coverId: t.hasCoverArt ? t.id : null,
+    to: `/tracks/${t.id}`,
+    artistId: t.artistId,
+  })),
+);
 const playValues = computed(() => (series.data.value ?? []).map((p) => p.plays));
 const seriesLabels = computed(() =>
   (series.data.value ?? []).map((p) =>
@@ -35,43 +46,52 @@ const isEmpty = computed(() => !totals.loading.value && (totals.data.value?.play
 
 const heroCover = computed(() => topArtist.value?.coverArt ?? (topTrack.value?.hasCoverArt ? topTrack.value.id : null));
 useCoverAccent(() => heroCover.value);
-
-const player = usePlayerStore();
-function toPlayerTrack(t: TrackTop) {
-  return { id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null, artistId: t.artistId };
-}
-function playAll(startIndex: number) {
-  const all = tracks.data.value ?? [];
-  player.playQueue(all.map(toPlayerTrack), startIndex);
-}
 </script>
 
 <template>
   <div class="py-2">
-    <div v-if="firstLoad" class="grid min-h-[60vh] place-items-center">
-      <div class="h-10 w-10 animate-spin rounded-full border-2 border-line border-t-[var(--accent)]" />
+    <div v-if="firstLoad" class="flex flex-col gap-12">
+      <section class="flex flex-col gap-7 sm:flex-row sm:items-end sm:gap-12">
+        <div>
+          <Skeleton class="h-12 w-52 max-w-full sm:h-14 lg:h-[68px]" />
+          <Skeleton class="mt-3 h-2.5 w-28" />
+        </div>
+        <div class="flex gap-8 sm:gap-12">
+          <div v-for="i in 3" :key="i">
+            <Skeleton class="h-6 w-20 sm:h-7" />
+            <Skeleton class="mt-2 h-2.5 w-16" />
+          </div>
+        </div>
+      </section>
+      <Skeleton class="h-[240px] w-full rounded-2xl" />
+      <section>
+        <Skeleton class="mb-4 h-2.5 w-36" />
+        <Skeleton class="h-[230px] w-full rounded-2xl" />
+      </section>
     </div>
 
     <EmptyState v-else-if="isEmpty" title="No plays in this range yet"
       hint="Spindle started tracking recently, so recent windows fill in as you listen. Switch to All time to see your full history." />
 
     <div v-else class="stagger flex flex-col gap-12">
-      <section class="stagger grid grid-cols-2 gap-x-8 gap-y-9 md:grid-cols-4">
-        <div>
-          <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl" :style="{ color: 'var(--accent)' }"><AnimatedNumber :value="totals.data.value?.plays ?? 0" :format="formatNumber" /></div>
+      <section class="flex flex-col gap-7 sm:flex-row sm:items-end sm:gap-12">
+        <div class="flex-none">
+          <div class="text-5xl font-black leading-[0.85] tracking-tight sm:text-6xl lg:text-7xl" :style="{ color: 'var(--accent)' }"><AnimatedNumber :value="totals.data.value?.plays ?? 0" :format="formatNumber" /></div>
           <div class="label mt-3">Songs played</div>
         </div>
-        <div>
-          <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl"><AnimatedNumber :value="totals.data.value?.seconds ?? 0" :format="formatDuration" /></div>
-          <div class="label mt-3">Listening time</div>
-        </div>
-        <div>
-          <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl"><AnimatedNumber :value="totals.data.value?.distinctArtists ?? 0" :format="formatNumber" /></div>
-          <div class="label mt-3">Artists</div>
-        </div>
-        <div>
-          <div class="text-4xl font-black leading-none tracking-tight sm:text-5xl lg:text-6xl"><AnimatedNumber :value="totals.data.value?.distinctAlbums ?? 0" :format="formatNumber" /></div>
-          <div class="label mt-3">Albums</div>
+        <div class="flex gap-8 sm:gap-12 sm:border-l sm:border-line/60 sm:pb-1 sm:pl-12">
+          <div>
+            <div class="text-2xl font-black leading-none tracking-tight sm:text-3xl"><AnimatedNumber :value="totals.data.value?.seconds ?? 0" :format="formatDuration" /></div>
+            <div class="label mt-2 text-[11px]">Listening time</div>
+          </div>
+          <div>
+            <div class="text-2xl font-black leading-none tracking-tight sm:text-3xl"><AnimatedNumber :value="totals.data.value?.distinctArtists ?? 0" :format="formatNumber" /></div>
+            <div class="label mt-2 text-[11px]">Artists</div>
+          </div>
+          <div>
+            <div class="text-2xl font-black leading-none tracking-tight sm:text-3xl"><AnimatedNumber :value="totals.data.value?.distinctAlbums ?? 0" :format="formatNumber" /></div>
+            <div class="label mt-2 text-[11px]">Albums</div>
+          </div>
         </div>
       </section>
 
@@ -106,29 +126,9 @@ function playAll(startIndex: number) {
             </div>
           </div>
         </div>
-        <div v-if="topTrack">
-          <div class="label mb-5">Best song</div>
-          <div class="mb-3 flex items-center gap-4 cursor-pointer" @click="playAll(0)">
-            <CoverArt :id="topTrack.hasCoverArt ? topTrack.id : null" :name="topTrack.title" :size="160" class="h-16 w-16 flex-none" />
-            <div>
-              <div class="label" :style="{ color: 'var(--accent)', fontSize: '11px' }">{{ formatNumber(topTrack.plays) }} {{ topTrack.plays === 1 ? 'play' : 'plays' }}</div>
-              <RouterLink :to="`/tracks/${topTrack.id}`" @click.stop class="block w-fit max-w-full text-xl font-bold leading-tight hover:underline">{{ topTrack.title }}</RouterLink>
-              <RouterLink :to="`/artists/${topTrack.artistId}`" @click.stop class="block w-fit max-w-full text-sm text-muted transition-colors hover:text-text hover:underline">{{ cleanArtist(topTrack.artist) }}</RouterLink>
-            </div>
-          </div>
-          <div class="border-t border-line/60">
-            <div v-for="(t, i) in restTracks" :key="t.id"
-              class="flex items-center gap-3 border-b border-line/40 py-2.5 transition-colors duration-150 last:border-0 hover:bg-surface/60 cursor-pointer"
-              @click="playAll(i + 1)">
-              <span class="tabular w-5 text-right text-sm font-bold text-faint">{{ i + 2 }}</span>
-              <CoverArt :id="t.hasCoverArt ? t.id : null" :name="t.title" :size="80" class="h-9 w-9 flex-none" />
-              <span class="min-w-0 flex-1">
-                <RouterLink :to="`/tracks/${t.id}`" @click.stop class="block w-fit max-w-full truncate text-sm font-semibold hover:underline">{{ t.title }}</RouterLink>
-                <RouterLink :to="`/artists/${t.artistId}`" @click.stop class="block w-fit max-w-full truncate text-xs text-faint transition-colors hover:text-text hover:underline">{{ cleanArtist(t.artist) }}</RouterLink>
-              </span>
-              <span class="tabular text-sm font-semibold text-muted">{{ formatNumber(t.plays) }}</span>
-            </div>
-          </div>
+        <div v-if="trackRows.length">
+          <div class="label mb-5">Top songs</div>
+          <RankedList :rows="trackRows" playable kind="track" />
         </div>
       </section>
     </div>

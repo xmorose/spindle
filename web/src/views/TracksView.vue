@@ -6,7 +6,7 @@ import { cleanArtist } from "@/lib/format";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 import ListActionBar from "@/components/ListActionBar.vue";
 import SearchInput from "@/components/SearchInput.vue";
-import Spinner from "@/components/ui/Spinner.vue";
+import SkeletonList from "@/components/ui/SkeletonList.vue";
 import type { PlayerTrack } from "@/stores/player";
 
 const res = useRangedResource((p) => api.topTracks({ ...p, limit: 200 }));
@@ -32,7 +32,7 @@ const trackList = computed<PlayerTrack[]>(() =>
       <h1 class="text-3xl font-black tracking-tight">Tracks</h1>
       <SearchInput v-model="q" placeholder="Search tracks…" />
     </div>
-    <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
+    <SkeletonList v-if="firstLoad" :rows="12" />
     <template v-else>
       <ListActionBar :tracks="trackList" :count="filtered.length" />
       <RankedList :rows="filtered" playable />

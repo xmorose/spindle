@@ -14,6 +14,8 @@ import CoverArt from "@/components/CoverArt.vue";
 import LineArea from "@/components/charts/LineArea.vue";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
+import Skeleton from "@/components/ui/Skeleton.vue";
+import SkeletonList from "@/components/ui/SkeletonList.vue";
 
 const route = useRoute();
 const { params } = storeToRefs(useRangeStore());
@@ -69,8 +71,22 @@ const relatedRows = computed<RankedRow[]>(() =>
 
 <template>
   <div class="py-2 rise">
-    <div v-if="loading" class="grid min-h-[50vh] place-items-center">
-      <div class="h-9 w-9 animate-spin rounded-full border-2 border-line border-t-[var(--accent)]" />
+    <div v-if="loading">
+      <div class="mb-8 flex flex-wrap items-end gap-5">
+        <Skeleton class="h-28 w-28 rounded-xl" />
+        <div class="flex-1">
+          <Skeleton class="h-2.5 w-16" />
+          <Skeleton class="mt-2.5 h-8 w-72 max-w-full" />
+          <Skeleton class="mt-2.5 h-3 w-40 max-w-full" />
+        </div>
+      </div>
+      <div class="mb-9 flex flex-wrap gap-8 border-y border-line/50 py-4">
+        <div v-for="i in 4" :key="i">
+          <Skeleton class="h-6 w-20" />
+          <Skeleton class="mt-2 h-2.5 w-14" />
+        </div>
+      </div>
+      <SkeletonList :rows="6" />
     </div>
 
     <EmptyState v-else-if="notFound || !data" title="Not found"
@@ -80,7 +96,7 @@ const relatedRows = computed<RankedRow[]>(() =>
       <header class="mb-8 flex flex-wrap items-end gap-5">
         <button v-if="queueTracks.length" class="group relative h-28 w-28 flex-none" @click="player.playQueue(queueTracks, 0)" aria-label="Play">
           <CoverArt :id="coverId" :name="data.name" :size="240" class="h-28 w-28 rounded-xl" />
-          <span class="absolute inset-0 grid place-items-center rounded-xl bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100">
+          <span class="absolute inset-0 grid place-items-center rounded-xl bg-[oklch(0.12_0.02_50/0.55)] text-white opacity-0 transition-opacity group-hover:opacity-100">
             <svg viewBox="0 0 24 24" class="h-9 w-9 translate-x-px" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
           </span>
         </button>

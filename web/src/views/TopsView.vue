@@ -9,7 +9,7 @@ import type { Sort } from "@/api/types";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 import ListActionBar from "@/components/ListActionBar.vue";
 import SearchInput from "@/components/SearchInput.vue";
-import Spinner from "@/components/ui/Spinner.vue";
+import SkeletonList from "@/components/ui/SkeletonList.vue";
 import type { PlayerTrack } from "@/stores/player";
 
 type Kind = "artists" | "albums" | "tracks";
@@ -90,7 +90,7 @@ const trackList = computed<PlayerTrack[]>(() =>
       </div>
     </div>
 
-    <div v-if="firstLoad" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
+    <SkeletonList v-if="firstLoad" :rows="12" />
     <template v-else>
       <ListActionBar v-if="kind === 'tracks'" :tracks="trackList" :count="filtered.length" />
       <RankedList :rows="filtered" playable :kind="rowKind" />

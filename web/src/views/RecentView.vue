@@ -7,7 +7,7 @@ import { cleanArtist, formatTimeOfDay, formatDayLabel } from "@/lib/format";
 import type { RecentPlay } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
 import CoverArt from "@/components/CoverArt.vue";
-import Spinner from "@/components/ui/Spinner.vue";
+import SkeletonList from "@/components/ui/SkeletonList.vue";
 
 const player = usePlayerStore();
 const plays = ref<RecentPlay[]>([]);
@@ -45,7 +45,7 @@ function playFrom(i: number) {
   <div class="py-2 rise">
     <h1 class="mb-6 text-3xl font-black tracking-tight">Recent</h1>
 
-    <div v-if="loading" class="grid min-h-[40vh] place-items-center"><Spinner /></div>
+    <SkeletonList v-if="loading" :rows="14" :bar="false" />
 
     <div v-else-if="isEmpty" class="py-16 text-center text-sm text-faint">
       No plays yet. Listening shows up here as soon as it lands.
