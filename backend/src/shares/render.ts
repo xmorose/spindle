@@ -1,7 +1,5 @@
 import type { ShareKind } from "./store.js";
 
-// Resolved share payload — identical shape to the SPA's `PublicShare` type, so it
-// can be inlined verbatim as `window.__SHARE__` and consumed without transform.
 export interface ShareTrackData {
   id: string;
   title: string;
@@ -19,10 +17,8 @@ export interface ShareData {
 
 const ESC: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 function esc(s: string): string { return s.replace(/[&<>"']/g, (c) => ESC[c]); }
-// JSON for an inline <script>; only `<` needs escaping to avoid closing the tag early.
 function jsonScript(obj: unknown): string { return JSON.stringify(obj).replace(/</g, "\\u003c"); }
 
-// Mirrors the SPA's cleanArtist (web/src/lib/format.ts) so the static page reads the same.
 function cleanArtist(name: string): string {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -39,6 +35,8 @@ function coverPath(token: string, id: string, size: number): string {
   return `/api/public/share/${encodeURIComponent(token)}/cover/${encodeURIComponent(id)}?size=${size}`;
 }
 
+const NO_DOWNLOAD = `controlsList="nodownload noplaybackrate" oncontextmenu="return false"`;
+
 function heading(s: ShareData): string {
   if (s.label) return s.label;
   return s.tracks.length === 1 ? s.tracks[0].title : `${s.tracks.length} Songs`;
@@ -52,10 +50,6 @@ function hoursLeft(expiresAt: number, nowSec: number): number {
   return Math.max(0, Math.ceil((expiresAt - nowSec) / 3600));
 }
 
-// Self-contained styling for the no-JS fallback. Every color carries a hex fallback
-// before its oklch() value so it renders on engines without oklch support. Scoped to
-// #share-fb (plus a minimal body reset) so it never overrides the SPA once it mounts —
-// the body font deliberately stays the SPA's, not system-ui.
 const STYLE = `
 body{margin:0;background:#221f1c;background:oklch(0.205 0.014 60);}
 #share-fb{min-height:100vh;min-height:100dvh;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:40px 20px;color:#f5f2ec;color:oklch(0.97 0.008 85);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
@@ -86,11 +80,11 @@ function vinyl(s: ShareData, token: string): string {
 function fallbackBody(s: ShareData, token: string, nowSec: number): string {
   let player: string;
   if (s.tracks.length === 1) {
-    player = `<audio controls preload="metadata" src="${esc(streamPath(token, s.tracks[0].id))}"></audio>`;
+    player = `<audio controls ${NO_DOWNLOAD} preload="metadata" src="${esc(streamPath(token, s.tracks[0].id))}"></audio>`;
   } else {
     const rows = s.tracks.map((t) =>
       `<div class="row"><div class="t">${esc(t.title)}</div><div class="a">${esc(cleanArtist(t.artist))}</div>` +
-      `<audio controls preload="none" src="${esc(streamPath(token, t.id))}"></audio></div>`,
+      `<audio controls ${NO_DOWNLOAD} preload="none" src="${esc(streamPath(token, t.id))}"></audio></div>`,
     ).join("");
     player = `<div class="list">${rows}</div>`;
   }
@@ -102,8 +96,6 @@ function fallbackBody(s: ShareData, token: string, nowSec: number): string {
     `<span class="brand">Spindle</span></div></div></div>`;
 }
 
-// Open Graph / Twitter tags (so chat apps render a real preview card), inline critical
-// CSS, and the inlined share data the SPA hydrates from.
 function headExtras(s: ShareData, token: string, origin: string): string {
   const t0 = s.tracks[0];
   const title = esc(heading(s));
@@ -126,13 +118,6 @@ function headExtras(s: ShareData, token: string, origin: string): string {
   return `${tags}<style>${STYLE}</style><script>window.__SHARE__=${jsonScript(s)}</script>`;
 }
 
-/**
- * Render the full share page. When `shell` (the built index.html) is provided, the page
- * is the SPA shell with the fallback injected into #app, OG/meta + critical CSS in <head>,
- * and the share data inlined — so the real Vue UI enhances on top when JS loads, and the
- * static native-audio player remains if it doesn't. Without a shell, a standalone static
- * page is returned (no SPA enhancement, still fully functional).
- */
 export function renderSharePage(shell: string | null, s: ShareData, token: string, origin: string, nowSec: number): string {
   const extras = headExtras(s, token, origin);
   const body = fallbackBody(s, token, nowSec);
