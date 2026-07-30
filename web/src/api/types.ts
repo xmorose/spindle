@@ -10,7 +10,8 @@ export interface TrackTop { id: string; title: string; artist: string; artistId:
 export interface GenreTop { genre: string; plays: number; seconds: number; }
 export interface HeatCell { weekday: number; hour: number; plays: number; }
 export interface TimePoint { bucket: number; plays: number; seconds: number; }
-export interface Session { startedAt: number; endedAt: number; trackCount: number; seconds: number; }
+export interface SessionTrack { id: string; title: string; artist: string; artistId: string; albumId: string; hasCoverArt: boolean; duration: number; plays: number; }
+export interface Session { startedAt: number; endedAt: number; trackCount: number; seconds: number; tracks: SessionTrack[]; }
 export interface RecentPlay { playedAt: number; id: string; title: string; artist: string; album: string; artistId: string; albumId: string; hasCoverArt: boolean; }
 export interface SearchResult {
   artists: { id: string; name: string }[];

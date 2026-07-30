@@ -8,7 +8,7 @@ import { topArtists, topAlbums, topTracks, topGenres, type Sort } from "../stats
 import { computeTotals } from "../stats/totals.js";
 import { computeHeatmap } from "../stats/heatmap.js";
 import { computeTimeseries, type Bucketing } from "../stats/timeseries.js";
-import { longestSessions } from "../stats/sessions.js";
+import { computeSessions } from "../stats/sessions.js";
 import { recentPlays } from "../stats/recent.js";
 
 interface Opts {
@@ -77,7 +77,7 @@ export function registerStats(app: FastifyInstance, o: Opts): void {
   app.get("/api/sessions", async (req) => {
     const q = req.query as Q;
     const t = tf(q);
-    return o.cache.get(key(["sessions", q, t]), () => longestSessions(o.statsDb, o.reader, t, user(q), o.sessionGapSeconds, limit(q)));
+    return o.cache.get(key(["sessions", q, t]), () => computeSessions(o.statsDb, o.reader, t, user(q), o.sessionGapSeconds, limit(q), q.sort === "time" ? "longest" : "recent"));
   });
   app.get("/api/recent", async (req) => {
     const q = req.query as Q;
