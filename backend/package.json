@@ -9,7 +9,9 @@
     "start": "node --env-file-if-exists=.env dist/server.js",
     "hash-password": "tsx src/auth/hash-cli.ts",
     "import-spotify": "tsx src/import-spotify.ts",
-    "import-playlists": "tsx src/import-playlists.ts"
+    "import-playlists": "tsx src/import-playlists.ts",
+    "migrate-ids-snapshot": "tsx --env-file-if-exists=.env src/migrate-ids-snapshot.ts",
+    "migrate-ids-remap": "tsx --env-file-if-exists=.env src/migrate-ids-remap.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",
