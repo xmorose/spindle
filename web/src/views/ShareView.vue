@@ -11,9 +11,6 @@ import type { PublicShare } from "@/api/types";
 const route = useRoute();
 const token = String(route.params.token);
 
-// The server renders /s/:token with the share inlined as window.__SHARE__, so we can paint
-// immediately instead of flashing a spinner while we fetch. Falls back to fetching when
-// loaded outside that page (e.g. dev, or client-side navigation).
 const preloaded = (window as unknown as { __SHARE__?: PublicShare }).__SHARE__ ?? null;
 const data = ref<PublicShare | null>(preloaded);
 const loading = ref(!preloaded);

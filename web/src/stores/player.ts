@@ -51,10 +51,6 @@ export const usePlayerStore = defineStore("player", () => {
   }
   function stopTick() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
 
-  // Spindle's player streams via a proxy that does not scrobble, so plays would never reach
-  // the stats. We scrobble to Navidrome ourselves: a "now playing" ping on load, then a
-  // submission once the track is genuinely listened to (Last.fm/Subsonic threshold: 4 min
-  // or half its length). `scrobbled` guards against double-submitting a single play.
   let scrobbled = false;
   let playStartMs = 0;
   function sendScrobble(id: string, submission: boolean, time?: number) {

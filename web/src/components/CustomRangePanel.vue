@@ -33,7 +33,7 @@ onMounted(async () => {
   const m = new Map<string, { plays: number; seconds: number }>();
   let minMs = Infinity;
   for (const p of series) {
-    const d = new Date(p.bucket * DAYMS); // bucket is a tz-shifted day index; read as UTC to get the local calendar day
+    const d = new Date(p.bucket * DAYMS);
     m.set(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`, { plays: p.plays, seconds: p.seconds });
     if (p.bucket * DAYMS < minMs) minMs = p.bucket * DAYMS;
   }
@@ -54,17 +54,15 @@ const clamp = (d: Date) => (d < dataStart.value ? dataStart.value : d > today ? 
 const initFrom = props.initial ? mid(new Date(props.initial.from * 1000)) : mid(new Date(todayTs - 29 * DAYMS));
 const initTo = props.initial ? mid(new Date(props.initial.to * 1000)) : today;
 const view = ref(addM(initTo, -1));
-const from = ref(initFrom); // committed range
+const from = ref(initFrom);
 const to = ref(initTo);
 const activePreset = ref<PresetId | null>(null);
 
-// selection state machine: idle (a committed from..to is shown) vs picking (start chosen, choosing end)
 const picking = ref(false);
 const pendingStart = ref<Date | null>(null);
 const previewEnd = ref<Date | null>(null);
 let selecting = false, moved = false, lastTs: number | null = null;
 
-// the range currently drawn on the calendar (committed, or the live pick)
 const shown = computed(() => {
   if (picking.value && pendingStart.value) {
     const a = pendingStart.value, b = previewEnd.value ?? pendingStart.value;
@@ -91,7 +89,6 @@ const grids = computed(() => [grid0.value, grid1.value]);
 const title0 = computed(() => view.value.toLocaleDateString("en-US", { month: "long", year: "numeric" }));
 const title1 = computed(() => addM(view.value, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" }));
 
-// ── history overview: two tiers (years + months of the focused year) so it scales to a decade ──
 const monthTs = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1).getTime();
 const firstMonthTs = computed(() => monthTs(dataStart.value));
 const lastMonthTs = computed(() => monthTs(today));
@@ -132,7 +129,6 @@ function clampView(md: Date) { return md.getTime() >= lastMonthTs.value ? addM(n
 function clickYear(yr: Yr) { view.value = clampView(new Date(yr.y, yr.plays ? peakMonthOf(yr.y) : 0, 1)); }
 function jumpToMonth(mo: Mo) { if (!mo.bad) view.value = clampView(new Date(mo.y, mo.m, 1)); }
 
-// ── hover tooltip: reads the real play count for any day or month ──
 const crpEl = ref<HTMLElement | null>(null);
 const tip = ref({ show: false, x: 0, y: 0, main: "", sub: "", hot: false });
 const playsText = (p: number) => (p ? `${formatNumber(p)} ${p === 1 ? "play" : "plays"}` : "No plays");
@@ -215,10 +211,6 @@ const hint = computed(() => (picking.value ? "Now pick the end day" : "Click a s
 const rangeLabel = computed(() => formatRangeLabel(Math.floor(from.value.getTime() / 1000), Math.floor(to.value.getTime() / 1000)));
 function apply() { emit("apply", { from: Math.floor(from.value.getTime() / 1000), to: Math.floor(to.value.getTime() / 1000) + 86399 }); }
 
-// ── Tailwind class assembly for the stateful cells ──────────────────────
-// The template stays readable by keeping these here. Every fragment is a literal
-// string so Tailwind can see it at build time; the per-cell numbers ride in
-// through inline styles (--heat-o, --h), which classes then override by variant.
 const DAY_HEAT_ON = "absolute inset-0 rounded-[9px] bg-heat opacity-[var(--heat-o)] transition-opacity duration-150 ease-out-quint group-hover/day:opacity-[0.36]";
 const DAY_HEAT_OFF = "absolute inset-0 rounded-[9px] bg-heat opacity-0";
 const DAY_FILL = "absolute inset-0 z-[1] bg-[var(--accent)] transition-opacity duration-200 ease-out-quint";
@@ -284,7 +276,6 @@ const stripMonths = computed(() =>
     ref="crpEl"
     class="relative grid w-[min(680px,calc(100vw-2rem))] select-none grid-cols-[186px_1fr] gap-5 rounded-[20px] border border-line bg-surface p-5 shadow-[0_34px_80px_-34px_oklch(0.09_0.02_50_/_0.85),inset_0_1px_0_0_oklch(1_0_0_/_0.03)] max-[620px]:grid-cols-1"
   >
-    <!-- Preset rail -->
     <div class="flex flex-col gap-[3px] border-r border-line pr-[18px] max-[620px]:flex-row max-[620px]:flex-wrap max-[620px]:border-b max-[620px]:border-r-0 max-[620px]:pb-3 max-[620px]:pr-0">
       <div class="label px-[10px] pb-2 pt-[2px] max-[620px]:w-full max-[620px]:pb-1">Quick ranges</div>
       <button

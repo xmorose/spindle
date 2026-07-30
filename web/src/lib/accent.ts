@@ -32,28 +32,53 @@ function round(n: number, d = 3): number {
   return Math.round(n * f) / f;
 }
 
-export function accentFromRgb(r: number, g: number, b: number): string {
-  const a = clampAccent(rgbToOklch(r, g, b));
-  return `oklch(${round(a.l)} ${round(a.c)} ${round(a.h, 1)})`;
-}
-
 export interface ImageDataLike { data: ArrayLike<number>; width: number; height: number; }
 
-export function dominantColor(img: ImageDataLike): { r: number; g: number; b: number } {
-  let wr = 0, wg = 0, wb = 0, wsum = 0;
+const HUE_BUCKETS = 24;
+const BUCKET_DEG = 360 / HUE_BUCKETS;
+
+interface Bucket { weight: number; l: number; c: number; h: number; }
+
+export function paletteFromImage(img: ImageDataLike, count = 3): string[] {
+  const buckets: Bucket[] = Array.from({ length: HUE_BUCKETS }, () => ({ weight: 0, l: 0, c: 0, h: 0 }));
   const d = img.data;
   for (let i = 0; i < d.length; i += 4) {
-    const r = d[i], g = d[i + 1], b = d[i + 2], alpha = d[i + 3];
-    if (alpha < 128) continue;
-    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-    const sat = mx === 0 ? 0 : (mx - mn) / mx;
-    const weight = 0.15 + sat;
-    wr += r * weight; wg += g * weight; wb += b * weight; wsum += weight;
+    if (d[i + 3] < 128) continue;
+    const o = rgbToOklch(d[i], d[i + 1], d[i + 2]);
+    if (o.c < 0.03 || o.l < 0.12 || o.l > 0.95) continue;
+    const b = buckets[Math.min(HUE_BUCKETS - 1, Math.floor(o.h / BUCKET_DEG))];
+    const w = o.c;
+    b.weight += w; b.l += o.l * w; b.c += o.c * w; b.h += o.h * w;
   }
-  if (wsum === 0) return { r: 128, g: 128, b: 128 };
-  return { r: Math.round(wr / wsum), g: Math.round(wg / wsum), b: Math.round(wb / wsum) };
+
+  const ranked = buckets
+    .filter((b) => b.weight > 0)
+    .map((b) => ({ weight: b.weight, l: b.l / b.weight, c: b.c / b.weight, h: b.h / b.weight }))
+    .sort((a, b) => b.weight - a.weight);
+
+  const picked: Oklch[] = [];
+  for (const b of ranked) {
+    if (picked.length >= count) break;
+    const tooClose = picked.some((p) => {
+      const diff = Math.abs(p.h - b.h);
+      return Math.min(diff, 360 - diff) < 40;
+    });
+    if (!tooClose) picked.push({ l: b.l, c: b.c, h: b.h });
+  }
+
+  const seed = picked[0] ?? (ranked[0] ? { l: ranked[0].l, c: ranked[0].c, h: ranked[0].h } : { l: 0.76, c: 0.15, h: 50 });
+  while (picked.length < count) {
+    picked.push({ l: seed.l, c: seed.c, h: (seed.h + picked.length * 32) % 360 });
+  }
+
+  return picked.map((p) => {
+    const a = clampAccent(p);
+    return `oklch(${round(a.l)} ${round(a.c)} ${round(a.h, 1)})`;
+  });
 }
 
-export function applyAccent(el: HTMLElement, accent: string): void {
-  el.style.setProperty("--accent", accent);
+export function applyPalette(el: HTMLElement, palette: string[]): void {
+  el.style.setProperty("--accent", palette[0]);
+  el.style.setProperty("--accent-2", palette[1] ?? palette[0]);
+  el.style.setProperty("--accent-3", palette[2] ?? palette[1] ?? palette[0]);
 }

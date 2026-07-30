@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 
-const props = defineProps<{ hours: number[] }>();
+const props = withDefaults(
+  defineProps<{ hours: number[]; stagger?: number; labelStep?: number; peak?: number | null }>(),
+  { stagger: 0.018, labelStep: 6, peak: null },
+);
 const CX = 100, CY = 100, INNER = 40, MAXLEN = 52;
 const max = computed(() => Math.max(...props.hours, 1));
 
@@ -22,10 +25,15 @@ const spokes = computed(() =>
     };
   }),
 );
-const labels = [0, 6, 12, 18].map((hh, i) => {
-  const a = ((i * 6) / 24) * 2 * Math.PI - Math.PI / 2;
-  const r = INNER + MAXLEN + 13;
-  return { t: String(hh).padStart(2, "0"), x: CX + Math.cos(a) * r, y: CY + Math.sin(a) * r + 3 };
+const labels = computed(() => {
+  const step = Math.max(1, props.labelStep);
+  const out: { t: string; x: number; y: number }[] = [];
+  for (let hh = 0; hh < 24; hh += step) {
+    const a = (hh / 24) * 2 * Math.PI - Math.PI / 2;
+    const r = INNER + MAXLEN + 13;
+    out.push({ t: String(hh).padStart(2, "0"), x: CX + Math.cos(a) * r, y: CY + Math.sin(a) * r + 3 });
+  }
+  return out;
 });
 
 const hover = ref<number | null>(null);
@@ -56,10 +64,11 @@ const tip = computed(() => {
       <circle :cx="CX" :cy="CY" :r="INNER - 4" fill="none" stroke="var(--color-line)" stroke-width="1" />
       <circle class="spindle" :cx="CX" :cy="CY" r="3.5" fill="var(--accent)" />
       <line v-for="(s, i) in spokes" :key="clockKey + '-' + i" class="spoke" pathLength="1"
-        :style="{ animationDelay: (i * 0.018) + 's' }"
+        :style="{ animationDelay: (i * stagger) + 's' }"
         :x1="s.x1" :y1="s.y1" :x2="s.x2" :y2="s.y2"
-        stroke="var(--accent)" :stroke-opacity="i === hover ? 1 : s.opacity"
-        :stroke-width="i === hover ? 6 : 4.5" stroke-linecap="round" />
+        :stroke="peak === i ? 'var(--accent)' : 'var(--accent)'"
+        :stroke-opacity="i === hover || peak === i ? 1 : s.opacity"
+        :stroke-width="i === hover ? 6 : peak === i ? 6 : 4.5" stroke-linecap="round" />
       <text v-for="(l, i) in labels" :key="i" :x="l.x" :y="l.y"
         fill="var(--color-faint)" font-size="9" font-weight="700" text-anchor="middle">{{ l.t }}</text>
     </svg>

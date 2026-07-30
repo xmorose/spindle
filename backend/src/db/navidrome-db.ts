@@ -57,7 +57,6 @@ export class NavidromeReader {
     return result;
   }
 
-  // Full catalog tracklist for an album, in disc/track order — independent of play history.
   albumTrackMetas(albumId: string): TrackMeta[] {
     const rows = this.db
       .prepare(
@@ -68,7 +67,6 @@ export class NavidromeReader {
     return this.mapTrackRows(rows);
   }
 
-  // Full catalog of every track by an artist, grouped by album then disc/track order.
   artistTrackMetas(artistId: string): TrackMeta[] {
     const rows = this.db
       .prepare(

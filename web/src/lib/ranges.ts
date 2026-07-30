@@ -1,4 +1,4 @@
-export interface DateWindow { from: number; to: number } // unix seconds
+export interface DateWindow { from: number; to: number }
 
 const DAY = 86400;
 const sec = (d: Date) => Math.floor(d.getTime() / 1000);

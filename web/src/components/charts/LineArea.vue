@@ -35,7 +35,6 @@ const points = computed(() => {
   }));
 });
 
-// Animated window changes (tween the index window so zoom/reset glides instead of snapping).
 const reduceMotion = typeof window !== "undefined" && window.matchMedia
   ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
 let raf = 0;
@@ -60,7 +59,7 @@ onUnmounted(() => cancelAnimationFrame(raf));
 function reset() { setWindow({ s: 0, e: props.values.length }); }
 
 const hover = ref<number | null>(null);
-const sel = ref<{ a: number; b: number } | null>(null); // drag selection, ratios 0..1 across the box
+const sel = ref<{ a: number; b: number } | null>(null);
 
 function ratioOf(e: PointerEvent): number {
   const rect = box.value!.getBoundingClientRect();

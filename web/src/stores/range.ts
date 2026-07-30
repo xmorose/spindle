@@ -11,7 +11,7 @@ interface Persisted { mode: "preset" | "custom"; preset: Range; custom: DateWind
 function initial(): Persisted {
   const raw = localStorage.getItem(KEY);
   if (raw) {
-    if ((PRESETS as string[]).includes(raw)) return { mode: "preset", preset: raw as Range, custom: null }; // legacy plain string
+    if ((PRESETS as string[]).includes(raw)) return { mode: "preset", preset: raw as Range, custom: null };
     try {
       const p = JSON.parse(raw) as Persisted;
       const validPreset = (PRESETS as string[]).includes(p?.preset);
@@ -20,7 +20,7 @@ function initial(): Persisted {
         const custom = p.custom && typeof p.custom.from === "number" && typeof p.custom.to === "number" ? p.custom : null;
         return { mode: custom ? p.mode : "preset", preset: p.preset, custom };
       }
-    } catch { /* fall through to default */ }
+    } catch {}
   }
   return { mode: "preset", preset: "30d", custom: null };
 }

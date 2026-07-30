@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import type { Database } from "better-sqlite3";
 
 export type ShareKind = "track" | "album" | "queue";
-export const SHARE_TTL_SECONDS = 86_400; // 24h
+export const SHARE_TTL_SECONDS = 86_400;
 export const MAX_SHARE_TRACKS = 200;
 
 export interface ShareRow {

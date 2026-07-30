@@ -17,8 +17,6 @@ interface Deps {
   webDir?: string;
 }
 
-// Resolve a stored share to its public, track-metadata-enriched form. Returns null if no
-// referenced track still exists. Shared by the JSON API and the server-rendered page.
 function resolveShare(reader: NavidromeReader, row: ShareRow): ShareData | null {
   const meta = reader.tracksById(row.trackIds);
   const tracks = row.trackIds
@@ -41,7 +39,6 @@ const createSchema = z.object({
 export function registerShares(app: FastifyInstance, deps: Deps): void {
   const store = new ShareStore(deps.statsDb);
 
-  // Authenticated (gated by the /api/* auth hook): create a share.
   app.post("/api/shares", async (req, reply) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ error: "invalid share" });
@@ -51,7 +48,6 @@ export function registerShares(app: FastifyInstance, deps: Deps): void {
     return { token: row.token };
   });
 
-  // Public (exempt from auth): share metadata.
   app.get("/api/public/share/:token", async (req, reply) => {
     const { token } = req.params as { token: string };
     const row = store.get(token, deps.now());
@@ -60,10 +56,6 @@ export function registerShares(app: FastifyInstance, deps: Deps): void {
     return share;
   });
 
-  // Public (exempt from auth): the server-rendered share page. Returns a complete, styled
-  // HTML page with a native <audio> player baked in, so the link works in any browser or
-  // in-app webview even if the SPA's JavaScript never loads. When JS does load, the Vue
-  // app reads window.__SHARE__ and enhances in place. Only registered when serving the SPA.
   if (deps.webDir) {
     const webDir = deps.webDir;
     let shell: string | null | undefined;
@@ -87,7 +79,6 @@ export function registerShares(app: FastifyInstance, deps: Deps): void {
     });
   }
 
-  // Public (exempt from auth): stream a track, only if it belongs to the share.
   app.get("/api/public/share/:token/stream/:trackId", async (req, reply) => {
     if (!deps.cover) return reply.code(404).send({ error: "not found" });
     const { token, trackId } = req.params as { token: string; trackId: string };
@@ -96,7 +87,6 @@ export function registerShares(app: FastifyInstance, deps: Deps): void {
     return proxyStream(deps.cover, trackId, req.headers["range"] as string | undefined, reply);
   });
 
-  // Public (exempt from auth): cover for a track, only if it belongs to the share.
   app.get("/api/public/share/:token/cover/:trackId", async (req, reply) => {
     if (!deps.cover) return reply.code(404).send({ error: "not found" });
     const { token, trackId } = req.params as { token: string; trackId: string };

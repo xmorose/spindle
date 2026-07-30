@@ -9,10 +9,6 @@ const schema = z.object({
   time: z.number().int().positive().optional(),
 });
 
-// Authed (gated by the /api/* auth hook): record a play in Navidrome. Spindle's own player
-// streams bytes via the proxy, which does not scrobble — so the play would never reach
-// Spindle's stats. This forwards a scrobble to Navidrome, which the ingest plugin then
-// feeds back into Spindle, keeping Navidrome the single source of truth.
 export function registerScrobble(app: FastifyInstance, cfg: CoverConfig): void {
   app.post("/api/scrobble", async (req, reply) => {
     const parsed = schema.safeParse(req.body);

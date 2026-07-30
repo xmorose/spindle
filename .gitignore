@@ -19,3 +19,6 @@ import-report/
 # Rust plugin build output
 plugin/target/
 *.ndp
+
+# Local planning notes
+docs/superpowers/

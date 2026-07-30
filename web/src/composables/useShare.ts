@@ -11,7 +11,6 @@ function flash(message: string, tone: "ok" | "error") {
   toastTimer = setTimeout(() => { shareToast.value = null; }, 3500);
 }
 
-/** Creates a 24h share, copies the link to the clipboard, and flashes a toast. */
 export async function createShareLink(req: CreateShareRequest): Promise<string | null> {
   if (!req.trackIds.length) return null;
   try {
@@ -22,7 +21,6 @@ export async function createShareLink(req: CreateShareRequest): Promise<string |
       await navigator.clipboard.writeText(url);
       flash("Link copied · expires in 24h", "ok");
     } catch {
-      // Clipboard blocked (e.g. no HTTPS) — show the link so it can be copied manually.
       flash(url, "ok");
     }
     return url;

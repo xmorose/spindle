@@ -14,9 +14,6 @@ export function subsonicStreamUrl(cfg: CoverConfig, id: string, salt = randomByt
   return `${cfg.navidromeUrl}/rest/stream.view?${params.toString()}`;
 }
 
-// Tell Navidrome a track was played. submission=true records the play (scrobble);
-// submission=false is a lightweight "now playing" notification. `time` (ms since epoch)
-// marks when playback started, for submissions.
 export function subsonicScrobbleUrl(
   cfg: CoverConfig,
   id: string,

@@ -1,8 +1,8 @@
 import { watch } from "vue";
-import { accentFromRgb, dominantColor, applyAccent } from "@/lib/accent";
+import { paletteFromImage, applyPalette } from "@/lib/accent";
 import { coverUrl } from "@/api/client";
 
-const BRAND_FALLBACK = "oklch(0.76 0.15 50)";
+const BRAND_FALLBACK = ["oklch(0.76 0.15 50)", "oklch(0.72 0.14 22)", "oklch(0.74 0.13 82)"];
 
 export function useCoverAccent(
   coverId: () => string | null | undefined,
@@ -11,7 +11,7 @@ export function useCoverAccent(
   const root = typeof document !== "undefined" ? document.documentElement : null;
   if (!root) return;
 
-  function reset() { applyAccent(root!, BRAND_FALLBACK); }
+  function reset() { applyPalette(root!, BRAND_FALLBACK); }
 
   watch(coverId, (id) => {
     if (!id) { reset(); return; }
@@ -19,15 +19,14 @@ export function useCoverAccent(
     img.crossOrigin = "anonymous";
     img.onload = () => {
       try {
-        const size = 24;
+        const size = 40;
         const canvas = document.createElement("canvas");
         canvas.width = size; canvas.height = size;
         const ctx = canvas.getContext("2d");
         if (!ctx) return reset();
         ctx.drawImage(img, 0, 0, size, size);
         const { data, width, height } = ctx.getImageData(0, 0, size, size);
-        const { r, g, b } = dominantColor({ data, width, height });
-        applyAccent(root!, accentFromRgb(r, g, b));
+        applyPalette(root!, paletteFromImage({ data, width, height }, 3));
       } catch {
         reset();
       }

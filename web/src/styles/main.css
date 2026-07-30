@@ -27,13 +27,24 @@
   inherits: true;
   initial-value: oklch(0.79 0.15 55);
 }
+/* Secondary hues pulled from the same cover, for multi-colour fields. */
+@property --accent-2 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.72 0.14 22);
+}
+@property --accent-3 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.74 0.13 82);
+}
 
 :root {
   --accent: var(--color-accent);
   --accent-soft: color-mix(in oklch, var(--accent) 16%, transparent);
 }
 
-html { transition: --accent 600ms var(--ease-out-quint); }
+html { transition: --accent 600ms var(--ease-out-quint), --accent-2 600ms var(--ease-out-quint), --accent-3 600ms var(--ease-out-quint); }
 
 @keyframes vinyl-rotate { to { transform: rotate(360deg); } }
 
