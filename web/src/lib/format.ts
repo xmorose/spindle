@@ -17,8 +17,10 @@ export function formatNumber(n: number): string {
   return n.toLocaleString("en-US");
 }
 
+export const NO_VALUE = "—";
+
 export function formatDate(unixSeconds: number | null): string {
-  if (!unixSeconds) return "—";
+  if (!unixSeconds) return NO_VALUE;
   return new Date(unixSeconds * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 

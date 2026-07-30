@@ -21,3 +21,8 @@ export function buildSeriesPaths(values: number[], w: number, h: number, pad = 4
 function trim(n: number): number {
   return Math.round(n * 100) / 100;
 }
+
+export function barWidth(value: number, max: number): string {
+  if (value <= 0 || max <= 0) return "0%";
+  return `${Math.max(2, Math.round((value / max) * 100))}%`;
+}
