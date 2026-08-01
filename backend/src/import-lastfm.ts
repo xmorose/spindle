@@ -1,19 +1,24 @@
-#tested with https://lastfm.ghan.nl/export/ csv export
-
 import { readFileSync } from "node:fs";
 import Database from "better-sqlite3";
-import { buildIndex, classify } from "/app/dist/import/spotify.js";
-import { openStatsDb } from "/app/dist/db/stats-db.js";
-import { EventStore } from "/app/dist/events/store.js";
+import { buildIndex, classify } from "./import/spotify.js";
+import type { NavTrack } from "./import/spotify.js";
+import { openStatsDb } from "./db/stats-db.js";
+import { EventStore } from "./events/store.js";
 
 function parseCsvLine(line: string): string[] {
   const result: string[] = [];
   let current = "";
   let quoted = false;
 
-  for (const char of line) {
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
     if (char === '"') {
-      quoted = !quoted;
+      if (quoted && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        quoted = !quoted;
+      }
     } else if (char === "," && !quoted) {
       result.push(current);
       current = "";
@@ -28,8 +33,9 @@ function parseCsvLine(line: string): string[] {
 
 function loadLastFm(file: string) {
   const lines = readFileSync(file, "utf8")
-  .split("\n")
-  .filter(Boolean);
+    .split("\n")
+    .map((l) => l.replace(/\r$/, ""))
+    .filter(Boolean);
 
   const headers = parseCsvLine(lines[0]);
 
@@ -42,11 +48,11 @@ function loadLastFm(file: string) {
 
     return {
       ts: new Date(Number(row.uts) * 1000).toISOString(),
-                            ms_played: 240000,
-                            track: row.track || null,
-                            artist: row.artist || null,
-                            album: row.album || null,
-                            uri: null,
+      ms_played: 240000,
+      track: row.track || null,
+      artist: row.artist || null,
+      album: row.album || null,
+      uri: null,
     };
   });
 }
@@ -79,7 +85,18 @@ async function main() {
   }
 
   if (!cfg.user) {
-    throw new Error("DEFAULT_USER missing");
+    console.error("Error: DEFAULT_USER env var required.");
+    process.exit(1);
+  }
+
+  if (!cfg.navidrome) {
+    console.error("Error: NAVIDROME_DB_PATH env var required.");
+    process.exit(1);
+  }
+
+  if (cfg.commit && !cfg.stats) {
+    console.error("Error: STATS_DB_PATH env var required for --commit.");
+    process.exit(1);
   }
 
   console.log("Loading Last.fm CSV...");
@@ -96,10 +113,10 @@ async function main() {
   });
 
   const tracks = navDb
-  .prepare(
-    "SELECT id, title, artist, duration FROM media_file"
-  )
-  .all();
+    .prepare(
+      "SELECT id, title, artist, duration FROM media_file"
+    )
+    .all() as NavTrack[];
 
   navDb.close();
 
