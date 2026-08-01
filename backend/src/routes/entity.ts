@@ -4,6 +4,7 @@ import type { NavidromeReader } from "../db/navidrome-db.js";
 import type { MemoCache } from "../cache.js";
 import { resolveTimeframe, type TimeframeQuery } from "../stats/timeframe.js";
 import { entityDetail, type EntityKind } from "../stats/entity.js";
+import { buildPlayAggregate } from "../stats/aggregate.js";
 
 interface Opts { statsDb: Database; reader: NavidromeReader; cache: MemoCache; now: () => number; defaultUser: string; }
 const KINDS: EntityKind[] = ["artist", "album", "track"];
@@ -15,8 +16,9 @@ export function registerEntity(app: FastifyInstance, o: Opts): void {
     const q = req.query as TimeframeQuery & { user?: string };
     const tf = resolveTimeframe(q, o.now());
     const user = q.user ?? o.defaultUser;
+    const agg = () => o.cache.get(JSON.stringify(["agg", user, tf]), () => buildPlayAggregate(o.statsDb, o.reader, tf, user));
     const result = o.cache.get(JSON.stringify(["entity", kind, id, q, tf]), () =>
-      entityDetail(o.statsDb, o.reader, kind as EntityKind, id, tf, user));
+      entityDetail(o.statsDb, o.reader, kind as EntityKind, id, tf, user, agg));
     if (!result) return reply.code(404).send({ error: "not found" });
     return result;
   });

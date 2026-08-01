@@ -16,8 +16,9 @@ export function openStatsDb(path: string): DB {
       nd_track_id TEXT    NOT NULL,
       source      TEXT    NOT NULL DEFAULT 'live'  -- 'live' | 'baseline'
     );
-    CREATE INDEX IF NOT EXISTS idx_play_events_user_time
-      ON play_events (user, played_at);
+    CREATE INDEX IF NOT EXISTS idx_play_events_scan
+      ON play_events (user, played_at, source, nd_track_id);
+    DROP INDEX IF EXISTS idx_play_events_user_time;
     CREATE INDEX IF NOT EXISTS idx_play_events_track
       ON play_events (nd_track_id);
     CREATE TABLE IF NOT EXISTS shares (

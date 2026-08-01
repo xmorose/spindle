@@ -1,5 +1,7 @@
 import Database from "better-sqlite3";
-import type { Database as DB } from "better-sqlite3";
+import type { Database as DB, Statement } from "better-sqlite3";
+
+const ID_CHUNK = 500;
 
 export interface TrackMeta {
   id: string;
@@ -21,6 +23,7 @@ export interface BaselineRow {
 
 export class NavidromeReader {
   private readonly db: DB;
+  private readonly metaStmts = new Map<number, Statement>();
 
   constructor(source: string | DB) {
     this.db =
@@ -43,17 +46,24 @@ export class NavidromeReader {
     }));
   }
 
+  private metaStmt(count: number): Statement {
+    const cached = this.metaStmts.get(count);
+    if (cached) return cached;
+    const stmt = this.db.prepare(
+      `SELECT id,title,artist,artist_id,album,album_id,duration,genre,has_cover_art
+       FROM media_file WHERE id IN (${new Array(count).fill("?").join(",")})`,
+    );
+    this.metaStmts.set(count, stmt);
+    return stmt;
+  }
+
   tracksById(ids: string[]): Map<string, TrackMeta> {
     const result = new Map<string, TrackMeta>();
-    if (ids.length === 0) return result;
-    const placeholders = ids.map(() => "?").join(",");
-    const rows = this.db
-      .prepare(
-        `SELECT id,title,artist,artist_id,album,album_id,duration,genre,has_cover_art
-         FROM media_file WHERE id IN (${placeholders})`,
-      )
-      .all(...ids) as any[];
-    for (const m of this.mapTrackRows(rows)) result.set(m.id, m);
+    for (let i = 0; i < ids.length; i += ID_CHUNK) {
+      const chunk = ids.slice(i, i + ID_CHUNK);
+      const rows = this.metaStmt(chunk.length).all(...chunk) as any[];
+      for (const m of this.mapTrackRows(rows)) result.set(m.id, m);
+    }
     return result;
   }
 

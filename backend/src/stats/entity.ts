@@ -1,7 +1,10 @@
 import type { Database } from "better-sqlite3";
 import type { NavidromeReader } from "../db/navidrome-db.js";
 import type { Timeframe } from "./timeframe.js";
+import type { PlayAggregate } from "./aggregate.js";
 import { topArtists, topAlbums, topTracks } from "./tops.js";
+
+export type AggregateSource = () => PlayAggregate;
 
 export type EntityKind = "artist" | "album" | "track";
 
@@ -52,14 +55,14 @@ function dailyHistory(db: Database, tf: Timeframe, user: string, ids: string[]):
 }
 
 export function entityDetail(
-  db: Database, reader: NavidromeReader, kind: EntityKind, id: string, tf: Timeframe, user: string,
+  db: Database, reader: NavidromeReader, kind: EntityKind, id: string, tf: Timeframe, user: string, agg: AggregateSource,
 ): EntityDetail | null {
-  if (kind === "album" || kind === "artist") return catalogDetail(db, reader, kind, id, tf, user);
-  return trackDetail(db, reader, id, tf, user);
+  if (kind === "album" || kind === "artist") return catalogDetail(db, reader, kind, id, tf, user, agg);
+  return trackDetail(db, reader, id, tf, user, agg);
 }
 
 function catalogDetail(
-  db: Database, reader: NavidromeReader, kind: "album" | "artist", id: string, tf: Timeframe, user: string,
+  db: Database, reader: NavidromeReader, kind: "album" | "artist", id: string, tf: Timeframe, user: string, agg: AggregateSource,
 ): EntityDetail | null {
   const catalog = kind === "album" ? reader.albumTrackMetas(id) : reader.artistTrackMetas(id);
   if (catalog.length === 0) return null;
@@ -80,8 +83,8 @@ function catalogDetail(
   const name = kind === "artist" ? sample.artist : sample.album;
 
   const idx = kind === "artist"
-    ? topArtists(db, reader, tf, user, "plays", 100000).findIndex((a) => a.artistId === id)
-    : topAlbums(db, reader, tf, user, "plays", 100000).findIndex((a) => a.albumId === id);
+    ? topArtists(agg(), "plays", 100000).findIndex((a) => a.artistId === id)
+    : topAlbums(agg(), "plays", 100000).findIndex((a) => a.albumId === id);
   const rank = idx >= 0 ? idx + 1 : 0;
 
   const { first, last } = span(db, tf, user, ids);
@@ -99,13 +102,13 @@ function catalogDetail(
 }
 
 function trackDetail(
-  db: Database, reader: NavidromeReader, id: string, tf: Timeframe, user: string,
+  db: Database, reader: NavidromeReader, id: string, tf: Timeframe, user: string, agg: AggregateSource,
 ): EntityDetail | null {
   const meta = reader.tracksById([id]).get(id);
   if (!meta) return null;
   const plays = playsForTracks(db, tf, user, [id]).get(id) ?? 0;
 
-  const idx = plays > 0 ? topTracks(db, reader, tf, user, "plays", 100000).findIndex((t) => t.id === id) : -1;
+  const idx = plays > 0 ? topTracks(agg(), "plays", 100000).findIndex((t) => t.id === id) : -1;
   const rank = idx >= 0 ? idx + 1 : 0;
 
   const { first, last } = span(db, tf, user, [id]);

@@ -1,6 +1,4 @@
-﻿import type { Database } from "better-sqlite3";
-import type { NavidromeReader } from "../db/navidrome-db.js";
-import type { Timeframe } from "./timeframe.js";
+﻿import type { PlayAggregate } from "./aggregate.js";
 
 export type Sort = "plays" | "time";
 
@@ -9,27 +7,13 @@ export interface AlbumTop { albumId: string; name: string; artist: string; artis
 export interface TrackTop { id: string; title: string; artist: string; artistId: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface GenreTop { genre: string; plays: number; seconds: number; }
 
-interface PlayRow { nd_track_id: string; plays: number; }
-
-function playsByTrack(db: Database, tf: Timeframe, user: string): PlayRow[] {
-  return db
-    .prepare(
-      `SELECT nd_track_id, COUNT(*) AS plays
-       FROM play_events
-       WHERE user=? AND played_at BETWEEN ? AND ?
-       GROUP BY nd_track_id`,
-    )
-    .all(user, tf.fromTs, tf.toTs) as PlayRow[];
-}
-
 function sortRows<T extends { plays: number; seconds: number }>(rows: T[], sort: Sort, limit: number): T[] {
   const key = sort === "time" ? "seconds" : "plays";
   return rows.sort((a, b) => b[key] - a[key]).slice(0, limit);
 }
 
-export function topTracks(db: Database, reader: NavidromeReader, tf: Timeframe, user: string, sort: Sort, limit: number): TrackTop[] {
-  const plays = playsByTrack(db, tf, user);
-  const meta = reader.tracksById(plays.map((p) => p.nd_track_id));
+export function topTracks(agg: PlayAggregate, sort: Sort, limit: number): TrackTop[] {
+  const { rows: plays, meta } = agg;
   const rows: TrackTop[] = [];
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);
@@ -39,9 +23,8 @@ export function topTracks(db: Database, reader: NavidromeReader, tf: Timeframe, 
   return sortRows(rows, sort, limit);
 }
 
-export function topArtists(db: Database, reader: NavidromeReader, tf: Timeframe, user: string, sort: Sort, limit: number): ArtistTop[] {
-  const plays = playsByTrack(db, tf, user);
-  const meta = reader.tracksById(plays.map((p) => p.nd_track_id));
+export function topArtists(agg: PlayAggregate, sort: Sort, limit: number): ArtistTop[] {
+  const { rows: plays, meta } = agg;
   const acc = new Map<string, ArtistTop & { _coverPlays: number }>();
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);
@@ -55,9 +38,8 @@ export function topArtists(db: Database, reader: NavidromeReader, tf: Timeframe,
   return sortRows([...acc.values()], sort, limit).map(({ _coverPlays, ...rest }) => rest);
 }
 
-export function topAlbums(db: Database, reader: NavidromeReader, tf: Timeframe, user: string, sort: Sort, limit: number): AlbumTop[] {
-  const plays = playsByTrack(db, tf, user);
-  const meta = reader.tracksById(plays.map((p) => p.nd_track_id));
+export function topAlbums(agg: PlayAggregate, sort: Sort, limit: number): AlbumTop[] {
+  const { rows: plays, meta } = agg;
   const acc = new Map<string, AlbumTop>();
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);
@@ -70,9 +52,8 @@ export function topAlbums(db: Database, reader: NavidromeReader, tf: Timeframe, 
   return sortRows([...acc.values()], sort, limit);
 }
 
-export function topGenres(db: Database, reader: NavidromeReader, tf: Timeframe, user: string, sort: Sort, limit: number): GenreTop[] {
-  const plays = playsByTrack(db, tf, user);
-  const meta = reader.tracksById(plays.map((p) => p.nd_track_id));
+export function topGenres(agg: PlayAggregate, sort: Sort, limit: number): GenreTop[] {
+  const { rows: plays, meta } = agg;
   const acc = new Map<string, GenreTop>();
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);

@@ -3,7 +3,8 @@ import type { Database } from "better-sqlite3";
 import type { NavidromeReader } from "../db/navidrome-db.js";
 import type { MemoCache } from "../cache.js";
 import type { EventStore } from "../events/store.js";
-import { resolveTimeframe, type TimeframeQuery } from "../stats/timeframe.js";
+import { resolveTimeframe, type Timeframe, type TimeframeQuery } from "../stats/timeframe.js";
+import { buildPlayAggregate } from "../stats/aggregate.js";
 import { topArtists, topAlbums, topTracks, topGenres, type Sort } from "../stats/tops.js";
 import { computeTotals } from "../stats/totals.js";
 import { computeHeatmap } from "../stats/heatmap.js";
@@ -37,31 +38,34 @@ export function registerStats(app: FastifyInstance, o: Opts): void {
   function sort(q: Q): Sort { return q.sort === "time" ? "time" : "plays"; }
   function limit(q: Q) { return Math.min(Number(q.limit ?? 50), 200); }
   function tz(q: Q) { const n = Number(q.tz); return Number.isFinite(n) ? Math.max(-50400, Math.min(50400, Math.trunc(n))) : 0; }
+  function agg(q: Q, t: Timeframe) {
+    return o.cache.get(key(["agg", user(q), t]), () => buildPlayAggregate(o.statsDb, o.reader, t, user(q)));
+  }
 
   app.get("/api/tops/artists", async (req) => {
     const q = req.query as Q;
     const t = tf(q);
-    return o.cache.get(key(["artists", q, t]), () => topArtists(o.statsDb, o.reader, t, user(q), sort(q), limit(q)));
+    return o.cache.get(key(["artists", user(q), t, sort(q), limit(q)]), () => topArtists(agg(q, t), sort(q), limit(q)));
   });
   app.get("/api/tops/albums", async (req) => {
     const q = req.query as Q;
     const t = tf(q);
-    return o.cache.get(key(["albums", q, t]), () => topAlbums(o.statsDb, o.reader, t, user(q), sort(q), limit(q)));
+    return o.cache.get(key(["albums", user(q), t, sort(q), limit(q)]), () => topAlbums(agg(q, t), sort(q), limit(q)));
   });
   app.get("/api/tops/tracks", async (req) => {
     const q = req.query as Q;
     const t = tf(q);
-    return o.cache.get(key(["tracks", q, t]), () => topTracks(o.statsDb, o.reader, t, user(q), sort(q), limit(q)));
+    return o.cache.get(key(["tracks", user(q), t, sort(q), limit(q)]), () => topTracks(agg(q, t), sort(q), limit(q)));
   });
   app.get("/api/tops/genres", async (req) => {
     const q = req.query as Q;
     const t = tf(q);
-    return o.cache.get(key(["genres", q, t]), () => topGenres(o.statsDb, o.reader, t, user(q), sort(q), limit(q)));
+    return o.cache.get(key(["genres", user(q), t, sort(q), limit(q)]), () => topGenres(agg(q, t), sort(q), limit(q)));
   });
   app.get("/api/totals", async (req) => {
     const q = req.query as Q;
     const t = tf(q);
-    return o.cache.get(key(["totals", q, t]), () => computeTotals(o.statsDb, o.reader, t, user(q)));
+    return o.cache.get(key(["totals", user(q), t]), () => computeTotals(o.statsDb, agg(q, t), t, user(q)));
   });
   app.get("/api/heatmap", async (req) => {
     const q = req.query as Q;

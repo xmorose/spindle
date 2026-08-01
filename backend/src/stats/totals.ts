@@ -1,5 +1,5 @@
 ﻿import type { Database } from "better-sqlite3";
-import type { NavidromeReader } from "../db/navidrome-db.js";
+import type { PlayAggregate } from "./aggregate.js";
 import type { Timeframe } from "./timeframe.js";
 
 export interface Totals {
@@ -11,16 +11,8 @@ export interface Totals {
   avgPlaysPerActiveDay: number;
 }
 
-interface Row { nd_track_id: string; plays: number; }
-
-export function computeTotals(db: Database, reader: NavidromeReader, tf: Timeframe, user: string): Totals {
-  const rows = db
-    .prepare(
-      `SELECT nd_track_id, COUNT(*) AS plays FROM play_events
-       WHERE user=? AND played_at BETWEEN ? AND ? GROUP BY nd_track_id`,
-    )
-    .all(user, tf.fromTs, tf.toTs) as Row[];
-  const meta = reader.tracksById(rows.map((r) => r.nd_track_id));
+export function computeTotals(db: Database, agg: PlayAggregate, tf: Timeframe, user: string): Totals {
+  const { rows, meta } = agg;
 
   let plays = 0, seconds = 0;
   const artists = new Set<string>(), albums = new Set<string>(), trackSet = new Set<string>();
