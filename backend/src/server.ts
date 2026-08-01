@@ -1,6 +1,7 @@
 ﻿import { loadConfig } from "./config.js";
 import { openStatsDb } from "./db/stats-db.js";
 import { NavidromeReader } from "./db/navidrome-db.js";
+import { healLegacyIds } from "./db/id-heal.js";
 import { EventStore } from "./events/store.js";
 import { importBaseline } from "./baseline.js";
 import { buildApp } from "./app.js";
@@ -15,6 +16,18 @@ export async function bootApp(env?: Record<string, string | undefined>): Promise
     cfg.navidromeDbPath === ":memory:"
       ? NavidromeReader.empty()
       : new NavidromeReader(cfg.navidromeDbPath);
+
+  if (reader.idsMigrated()) {
+    const backupPath = cfg.statsDbPath === ":memory:" ? null : `${cfg.statsDbPath}.pre-id-migration.bak`;
+    const healed = await healLegacyIds(statsDb, reader, backupPath);
+    if (healed) {
+      console.log(
+        `[spindle] navidrome id migration detected: rewrote ${healed.plays} play events and ${healed.shares} shares` +
+          (healed.unverified ? `, left ${healed.unverified} ids that no longer exist in the library` : "") +
+          (backupPath ? ` (backup: ${backupPath})` : ""),
+      );
+    }
+  }
 
   const store = new EventStore(statsDb);
   importBaseline(statsDb, store, reader);

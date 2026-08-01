@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import type { Database as DB, Statement } from "better-sqlite3";
+import { canonicalId } from "./id-heal.js";
 
 const ID_CHUNK = 500;
 
@@ -116,6 +117,29 @@ export class NavidromeReader {
       .all(like, perKind) as any[];
     const tracks = trackRows.map((r) => ({ id: r.id, title: r.title, artist: r.artist, artistId: r.artist_id, hasCoverArt: !!r.has_cover_art }));
     return { artists, albums, tracks };
+  }
+
+  existingIds(ids: string[]): Set<string> {
+    const found = new Set<string>();
+    for (let i = 0; i < ids.length; i += 500) {
+      const chunk = ids.slice(i, i + 500);
+      const rows = this.db
+        .prepare(`SELECT id FROM media_file WHERE id IN (${chunk.map(() => "?").join(",")})`)
+        .all(...chunk) as { id: string }[];
+      for (const r of rows) found.add(r.id);
+    }
+    return found;
+  }
+
+  idsMigrated(): boolean {
+    try {
+      const applied = this.db
+        .prepare("SELECT 1 AS ok FROM goose_db_version WHERE version_id=? AND is_applied=1")
+        .get(20260720015443) as { ok: number } | undefined;
+      if (applied) return true;
+    } catch {}
+    const rows = this.db.prepare("SELECT id FROM media_file").all() as { id: string }[];
+    return rows.length > 0 && !rows.some((r) => canonicalId(r.id) !== r.id);
   }
 
   baselinePlayCounts(): BaselineRow[] {
