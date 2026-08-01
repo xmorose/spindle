@@ -9,7 +9,8 @@
     "start": "node --env-file-if-exists=.env dist/server.js",
     "hash-password": "tsx src/auth/hash-cli.ts",
     "import-spotify": "tsx src/import-spotify.ts",
-    "import-playlists": "tsx src/import-playlists.ts"
+    "import-playlists": "tsx src/import-playlists.ts",
+    "import-lastfm": "tsx src/import-lastfm.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",
