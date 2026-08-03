@@ -1,5 +1,8 @@
 function base(s: string): string {
-  return s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
+  return (s ?? "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 export function normArtist(s: string): string {
@@ -13,7 +16,7 @@ export function normTitle(s: string): string {
 
   if (/^untitled\s*\(.*\)$/i.test(original)) {
     return original
-      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .replace(/[^\p{L}\p{N}]+/gu, "")
       .trim();
   }
 
@@ -23,10 +26,13 @@ export function normTitle(s: string): string {
     .replace(/\s(feat|ft|featuring)\.?\s.*$/, "")
     .replace(/\s-\s.*$/, "")
     .replace(/\s\+.*$/, "")
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, "")
     .trim();
 }
 
-export function matchKey(artist: string, title: string): string {
+export function matchKey(
+  artist: string,
+  title: string
+): string {
   return `${normArtist(artist)} ${normTitle(title)}`;
 }
