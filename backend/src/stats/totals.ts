@@ -27,7 +27,7 @@ export function computeTotals(db: Database, agg: PlayAggregate, tf: Timeframe, u
   const activeDays = (
     db
       .prepare(
-        `SELECT COUNT(DISTINCT played_at/86400) AS d FROM play_events
+        `SELECT COUNT(DISTINCT played_at/86400) AS d FROM counted_plays
          WHERE user=? AND played_at BETWEEN ? AND ? AND source<>'baseline'`,
       )
       .get(user, tf.fromTs, tf.toTs) as { d: number }

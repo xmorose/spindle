@@ -25,7 +25,7 @@ export function computeTimeseries(
   const rows = db
     .prepare(
       `SELECT CAST((played_at + ?) AS INTEGER)/${div} AS bucket, nd_track_id, COUNT(*) AS plays
-       FROM play_events
+       FROM counted_plays
        WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ?
        GROUP BY bucket, nd_track_id
        ORDER BY bucket ASC`,

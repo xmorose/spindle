@@ -20,6 +20,7 @@ export interface Config {
   sessionGapMinutes: number;
   defaultUser: string;
   trustProxy: boolean;
+  excludeBaselineWhenImported: boolean;
   auth?: AuthConfig;
   cover?: CoverConfig;
   webDir?: string;
@@ -65,6 +66,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     sessionGapMinutes: Number(env.SESSION_GAP_MINUTES ?? 30),
     defaultUser: env.DEFAULT_USER ?? "morose",
     trustProxy: env.TRUST_PROXY === "true",
+    excludeBaselineWhenImported: env.EXCLUDE_BASELINE_WHEN_IMPORTED === "true",
     auth,
     cover,
     webDir: env.WEB_DIR,

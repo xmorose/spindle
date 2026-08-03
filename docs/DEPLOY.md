@@ -69,6 +69,7 @@ Notes:
 - **`AUTH_COOKIE_SECURE=true`** requires HTTPS (the proxy provides it).
 - Omit `SPINDLE_PASSWORD_HASH` to run without the login gate (local only, never on a public bind).
 - **`DEFAULT_USER` must match your Navidrome login name.** The dashboard only queries this user, so a wrong or unset value shows an empty dashboard with no error.
+- **`EXCLUDE_BASELINE_WHEN_IMPORTED=true`** (optional, default off) drops a track's baseline plays whenever an importer has supplied timestamped history for it. Set it only if Navidrome scrobbles to the service you imported from — then the baseline counts and the imported scrobbles are the same listening, and leaving it off double counts. If they are separate (Last.fm history from a phone, Navidrome plays from a client with no scrobbler), leave it off or you will lose real plays. Duplicate plays that share a timestamp across live and imported history are always collapsed, regardless of this setting.
 - **Mount Navidrome's data dir read-write.** Spindle opens the database read-only at the connection level, but SQLite needs to manage the WAL sidecar files, so a `:ro` filesystem mount can fail to open or return stale data.
 
 ## Reverse proxy + TLS

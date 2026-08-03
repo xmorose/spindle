@@ -9,7 +9,7 @@ export function computeHeatmap(db: Database, tf: Timeframe, user: string, tzOffs
       `SELECT CAST(strftime('%w', played_at + ?, 'unixepoch') AS INTEGER) AS weekday,
               CAST(strftime('%H', played_at + ?, 'unixepoch') AS INTEGER) AS hour,
               COUNT(*) AS plays
-       FROM play_events
+       FROM counted_plays
        WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ?
        GROUP BY weekday, hour`,
     )

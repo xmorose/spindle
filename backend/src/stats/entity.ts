@@ -27,7 +27,7 @@ function playsForTracks(db: Database, tf: Timeframe, user: string, ids: string[]
   if (ids.length === 0) return map;
   const ph = ids.map(() => "?").join(",");
   const rows = db.prepare(
-    `SELECT nd_track_id, COUNT(*) AS plays FROM play_events
+    `SELECT nd_track_id, COUNT(*) AS plays FROM counted_plays
      WHERE user=? AND played_at BETWEEN ? AND ? AND nd_track_id IN (${ph})
      GROUP BY nd_track_id`,
   ).all(user, tf.fromTs, tf.toTs, ...ids) as PlayRow[];
@@ -39,7 +39,7 @@ function span(db: Database, tf: Timeframe, user: string, ids: string[]): { first
   if (ids.length === 0) return { first: null, last: null };
   const ph = ids.map(() => "?").join(",");
   return db.prepare(
-    `SELECT MIN(played_at) AS first, MAX(played_at) AS last FROM play_events
+    `SELECT MIN(played_at) AS first, MAX(played_at) AS last FROM counted_plays
      WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ? AND nd_track_id IN (${ph})`,
   ).get(user, tf.fromTs, tf.toTs, ...ids) as { first: number | null; last: number | null };
 }
@@ -48,7 +48,7 @@ function dailyHistory(db: Database, tf: Timeframe, user: string, ids: string[]):
   if (ids.length === 0) return [];
   const ph = ids.map(() => "?").join(",");
   return db.prepare(
-    `SELECT played_at/86400 AS day, COUNT(*) AS plays FROM play_events
+    `SELECT played_at/86400 AS day, COUNT(*) AS plays FROM counted_plays
      WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ? AND nd_track_id IN (${ph})
      GROUP BY day ORDER BY day`,
   ).all(user, tf.fromTs, tf.toTs, ...ids) as { day: number; plays: number }[];

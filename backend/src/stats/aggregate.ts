@@ -9,7 +9,7 @@ export function buildPlayAggregate(db: Database, reader: NavidromeReader, tf: Ti
   const rows = db
     .prepare(
       `SELECT nd_track_id, COUNT(*) AS plays
-       FROM play_events
+       FROM counted_plays
        WHERE user=? AND played_at BETWEEN ? AND ?
        GROUP BY nd_track_id`,
     )

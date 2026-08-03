@@ -17,7 +17,7 @@ interface Row { played_at: number; nd_track_id: string; }
 export function recentPlays(db: Database, reader: NavidromeReader, user: string, limit: number): RecentPlay[] {
   const rows = db
     .prepare(
-      `SELECT played_at, nd_track_id FROM play_events
+      `SELECT played_at, nd_track_id FROM counted_plays
        WHERE user=? AND source<>'baseline'
        ORDER BY played_at DESC, id DESC
        LIMIT ?`,

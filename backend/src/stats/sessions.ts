@@ -34,7 +34,7 @@ export function computeSessions(
 ): Session[] {
   const rows = db
     .prepare(
-      `SELECT played_at, nd_track_id FROM play_events
+      `SELECT played_at, nd_track_id FROM counted_plays
        WHERE user=? AND source<>'baseline' AND played_at BETWEEN ? AND ?
        ORDER BY played_at ASC`,
     )
