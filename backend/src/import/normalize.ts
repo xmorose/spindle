@@ -9,9 +9,17 @@ export function normArtist(s: string): string {
 }
 
 export function normTitle(s: string): string {
-  return base(s)
+  const original = base(s);
+
+  if (/^untitled\s*\(.*\)$/i.test(original)) {
+    return original
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+  }
+
+  return original
     .replace(/[([]\s*(feat|ft|featuring|with|prod)\.?[^)\]]*[)\]]/g, " ")
-    .replace(/[([][^)\]]*\b(remix|edit|mix|version|acoustic|live|remaster(ed)?|bootleg|vip|instrumental|extended|radio|slowed|reverb|sped|flip)\b[^)\]]*[)\]]/g, " ")
+    .replace(/[([][^)\]]*\b(remix|edit|mix|version|acoustic|remaster(ed)?|bootleg|vip|instrumental|extended|radio|slowed|reverb|sped|flip)\b[^)\]]*[)\]]/g, " ")
     .replace(/\s(feat|ft|featuring)\.?\s.*$/, "")
     .replace(/\s-\s.*$/, "")
     .replace(/\s\+.*$/, "")
