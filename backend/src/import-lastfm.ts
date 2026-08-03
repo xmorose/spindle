@@ -259,5 +259,13 @@ async function askMissingFilePath(): Promise<string> {
 
   rl.close();
 
-  return answer.trim() || "/app/data/last.fm/missing-tracks.csv";
+  return answer.trim() || "/app/data/missing-tracks.csv";
+}
+
+
+function normaliseTitle(title: string): string {
+  return title
+  .toLowerCase()
+  .replace(/\bthe\b/g, "")
+  .replace(/[^a-z0-9]/g, "");
 }
