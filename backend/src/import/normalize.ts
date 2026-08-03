@@ -3,7 +3,9 @@ function base(s: string): string {
 }
 
 export function normArtist(s: string): string {
-  return base(s).replace(/[^a-z0-9]+/g, " ").trim();
+  return base(s)
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
 }
 
 export function normTitle(s: string): string {
@@ -13,7 +15,7 @@ export function normTitle(s: string): string {
     .replace(/\s(feat|ft|featuring)\.?\s.*$/, "")
     .replace(/\s-\s.*$/, "")
     .replace(/\s\+.*$/, "")
-    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 }
 
