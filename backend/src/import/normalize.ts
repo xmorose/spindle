@@ -1,8 +1,37 @@
 function base(s: string): string {
-  return (s ?? "")
+  return s
     .toLowerCase()
     .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f]/g, "")
+
+    // Common letter equivalents
+    .replace(/[ı]/g, "i")
+    .replace(/[ß]/g, "ss")
+    .replace(/[æ]/g, "ae")
+    .replace(/[œ]/g, "oe")
+    .replace(/[ø]/g, "o")
+    .replace(/[ł]/g, "l")
+    .replace(/[đ]/g, "d")
+    .replace(/[ð]/g, "d")
+    .replace(/[þ]/g, "th")
+    .replace(/[ħ]/g, "h")
+    .replace(/[ŋ]/g, "n")
+
+    // Cyrillic lookalikes
+    .replace(/[а]/g, "a")
+    .replace(/[е]/g, "e")
+    .replace(/[о]/g, "o")
+    .replace(/[р]/g, "r")
+    .replace(/[с]/g, "s")
+    .replace(/[х]/g, "x")
+    .replace(/[у]/g, "y");
+}
+
+export function fuzzyTitleKey(s: string): string {
+  return base(s)
+    .replace(/\b(the|a|an|of|or|and)\b/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, "")
+    .trim();
 }
 
 export function normArtist(s: string): string {
@@ -16,7 +45,8 @@ export function normTitle(s: string): string {
 
   if (/^untitled\s*\(.*\)$/i.test(original)) {
     return original
-      .replace(/[^\p{L}\p{N}]+/gu, "")
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .replace(/\s+/g, "")
       .trim();
   }
 
@@ -30,9 +60,6 @@ export function normTitle(s: string): string {
     .trim();
 }
 
-export function matchKey(
-  artist: string,
-  title: string
-): string {
+export function matchKey(artist: string, title: string): string {
   return `${normArtist(artist)} ${normTitle(title)}`;
 }
