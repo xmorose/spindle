@@ -1,7 +1,8 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import { buildIndex, classify } from "./import/spotify.js";
 import type { NavTrack } from "./import/spotify.js";
+import { matchKey } from "./import/normalize.js";
 import { openStatsDb } from "./db/stats-db.js";
 import { EventStore } from "./events/store.js";
 
@@ -61,6 +62,7 @@ function parseArgs(argv: string[]) {
   return {
     csv: argv[2],
     commit: argv.includes("--commit"),
+    missingFile: argv.find((a) => a.startsWith("--missing-file="))?.slice(15) ?? null,
     user: process.env.DEFAULT_USER ?? "",
     navidrome: process.env.NAVIDROME_DB_PATH ?? "",
     stats: process.env.STATS_DB_PATH ?? "",
@@ -80,7 +82,9 @@ async function main() {
   const cfg = parseArgs(process.argv);
 
   if (!cfg.csv) {
-    console.error("Usage: import-lastfm <file.csv> [--commit]");
+    console.error(
+      "Usage: import-lastfm <file.csv> [--commit] [--missing-file=<path.csv>]"
+    );
     process.exit(1);
   }
 
@@ -141,7 +145,6 @@ async function main() {
     index,
     30000
   );
-
   clearInterval(monitor);
 
   console.log("");
@@ -151,6 +154,36 @@ async function main() {
   console.log(`  Exact: ${report.matchedExact}`);
   console.log(`  Title only: ${report.matchedByTitle}`);
   console.log(`  Missing: ${report.unmatched}`);
+
+  if (cfg.missingFile) {
+    const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+
+    const unmatched = new Set(
+      report.unmatchedAgg.map((t) => matchKey(t.artist, t.title))
+    );
+
+    const missingRows = plays.filter(
+      (p) => p.artist && p.track && unmatched.has(matchKey(p.artist, p.track))
+    );
+
+    const csv = [
+      "date,artist,title,album",
+      ...missingRows.map((p) =>
+        [
+          escape(p.ts),
+          escape(p.artist!),
+          escape(p.track!),
+          escape(p.album ?? ""),
+        ].join(",")
+      ),
+    ].join("\n");
+
+    writeFileSync(cfg.missingFile, csv + "\n", "utf8");
+
+    console.log(
+      `Wrote ${missingRows.length} missing plays to ${cfg.missingFile}`
+    );
+  }
 
   if (!cfg.commit) {
     console.log("");
