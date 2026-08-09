@@ -1,274 +1,152 @@
 import { matchKey, normTitle, normArtist, fuzzyTitleKey } from "./normalize.js";
 
-export interface NavTrack {
-  id: string;
-  title: string;
-  artist: string;
-  duration: number;
-}
-
-export interface LastFmPlay {
-  ts: string;
-  ms_played: number;
-  track: string | null;
-  artist: string | null;
-  album: string | null;
-  uri: string | null;
-}
-
-export interface ImportEvent {
-  played_at: number;
-  nd_track_id: string;
-}
-
-export interface UnmatchedTrack {
-  artist: string;
-  title: string;
-  plays: number;
-}
-
-export interface ClassifyReport {
+export interface SpotifyPlay { ts: string; ms_played: number; track: string | null; artist: string | null; album: string | null; uri: string | null; }
+export interface NavTrack { id: string; title: string; artist: string; duration: number; path?: string; }
+export interface ImportEvent { played_at: number; nd_track_id: string; }
+export interface Agg { artist: string; title: string; plays: number; }
+export interface NavIndex { byKey: Map<string, NavTrack>; byTitle: Map<string, NavTrack[]>; byFuzzyTitle: Map<string, NavTrack[]>; }
+export interface ImportReport {
+  totalRecords: number;
+  nonMusic: number;
+  tooShort: number;
   counted: number;
   matched: number;
   matchedExact: number;
   matchedByTitle: number;
   unmatched: number;
   events: ImportEvent[];
-  unmatchedAgg: UnmatchedTrack[];
+  matchedAgg: Agg[];
+  byTitleAgg: Agg[];
+  unmatchedAgg: Agg[];
+  firstTs: number | null;
+  lastTs: number | null;
+  matchedSeconds: number;
 }
 
-export interface TrackIndex {
-  byKey: Map<string, NavTrack>;
-  byTitle: Map<string, NavTrack[]>;
-  byFuzzyTitle: Map<string, NavTrack[]>;
-}
+function firstArtist(s: string): string { return s.split(",")[0]; }
 
-
-function firstArtist(s: string): string {
-  return s.split(",")[0];
-}
-
-
-function addTitle(
-  map: Map<string, NavTrack[]>,
-  key: string,
-  track: NavTrack
-): void {
-  const arr = map.get(key) ?? [];
-
-  if (!arr.some((x) => x.id === track.id)) {
-    arr.push(track);
+function artistForms(s: string): Set<string> {
+  const forms = new Set([normArtist(s), normArtist(firstArtist(s))]);
+  for (const part of s.split(/[,;•&]+|\sfeat\.?\s|\sft\.?\s|\swith\s/i)) {
+    const a = normArtist(part);
+    if (a) forms.add(a);
   }
-
-  map.set(key, arr);
+  forms.delete("");
+  return forms;
 }
 
-
-export function buildIndex(tracks: NavTrack[]): TrackIndex {
+export function buildIndex(tracks: NavTrack[]): NavIndex {
   const byKey = new Map<string, NavTrack>();
   const byTitle = new Map<string, NavTrack[]>();
   const byFuzzyTitle = new Map<string, NavTrack[]>();
-
+  const add = (map: Map<string, NavTrack[]>, tk: string, t: NavTrack) => {
+    if (!tk) return;
+    const arr = map.get(tk) ?? [];
+    if (!arr.some((x) => x.id === t.id)) arr.push(t);
+    map.set(tk, arr);
+  };
   for (const t of tracks) {
-    const artists = new Set(
-      t.artist
-        .split(/[•,;]+/)
-        .map((a) => normArtist(a))
-        .filter(Boolean)
-    );
-
+    const artists = artistForms(t.artist);
     const nt = normTitle(t.title);
-
-    addTitle(byTitle, nt, t);
-    addTitle(byFuzzyTitle, fuzzyTitleKey(t.title), t);
-
-    for (const a of artists) {
-      const key = `${a} ${nt}`;
-
-      if (!byKey.has(key)) {
-        byKey.set(key, t);
+    const titles = new Set([nt]);
+    for (const a of artists) if (a && nt.startsWith(a + " ")) titles.add(nt.slice(a.length + 1));
+    for (const tt of titles) {
+      for (const a of artists) {
+        const k = `${a} ${tt}`;
+        if (!byKey.has(k)) byKey.set(k, t);
       }
+      add(byTitle, tt, t);
+      add(byFuzzyTitle, fuzzyTitleKey(tt), t);
     }
   }
-
   for (const t of tracks) {
     const nt = normTitle(t.title);
-
-    if (nt && !byKey.has(nt)) {
-      byKey.set(nt, t);
-    }
+    if (nt && !byKey.has(nt)) byKey.set(nt, t);
   }
-
-  return {
-    byKey,
-    byTitle,
-    byFuzzyTitle
-  };
+  return { byKey, byTitle, byFuzzyTitle };
 }
 
+export type MatchTier = "exact" | "title" | "fuzzy";
 
-export function matchOne(
-  index: TrackIndex,
-  artist: string,
-  title: string
-): NavTrack | null {
-
-  const exact = index.byKey.get(
-    matchKey(artist, title)
-  );
-
-  if (exact) {
-    return exact;
-  }
-
-  const titleMatches = index.byTitle.get(
-    normTitle(title)
-  );
-
-  if (titleMatches && titleMatches.length === 1) {
-    return titleMatches[0];
-  }
-
-  const fuzzyMatches = index.byFuzzyTitle.get(
-    fuzzyTitleKey(title)
-  );
-
-  if (fuzzyMatches && fuzzyMatches.length > 0) {
-    const artistMatch = fuzzyMatches.find(
-      (t) =>
-        normArtist(t.artist) === normArtist(artist)
-    );
-
-    if (artistMatch) {
-      return artistMatch;
-    }
-
-    if (fuzzyMatches.length === 1) {
-      return fuzzyMatches[0];
-    }
-  }
-
-  return null;
+export function matchDetailed(index: NavIndex, artist: string, title: string): { track: NavTrack; tier: MatchTier } | null {
+  const exact = index.byKey.get(matchKey(artist, title));
+  if (exact) return { track: exact, tier: "exact" };
+  const cands = index.byTitle.get(normTitle(title));
+  if (cands && cands.length === 1) return { track: cands[0], tier: "title" };
+  const fk = fuzzyTitleKey(title);
+  if (!fk) return null;
+  const fuzzy = index.byFuzzyTitle.get(fk);
+  if (!fuzzy) return null;
+  const wanted = artistForms(artist);
+  const hit = fuzzy.find((t) => {
+    for (const a of artistForms(t.artist)) if (wanted.has(a)) return true;
+    return false;
+  });
+  return hit ? { track: hit, tier: "fuzzy" } : null;
 }
 
+export function matchOne(index: NavIndex, artist: string, title: string): NavTrack | null {
+  return matchDetailed(index, artist, title)?.track ?? null;
+}
 
-export function classify(
-  plays: LastFmPlay[],
-  index: TrackIndex,
-  thresholdMs: number
-): ClassifyReport {
+export interface PlaylistMatch { matchedPaths: string[]; matched: number; total: number; unmatched: { artist: string; title: string }[]; }
 
-  const report: ClassifyReport = {
-    counted: 0,
-    matched: 0,
-    matchedExact: 0,
-    matchedByTitle: 0,
-    unmatched: 0,
-    events: [],
-    unmatchedAgg: []
+export function matchPlaylist(items: { artist: string; title: string }[], index: NavIndex): PlaylistMatch {
+  const matchedPaths: string[] = [];
+  const unmatched: { artist: string; title: string }[] = [];
+  for (const it of items) {
+    const nav = matchOne(index, it.artist, it.title);
+    if (nav?.path) matchedPaths.push(nav.path);
+    else unmatched.push(it);
+  }
+  return { matchedPaths, matched: matchedPaths.length, total: items.length, unmatched };
+}
+
+export function classify(plays: SpotifyPlay[], index: NavIndex, thresholdMs: number): ImportReport {
+  const r: ImportReport = { totalRecords: 0, nonMusic: 0, tooShort: 0, counted: 0, matched: 0, matchedExact: 0, matchedByTitle: 0, unmatched: 0,
+    events: [], matchedAgg: [], byTitleAgg: [], unmatchedAgg: [], firstTs: null, lastTs: null, matchedSeconds: 0 };
+  const matchedMap = new Map<string, Agg>();
+  const byTitleMap = new Map<string, Agg>();
+  const unmatchedMap = new Map<string, Agg>();
+
+  const bump = (map: Map<string, Agg>, key: string, artist: string, title: string) => {
+    const a = map.get(key) ?? { artist, title, plays: 0 };
+    a.plays++; map.set(key, a);
   };
-
-  const unmatchedMap = new Map<string, UnmatchedTrack>();
+  const record = (nav: NavTrack, ts: string) => {
+    const at = Math.floor(Date.parse(ts) / 1000);
+    r.events.push({ played_at: at, nd_track_id: nav.id });
+    r.matchedSeconds += nav.duration;
+    if (r.firstTs === null || at < r.firstTs) r.firstTs = at;
+    if (r.lastTs === null || at > r.lastTs) r.lastTs = at;
+  };
 
   for (const p of plays) {
-
-    if (!p.track || !p.artist) {
+    r.totalRecords++;
+    if (!p.track || !p.artist) { r.nonMusic++; continue; }
+    if (p.ms_played < thresholdMs) { r.tooShort++; continue; }
+    r.counted++;
+    const key = matchKey(p.artist, p.track);
+    const hit = matchDetailed(index, p.artist, p.track);
+    if (!hit) {
+      r.unmatched++;
+      bump(unmatchedMap, key, p.artist, p.track);
       continue;
     }
-
-    if (p.ms_played < thresholdMs) {
-      continue;
+    r.matched++;
+    record(hit.track, p.ts);
+    bump(matchedMap, key, p.artist, p.track);
+    if (hit.tier === "exact") {
+      r.matchedExact++;
+    } else {
+      r.matchedByTitle++;
+      bump(byTitleMap, key, p.artist, p.track);
     }
-
-    report.counted++;
-
-    const exact = index.byKey.get(
-      matchKey(p.artist, p.track)
-    );
-
-    if (exact) {
-      report.matched++;
-      report.matchedExact++;
-
-      report.events.push({
-        played_at: Math.floor(Date.parse(p.ts) / 1000),
-        nd_track_id: exact.id
-      });
-
-      continue;
-    }
-
-
-    const titleMatches = index.byTitle.get(
-      normTitle(p.track)
-    );
-
-    if (titleMatches && titleMatches.length === 1) {
-      report.matched++;
-      report.matchedByTitle++;
-
-      report.events.push({
-        played_at: Math.floor(Date.parse(p.ts) / 1000),
-        nd_track_id: titleMatches[0].id
-      });
-
-      continue;
-    }
-
-
-    const fuzzyMatches = index.byFuzzyTitle.get(
-      fuzzyTitleKey(p.track)
-    );
-
-
-    if (fuzzyMatches && fuzzyMatches.length > 0) {
-
-      const artistMatch = fuzzyMatches.find(
-        (t) =>
-          normArtist(t.artist) === normArtist(p.artist)
-      );
-
-      const matchedTrack =
-        artistMatch ??
-        (fuzzyMatches.length === 1
-          ? fuzzyMatches[0]
-          : null);
-
-
-      if (matchedTrack) {
-        report.matched++;
-        report.matchedByTitle++;
-
-        report.events.push({
-          played_at: Math.floor(Date.parse(p.ts) / 1000),
-          nd_track_id: matchedTrack.id
-        });
-
-        continue;
-      }
-    }
-
-
-    report.unmatched++;
-
-    const key = `${p.artist}\u0000${p.track}`;
-
-    const old = unmatchedMap.get(key) ?? {
-      artist: p.artist,
-      title: p.track,
-      plays: 0
-    };
-
-    old.plays++;
-
-    unmatchedMap.set(key, old);
   }
 
-
-  report.unmatchedAgg = [
-    ...unmatchedMap.values()
-  ].sort((a, b) => b.plays - a.plays);
-
-
-  return report;
+  const desc = (m: Map<string, Agg>) => [...m.values()].sort((a, b) => b.plays - a.plays);
+  r.matchedAgg = desc(matchedMap);
+  r.byTitleAgg = desc(byTitleMap);
+  r.unmatchedAgg = desc(unmatchedMap);
+  return r;
 }
