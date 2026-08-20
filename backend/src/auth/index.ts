@@ -5,6 +5,7 @@ import type { AuthConfig } from "../config.js";
 import { verifyPassword } from "./password.js";
 import { signSession, readSession } from "./session.js";
 import { LoginRateLimiter } from "./rate-limit.js";
+import { isReadPath, bearerToken, tokenMatches } from "./read-token.js";
 
 export const SESSION_COOKIE = "spindle_session";
 const loginSchema = z.object({ password: z.string().min(1) });
@@ -31,6 +32,9 @@ export function registerAuth(app: FastifyInstance, cfg: AuthConfig, now: () => n
     if (OPEN_PATHS.has(path)) return;
     if (path.startsWith("/api/public/")) return;
     if (!path.startsWith("/api/")) return;
+    if (cfg.readToken && req.method === "GET" && isReadPath(path)) {
+      if (tokenMatches(bearerToken(req.headers.authorization), cfg.readToken)) return;
+    }
     const token = req.cookies?.[SESSION_COOKIE];
     const payload = token ? readSession(token, cfg.sessionSecret, now()) : null;
     if (!payload) {

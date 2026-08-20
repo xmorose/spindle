@@ -3,6 +3,7 @@ export interface AuthConfig {
   sessionSecret: string;
   cookieSecure: boolean;
   sessionDays: number;
+  readToken?: string;
 }
 
 export interface CoverConfig {
@@ -40,11 +41,16 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   if (passwordHash && env.AUTH_ENABLED !== "false") {
     const sessionSecret = env.SESSION_SECRET;
     if (!sessionSecret) throw new Error("SESSION_SECRET is required when SPINDLE_PASSWORD_HASH is set");
+    const readToken = env.SPINDLE_READ_TOKEN;
+    if (readToken !== undefined && readToken.length > 0 && readToken.length < 24) {
+      throw new Error("SPINDLE_READ_TOKEN must be at least 24 characters");
+    }
     auth = {
       passwordHash,
       sessionSecret,
       cookieSecure: (env.AUTH_COOKIE_SECURE ?? "true") !== "false",
       sessionDays,
+      readToken: readToken || undefined,
     };
   }
 
