@@ -27,7 +27,7 @@ const trackList = computed<PlayerTrack[]>(() =>
 </script>
 
 <template>
-  <div class="py-2">
+  <div class="py-2 rise">
     <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
       <h1 class="text-3xl font-black tracking-tight">Tracks</h1>
       <SearchInput v-model="q" class="max-w-xs" placeholder="Search tracks…" />

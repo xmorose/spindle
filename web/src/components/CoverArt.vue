@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, nextTick, onMounted } from "vue";
+import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { coverUrl } from "@/api/client";
 
 const props = withDefaults(
@@ -10,16 +10,38 @@ const failed = ref(false);
 const loaded = ref(false);
 const img = ref<HTMLImageElement | null>(null);
 
+let gen = 0;
+let raf1 = 0;
+let raf2 = 0;
+
+function clearFrames() {
+  cancelAnimationFrame(raf1);
+  cancelAnimationFrame(raf2);
+}
+
+function reveal(forGen: number) {
+  if (forGen === gen) loaded.value = true;
+}
+
 function syncCached() {
   const el = img.value;
-  if (el && el.complete && el.naturalWidth > 0) loaded.value = true;
+  if (!el || !el.complete || el.naturalWidth === 0) return;
+  const mine = gen;
+  clearFrames();
+  raf1 = requestAnimationFrame(() => {
+    raf2 = requestAnimationFrame(() => reveal(mine));
+  });
 }
+
 onMounted(syncCached);
 watch(() => [props.id, props.srcOverride], () => {
+  gen++;
+  clearFrames();
   failed.value = false;
   loaded.value = false;
   void nextTick(syncCached);
 });
+onBeforeUnmount(clearFrames);
 
 const src = computed(() => {
   if (props.srcOverride !== undefined) {

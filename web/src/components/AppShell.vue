@@ -51,7 +51,7 @@ async function logout() {
             @click="logout">Sign out</button>
         </div>
       </header>
-      <main class="min-w-0 flex-1 px-4 pb-28 pt-7 sm:px-8"><RouterView /></main>
+      <main class="min-w-0 flex-1 px-4 pb-28 pt-7 sm:px-8"><RouterView :key="route.path" /></main>
     </div>
     <PlayerBar />
   </div>

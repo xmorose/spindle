@@ -13,7 +13,7 @@ const emit = defineEmits<{ play: [item: CoverItem]; share: [item: CoverItem] }>(
 
 <template>
   <div v-if="items.length" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-    <div v-for="it in items" :key="it.id" data-tile class="group">
+    <div v-for="(it, i) in items" :key="it.id" data-tile class="tile group" :style="{ animationDelay: Math.min(i, 11) * 0.035 + 's' }">
       <div class="relative">
         <RouterLink :to="it.to" class="block">
           <CoverArt :id="it.coverId" :name="it.title" :size="300" class="w-full transition duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_16px_44px_-12px_var(--accent-soft)]" />
@@ -42,3 +42,12 @@ const emit = defineEmits<{ play: [item: CoverItem]; share: [item: CoverItem] }>(
   </div>
   <div v-else class="py-16 text-center text-sm text-faint">Nothing here yet.</div>
 </template>
+
+<style scoped>
+.tile { animation: tile-in 500ms var(--ease-out-quint) both; }
+@keyframes tile-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .tile { animation: none; } }
+</style>

@@ -10,6 +10,7 @@ import Spinner from "@/components/ui/Spinner.vue";
 
 const route = useRoute();
 const q = ref(String(route.query.q ?? ""));
+watch(() => route.query.q, (v) => { q.value = String(v ?? ""); });
 const res = ref<SearchResult | null>(null);
 const loading = ref(false);
 
