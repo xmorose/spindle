@@ -14,7 +14,12 @@ export class AuthError extends ApiError {
 let currentUser: string | undefined;
 export function setCurrentUser(u?: string): void { currentUser = u || undefined; }
 
-const tzOffsetSeconds = -new Date().getTimezoneOffset() * 60;
+export const tzOffsetSeconds = -new Date().getTimezoneOffset() * 60;
+
+export function dayWindow(dayIndex: number): { from: number; to: number } {
+  const from = dayIndex * 86400 - tzOffsetSeconds;
+  return { from, to: from + 86400 };
+}
 
 function qs(params: RangeParams = {}): string {
   const sp = new URLSearchParams();

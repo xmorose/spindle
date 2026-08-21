@@ -3,6 +3,7 @@ import SideNav from "./SideNav.vue";
 import RangeBar from "./RangeBar.vue";
 import UserSwitcher from "./UserSwitcher.vue";
 import PlayerBar from "./PlayerBar.vue";
+import CommandSearch from "./CommandSearch.vue";
 import ShareToast from "@/components/ShareToast.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
@@ -43,6 +44,7 @@ async function logout() {
           <span v-else class="label truncate">{{ fixedLabel }}</span>
         </div>
         <div class="flex flex-none items-center gap-2.5">
+          <CommandSearch />
           <UserSwitcher />
           <button
             class="rounded-lg border border-line px-3 py-1.5 text-[13px] font-semibold text-muted transition-colors duration-150 hover:bg-surface hover:text-text"

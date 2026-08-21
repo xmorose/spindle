@@ -3,9 +3,10 @@ import { computed, ref, watch, onUnmounted } from "vue";
 import { buildSeriesPaths } from "@/lib/chart";
 
 const props = withDefaults(
-  defineProps<{ values: number[]; height?: number; labels?: string[]; zoomable?: boolean }>(),
+  defineProps<{ values: number[]; height?: number; labels?: string[]; zoomable?: boolean; pickable?: boolean }>(),
   { height: 160 },
 );
+const emit = defineEmits<{ (e: "pick", index: number): void }>();
 const W = 900;
 const PAD = 6;
 
@@ -84,6 +85,13 @@ function onUp() {
   sel.value = null;
   if (!s) return;
   const lo = Math.min(s.a, s.b), hi = Math.max(s.a, s.b);
+  if (props.pickable && hi - lo < 0.01) {
+    const n = visible.value.length;
+    if (!n) return;
+    const within = Math.max(0, Math.min(n - 1, Math.round(lo * (n - 1))));
+    emit("pick", Math.round(win.value.s) + within);
+    return;
+  }
   const span = win.value.e - win.value.s;
   const a0 = win.value.s + lo * span;
   const a1 = win.value.s + hi * span;
@@ -139,7 +147,7 @@ const topPct = computed(() => (hoverPoint.value ? (hoverPoint.value.y / props.he
     <div v-if="zoomable" class="mt-1.5 flex items-center justify-between text-[10px] text-faint">
       <span class="tabular">{{ visibleLabels ? visibleLabels[0] : "" }}</span>
       <button v-if="zoomed" class="font-semibold uppercase tracking-wide transition-colors hover:text-text" @click="reset">Reset zoom</button>
-      <span v-else class="uppercase tracking-wide opacity-70">Drag to zoom</span>
+      <span v-else class="uppercase tracking-wide opacity-70">{{ pickable ? "Drag to zoom · click a day" : "Drag to zoom" }}</span>
       <span class="tabular">{{ visibleLabels ? visibleLabels[visibleLabels.length - 1] : "" }}</span>
     </div>
   </div>
