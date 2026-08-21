@@ -7,6 +7,7 @@ import CoverGrid, { type CoverItem } from "@/components/CoverGrid.vue";
 import { usePlayEntity } from "@/composables/usePlayEntity";
 import SearchInput from "@/components/SearchInput.vue";
 import SkeletonGrid from "@/components/ui/SkeletonGrid.vue";
+import { useCoverAccent } from "@/composables/useCoverAccent";
 
 const res = useRangedResource((p) => api.topAlbums({ ...p, limit: 200 }));
 const q = ref("");
@@ -21,6 +22,7 @@ const filtered = computed(() => {
 });
 const firstLoad = computed(() => res.loading.value && res.data.value === null);
 const { playAlbum, shareAlbum, busyId } = usePlayEntity();
+useCoverAccent(() => res.data.value?.[0]?.albumId ?? null);
 </script>
 
 <template>
@@ -31,6 +33,7 @@ const { playAlbum, shareAlbum, busyId } = usePlayEntity();
     </div>
     <SkeletonGrid v-if="firstLoad" />
     <CoverGrid v-else :items="filtered" playable shareable :busy-id="busyId"
+      :empty-label="q.trim() ? `No albums match '${q.trim()}'.` : 'Nothing here yet.'"
       @play="(it) => playAlbum(it.id)" @share="(it) => shareAlbum(it.id, it.title)" />
   </div>
 </template>

@@ -8,10 +8,13 @@ import Heatmap from "@/components/charts/Heatmap.vue";
 import RadialClock from "@/components/charts/RadialClock.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
 import Skeleton from "@/components/ui/Skeleton.vue";
+import { useCoverAccent } from "@/composables/useCoverAccent";
 
 const heat = useRangedResource((p) => api.heatmap(p));
 const series = useRangedResource((p) => api.timeseries({ ...p, bucket: "day" }));
 const sessions = useRangedResource((p) => api.sessions({ ...p, limit: 200 }));
+const lead = useRangedResource((p) => api.topArtists({ ...p, limit: 1 }));
+useCoverAccent(() => lead.data.value?.[0]?.coverArt ?? null);
 
 const cells = computed(() => heat.data.value ?? []);
 const hourly = computed(() => hourlyFromHeatmap(cells.value));

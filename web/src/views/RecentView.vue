@@ -8,6 +8,7 @@ import type { RecentPlay } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
 import CoverArt from "@/components/CoverArt.vue";
 import SkeletonList from "@/components/ui/SkeletonList.vue";
+import { useCoverAccent } from "@/composables/useCoverAccent";
 import EmptyState from "@/components/ui/EmptyState.vue";
 
 const player = usePlayerStore();
@@ -33,6 +34,7 @@ const groups = computed(() => {
 });
 
 const isEmpty = computed(() => !loading.value && plays.value.length === 0);
+useCoverAccent(() => { const p = plays.value[0]; return p?.hasCoverArt ? p.id : null; });
 
 function toTrack(p: RecentPlay): PlayerTrack {
   return { id: p.id, title: p.title, artist: p.artist, coverId: p.hasCoverArt ? p.id : null, artistId: p.artistId };

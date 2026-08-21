@@ -5,8 +5,8 @@ export interface CoverItem {
   id: string; title: string; subtitle?: string; value?: string; coverId: string | null; to: string; artistId?: string | null;
 }
 withDefaults(
-  defineProps<{ items: CoverItem[]; playable?: boolean; shareable?: boolean; busyId?: string | null }>(),
-  { playable: false, shareable: false, busyId: null },
+  defineProps<{ items: CoverItem[]; playable?: boolean; shareable?: boolean; busyId?: string | null; emptyLabel?: string }>(),
+  { playable: false, shareable: false, busyId: null, emptyLabel: "Nothing here yet." },
 );
 const emit = defineEmits<{ play: [item: CoverItem]; share: [item: CoverItem] }>();
 </script>
@@ -40,7 +40,7 @@ const emit = defineEmits<{ play: [item: CoverItem]; share: [item: CoverItem] }>(
       <div v-if="it.value" class="tabular mt-0.5 text-xs text-muted">{{ it.value }}</div>
     </div>
   </div>
-  <div v-else class="py-16 text-center text-sm text-faint">Nothing here yet.</div>
+  <div v-else class="py-16 text-center text-sm text-faint">{{ emptyLabel }}</div>
 </template>
 
 <style scoped>

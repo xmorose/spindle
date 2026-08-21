@@ -19,8 +19,8 @@ export interface RankedRow {
 }
 
 const props = withDefaults(
-  defineProps<{ rows: RankedRow[]; playable?: boolean; kind?: "track" | "album" | "artist" }>(),
-  { playable: false, kind: "track" },
+  defineProps<{ rows: RankedRow[]; playable?: boolean; kind?: "track" | "album" | "artist"; emptyLabel?: string }>(),
+  { playable: false, kind: "track", emptyLabel: "Nothing here yet." },
 );
 
 const player = usePlayerStore();
@@ -115,6 +115,6 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
       </div>
     </div>
   </div>
-  <div v-else class="py-10 text-center text-sm text-faint">Nothing here yet.</div>
+  <div v-else class="py-10 text-center text-sm text-faint">{{ emptyLabel }}</div>
   <div v-if="openIdx !== null" class="fixed inset-0 z-10" @click="openIdx = null"></div>
 </template>

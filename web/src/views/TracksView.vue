@@ -8,6 +8,7 @@ import ListActionBar from "@/components/ListActionBar.vue";
 import SearchInput from "@/components/SearchInput.vue";
 import SkeletonList from "@/components/ui/SkeletonList.vue";
 import type { PlayerTrack } from "@/stores/player";
+import { useCoverAccent } from "@/composables/useCoverAccent";
 
 const res = useRangedResource((p) => api.topTracks({ ...p, limit: 200 }));
 const q = ref("");
@@ -21,6 +22,7 @@ const filtered = computed(() => {
   return s ? rows.value.filter((r) => r.title.toLowerCase().includes(s) || (r.subtitle ?? "").toLowerCase().includes(s)) : rows.value;
 });
 const firstLoad = computed(() => res.loading.value && res.data.value === null);
+useCoverAccent(() => { const t = res.data.value?.[0]; return t?.hasCoverArt ? t.id : null; });
 const trackList = computed<PlayerTrack[]>(() =>
   filtered.value.map((r) => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null })),
 );
@@ -35,7 +37,7 @@ const trackList = computed<PlayerTrack[]>(() =>
     <SkeletonList v-if="firstLoad" :rows="12" />
     <template v-else>
       <ListActionBar :tracks="trackList" :count="filtered.length" />
-      <RankedList :rows="filtered" playable />
+      <RankedList :rows="filtered" playable :empty-label="q.trim() ? `No tracks match '${q.trim()}'.` : 'Nothing here yet.'" />
     </template>
   </div>
 </template>

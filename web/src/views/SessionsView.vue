@@ -10,11 +10,14 @@ import CoverArt from "@/components/CoverArt.vue";
 import NowPlayingBars from "@/components/NowPlayingBars.vue";
 import Skeleton from "@/components/ui/Skeleton.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
+import { useCoverAccent } from "@/composables/useCoverAccent";
 
 const res = useRangedResource((p) => api.sessions({ ...p, limit: 30 }));
 const sessions = computed(() => res.data.value ?? []);
 const firstLoad = computed(() => res.loading.value && res.data.value === null);
 const isEmpty = computed(() => !res.loading.value && sessions.value.length === 0);
+
+useCoverAccent(() => sessions.value[0]?.tracks?.[0]?.albumId ?? null);
 
 const maxSeconds = computed(() => Math.max(1, ...sessions.value.map((s) => s.seconds)));
 

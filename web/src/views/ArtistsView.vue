@@ -7,6 +7,7 @@ import CoverGrid, { type CoverItem } from "@/components/CoverGrid.vue";
 import { usePlayEntity } from "@/composables/usePlayEntity";
 import SearchInput from "@/components/SearchInput.vue";
 import SkeletonGrid from "@/components/ui/SkeletonGrid.vue";
+import { useCoverAccent } from "@/composables/useCoverAccent";
 
 const res = useRangedResource((p) => api.topArtists({ ...p, limit: 200 }));
 const q = ref("");
@@ -21,6 +22,7 @@ const filtered = computed(() => {
 });
 const firstLoad = computed(() => res.loading.value && res.data.value === null);
 const { playArtist, busyId } = usePlayEntity();
+useCoverAccent(() => res.data.value?.[0]?.coverArt ?? null);
 </script>
 
 <template>
@@ -30,6 +32,6 @@ const { playArtist, busyId } = usePlayEntity();
       <SearchInput v-model="q" class="max-w-xs" placeholder="Search artists…" />
     </div>
     <SkeletonGrid v-if="firstLoad" />
-    <CoverGrid v-else :items="filtered" playable :busy-id="busyId" @play="(it) => playArtist(it.id)" />
+    <CoverGrid v-else :items="filtered" playable :busy-id="busyId" :empty-label="q.trim() ? `No artists match '${q.trim()}'.` : 'Nothing here yet.'" @play="(it) => playArtist(it.id)" />
   </div>
 </template>

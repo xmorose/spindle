@@ -30,9 +30,12 @@ function qs(params: RangeParams = {}): string {
   return s ? `?${s}` : "";
 }
 
+let authLost: (() => void) | null = null;
+export function setAuthLostHandler(fn: () => void): void { authLost = fn; }
+
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`/api${path}`, { credentials: "include" });
-  if (res.status === 401) throw new AuthError();
+  if (res.status === 401) { authLost?.(); throw new AuthError(); }
   if (!res.ok) throw new ApiError(res.status, `GET ${path} failed (${res.status})`);
   return res.json() as Promise<T>;
 }
@@ -42,6 +45,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     method: "POST", credentials: "include",
     headers: { "content-type": "application/json" }, body: JSON.stringify(body),
   });
+  if (res.status === 401 && !path.startsWith("/auth/")) authLost?.();
   if (!res.ok && res.status !== 401) throw new ApiError(res.status, `POST ${path} failed (${res.status})`);
   return res.json() as Promise<T>;
 }

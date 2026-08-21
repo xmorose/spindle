@@ -9,5 +9,20 @@ import "@fontsource/hanken-grotesk/900.css";
 import "./styles/main.css";
 import App from "./App.vue";
 import { router } from "./router";
+import { setAuthLostHandler } from "./api/client";
+import { useAuthStore } from "./stores/auth";
 
-createApp(App).use(createPinia()).use(router).mount("#app");
+const app = createApp(App);
+app.use(createPinia());
+app.use(router);
+
+setAuthLostHandler(() => {
+  const auth = useAuthStore();
+  if (!auth.authenticated && router.currentRoute.value.path === "/login") return;
+  auth.authenticated = false;
+  const current = router.currentRoute.value;
+  if (current.path === "/login" || (current.meta as { public?: boolean }).public) return;
+  void router.replace({ path: "/login", query: { next: current.fullPath } });
+});
+
+app.mount("#app");

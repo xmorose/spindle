@@ -9,6 +9,7 @@ import RankedList, { type RankedRow } from "@/components/RankedList.vue";
 import AnimatedNumber from "@/components/ui/AnimatedNumber.vue";
 import Skeleton from "@/components/ui/Skeleton.vue";
 import SkeletonList from "@/components/ui/SkeletonList.vue";
+import { useCoverAccent } from "@/composables/useCoverAccent";
 
 const totals = ref<Totals | null>(null);
 const artistRows = ref<RankedRow[]>([]);
@@ -18,17 +19,21 @@ const { user } = storeToRefs(useUserStore());
 
 async function load() {
   loading.value = true;
-  const [t, ar, tr] = await Promise.all([
-    api.totals({ range: "all" }),
-    api.topArtists({ range: "all", limit: 10 }),
-    api.topTracks({ range: "all", limit: 10 }),
-  ]);
-  totals.value = t;
-  artistRows.value = ar.map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: a.plays, coverId: a.coverArt, to: `/artists/${a.artistId}` }));
-  trackRows.value = tr.map((x) => ({ id: x.id, title: x.title, subtitle: cleanArtist(x.artist), value: x.plays, coverId: x.hasCoverArt ? x.id : null, to: `/tracks/${x.id}`, artistId: x.artistId }));
-  loading.value = false;
+  try {
+    const [t, ar, tr] = await Promise.all([
+      api.totals({ range: "all" }),
+      api.topArtists({ range: "all", limit: 10 }),
+      api.topTracks({ range: "all", limit: 10 }),
+    ]);
+    totals.value = t;
+    artistRows.value = ar.map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: a.plays, coverId: a.coverArt, to: `/artists/${a.artistId}` }));
+    trackRows.value = tr.map((x) => ({ id: x.id, title: x.title, subtitle: cleanArtist(x.artist), value: x.plays, coverId: x.hasCoverArt ? x.id : null, to: `/tracks/${x.id}`, artistId: x.artistId }));
+  } finally {
+    loading.value = false;
+  }
 }
 watch(user, load, { immediate: true });
+useCoverAccent(() => artistRows.value[0]?.coverId ?? null);
 
 const supporting = computed(() => totals.value ? [
   { label: "Listening time", value: formatDuration(totals.value.seconds) },

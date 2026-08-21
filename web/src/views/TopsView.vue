@@ -11,6 +11,7 @@ import ListActionBar from "@/components/ListActionBar.vue";
 import SearchInput from "@/components/SearchInput.vue";
 import SkeletonList from "@/components/ui/SkeletonList.vue";
 import type { PlayerTrack } from "@/stores/player";
+import { useCoverAccent } from "@/composables/useCoverAccent";
 
 type Kind = "artists" | "albums" | "tracks";
 const kinds: Kind[] = ["artists", "albums", "tracks"];
@@ -39,18 +40,23 @@ async function load() {
   loading.value = true;
   const p = { ...params.value, sort: sort.value, limit: limitN.value };
   let mapped: RankedRow[] = [];
-  if (kind.value === "artists") {
-    mapped = (await api.topArtists(p)).map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.coverArt, to: `/artists/${a.artistId}` }));
-  } else if (kind.value === "albums") {
-    mapped = (await api.topAlbums(p)).map((a) => ({ id: a.albumId, title: a.name, subtitle: cleanArtist(a.artist), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.albumId, to: `/albums/${a.albumId}`, artistId: a.artistId }));
-  } else {
-    mapped = (await api.topTracks(p)).map((t) => ({ id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: sort.value === "time" ? t.seconds : t.plays, valueLabel: label(t.plays, t.seconds), coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}`, artistId: t.artistId }));
+  try {
+    if (kind.value === "artists") {
+      mapped = (await api.topArtists(p)).map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.coverArt, to: `/artists/${a.artistId}` }));
+    } else if (kind.value === "albums") {
+      mapped = (await api.topAlbums(p)).map((a) => ({ id: a.albumId, title: a.name, subtitle: cleanArtist(a.artist), value: sort.value === "time" ? a.seconds : a.plays, valueLabel: label(a.plays, a.seconds), coverId: a.albumId, to: `/albums/${a.albumId}`, artistId: a.artistId }));
+    } else {
+      mapped = (await api.topTracks(p)).map((t) => ({ id: t.id, title: t.title, subtitle: cleanArtist(t.artist), value: sort.value === "time" ? t.seconds : t.plays, valueLabel: label(t.plays, t.seconds), coverId: t.hasCoverArt ? t.id : null, to: `/tracks/${t.id}`, artistId: t.artistId }));
+    }
+    rows.value = mapped;
+  } finally {
+    loading.value = false;
   }
-  rows.value = mapped;
-  loading.value = false;
 }
 
 watch([kind, sort, params, limitN, user], load, { immediate: true });
+
+useCoverAccent(() => rows.value[0]?.coverId ?? null);
 
 const rowKind = computed<"track" | "album" | "artist">(() =>
   kind.value === "tracks" ? "track" : kind.value === "albums" ? "album" : "artist",
@@ -93,7 +99,7 @@ const trackList = computed<PlayerTrack[]>(() =>
     <SkeletonList v-if="firstLoad" :rows="12" />
     <template v-else>
       <ListActionBar v-if="kind === 'tracks'" :tracks="trackList" :count="filtered.length" />
-      <RankedList :rows="filtered" playable :kind="rowKind" />
+      <RankedList :rows="filtered" playable :kind="rowKind" :empty-label="q.trim() ? `No ${kind} match '${q.trim()}'.` : 'Nothing here yet.'" />
     </template>
   </div>
 </template>
