@@ -30,13 +30,13 @@ async function submit() {
 </script>
 
 <template>
-  <div class="grid min-h-screen place-items-center px-4">
+  <div class="grid min-h-dvh place-items-center px-4">
     <form class="w-full max-w-xs" @submit.prevent="submit">
       <div class="mb-7 flex items-center gap-2 text-lg font-extrabold tracking-tight">
         <span class="h-[18px] w-[18px] rounded-full border-2" :style="{ borderColor: 'var(--accent)' }" />
         Spindle
       </div>
-      <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-faint">Password</label>
+      <label class="label-sm mb-1.5 block">Password</label>
       <input
         v-model="password" type="password" autofocus autocomplete="current-password"
         class="w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none focus:border-[var(--accent)]"

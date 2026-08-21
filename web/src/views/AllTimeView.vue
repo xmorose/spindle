@@ -5,8 +5,8 @@ import { api } from "@/api/client";
 import { useUserStore } from "@/stores/user";
 import { formatNumber, formatDuration, cleanArtist } from "@/lib/format";
 import type { Totals } from "@/api/types";
-import StatTile from "@/components/StatTile.vue";
 import RankedList, { type RankedRow } from "@/components/RankedList.vue";
+import AnimatedNumber from "@/components/ui/AnimatedNumber.vue";
 import Skeleton from "@/components/ui/Skeleton.vue";
 import SkeletonList from "@/components/ui/SkeletonList.vue";
 
@@ -30,8 +30,7 @@ async function load() {
 }
 watch(user, load, { immediate: true });
 
-const tiles = computed(() => totals.value ? [
-  { label: "Total plays", value: formatNumber(totals.value.plays) },
+const supporting = computed(() => totals.value ? [
   { label: "Listening time", value: formatDuration(totals.value.seconds) },
   { label: "Artists", value: formatNumber(totals.value.distinctArtists) },
   { label: "Albums", value: formatNumber(totals.value.distinctAlbums) },
@@ -42,12 +41,21 @@ const tiles = computed(() => totals.value ? [
 <template>
   <div class="py-2 rise">
     <h1 class="mb-1 text-3xl font-black tracking-tight">All-time</h1>
-    <p class="mb-6 text-sm text-faint">Your full history, including plays from before tracking started.</p>
+    <p class="mb-9 text-sm text-faint">Your full history, including plays from before tracking started.</p>
 
     <template v-if="loading">
-      <div class="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <Skeleton v-for="i in 5" :key="i" class="h-[86px] rounded-xl" />
-      </div>
+      <section class="mb-11 flex flex-col gap-7 sm:flex-row sm:items-end sm:gap-12">
+        <div>
+          <Skeleton class="h-12 w-52 max-w-full sm:h-14 lg:h-[68px]" />
+          <Skeleton class="mt-3 h-2.5 w-28" />
+        </div>
+        <div class="flex flex-wrap gap-8 sm:gap-12">
+          <div v-for="i in 4" :key="i">
+            <Skeleton class="h-6 w-20 sm:h-7" />
+            <Skeleton class="mt-2 h-2.5 w-16" />
+          </div>
+        </div>
+      </section>
       <div class="grid grid-cols-1 gap-10 lg:grid-cols-2">
         <SkeletonList :rows="8" />
         <SkeletonList :rows="8" />
@@ -55,17 +63,28 @@ const tiles = computed(() => totals.value ? [
     </template>
 
     <template v-else>
-      <div class="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatTile v-for="t in tiles" :key="t.label" :label="t.label" :value="t.value" />
-      </div>
+      <section class="mb-11 flex flex-col gap-7 sm:flex-row sm:items-end sm:gap-12">
+        <div class="flex-none">
+          <div class="text-5xl font-black leading-[0.85] tracking-tight sm:text-6xl lg:text-7xl" :style="{ color: 'var(--accent)' }">
+            <AnimatedNumber :value="totals?.plays ?? 0" :format="formatNumber" />
+          </div>
+          <div class="label mt-3">Songs played</div>
+        </div>
+        <div class="flex flex-wrap gap-8 sm:gap-12 sm:border-l sm:border-line/60 sm:pb-1 sm:pl-12">
+          <div v-for="s in supporting" :key="s.label">
+            <div class="tabular text-2xl font-black leading-none tracking-tight sm:text-3xl">{{ s.value }}</div>
+            <div class="label-sm mt-2">{{ s.label }}</div>
+          </div>
+        </div>
+      </section>
 
       <div class="grid grid-cols-1 gap-10 lg:grid-cols-2">
         <section>
-          <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Top artists</div>
+          <div class="label mb-3">Top artists</div>
           <RankedList :rows="artistRows" playable kind="artist" />
         </section>
         <section>
-          <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Top tracks</div>
+          <div class="label mb-3">Top tracks</div>
           <RankedList :rows="trackRows" playable />
         </section>
       </div>

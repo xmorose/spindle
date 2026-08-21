@@ -65,7 +65,7 @@ const trackList = computed<PlayerTrack[]>(() =>
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
       <h1 class="text-3xl font-black tracking-tight">Tops</h1>
       <div class="flex items-center gap-3">
-        <SearchInput v-model="q" placeholder="Filter…" />
+        <SearchInput v-model="q" class="max-w-xs" placeholder="Filter…" />
         <div class="flex gap-1 rounded-full border border-line/60 p-0.5">
           <button v-for="s in (['plays','time'] as Sort[])" :key="s" @click="sort = s"
             class="rounded-full px-3 py-1 text-xs font-semibold capitalize"
@@ -81,7 +81,7 @@ const trackList = computed<PlayerTrack[]>(() =>
           :class="kind === k ? 'bg-surface-2 text-text' : 'text-muted hover:text-text'">{{ k[0].toUpperCase() + k.slice(1) }}</button>
       </div>
       <div class="flex items-center gap-2">
-        <span class="label" style="font-size:10.5px">Show</span>
+        <span class="label-sm">Show</span>
         <div class="flex gap-1 rounded-full border border-line/60 p-0.5">
           <button v-for="c in counts" :key="c" @click="limitN = c"
             class="tabular rounded-full px-2.5 py-1 text-xs font-semibold"

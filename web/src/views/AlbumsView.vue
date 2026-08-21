@@ -27,7 +27,7 @@ const { playAlbum, shareAlbum, busyId } = usePlayEntity();
   <div class="py-2">
     <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
       <h1 class="text-3xl font-black tracking-tight">Albums</h1>
-      <SearchInput v-model="q" placeholder="Search albums…" />
+      <SearchInput v-model="q" class="max-w-xs" placeholder="Search albums…" />
     </div>
     <SkeletonGrid v-if="firstLoad" />
     <CoverGrid v-else :items="filtered" playable shareable :busy-id="busyId"

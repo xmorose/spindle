@@ -23,15 +23,15 @@ const isEmpty = computed(() => !res.loading.value && cells.value.length === 0);
 
     <template v-else>
       <section class="mb-10">
-        <div class="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">By hour &amp; weekday</div>
+        <div class="mb-4 label-sm">By hour &amp; weekday</div>
         <Heatmap :cells="cells" />
       </section>
       <section>
-        <div class="mb-4 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Listening clock</div>
+        <div class="mb-4 label-sm">Listening clock</div>
         <div class="flex items-center gap-6">
           <RadialClock :hours="hourly" class="h-[200px] w-[200px] flex-none" />
           <div>
-            <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Peak listening</div>
+            <div class="label-sm">Peak listening</div>
             <div class="tabular text-3xl font-extrabold">{{ String(peak).padStart(2, "0") }}:00</div>
           </div>
         </div>

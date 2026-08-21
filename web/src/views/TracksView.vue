@@ -30,7 +30,7 @@ const trackList = computed<PlayerTrack[]>(() =>
   <div class="py-2">
     <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
       <h1 class="text-3xl font-black tracking-tight">Tracks</h1>
-      <SearchInput v-model="q" placeholder="Search tracks…" />
+      <SearchInput v-model="q" class="max-w-xs" placeholder="Search tracks…" />
     </div>
     <SkeletonList v-if="firstLoad" :rows="12" />
     <template v-else>

@@ -5,6 +5,7 @@ import { api } from "@/api/client";
 import { cleanArtist } from "@/lib/format";
 import type { SearchResult } from "@/api/types";
 import CoverArt from "@/components/CoverArt.vue";
+import SearchInput from "@/components/SearchInput.vue";
 import Spinner from "@/components/ui/Spinner.vue";
 
 const route = useRoute();
@@ -32,11 +33,7 @@ const empty = computed(() => !!res.value && !res.value.artists.length && !res.va
 <template>
   <div class="py-2 rise">
     <h1 class="mb-5 text-3xl font-black tracking-tight">Search</h1>
-    <input
-      v-model="q" type="search" autofocus
-      placeholder="Search artists, albums, tracks…"
-      class="mb-8 w-full max-w-xl rounded-lg border border-line bg-surface px-4 py-2.5 text-sm outline-none transition-colors placeholder:text-faint focus:border-[var(--accent)]"
-    />
+    <SearchInput v-model="q" autofocus class="mb-8 max-w-xl" placeholder="Search artists, albums, tracks…" />
 
     <div v-if="loading && !res" class="grid min-h-[30vh] place-items-center"><Spinner /></div>
     <p v-else-if="!q.trim()" class="text-sm text-faint">Type to search your library.</p>

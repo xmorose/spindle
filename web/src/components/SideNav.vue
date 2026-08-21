@@ -29,7 +29,7 @@ const groups = [
       Spindle
     </div>
     <template v-for="(group, gi) in groups" :key="gi">
-      <div v-if="group.title" class="label mt-5 mb-1.5 px-3" style="font-size:10.5px;color:var(--color-faint)">{{ group.title }}</div>
+      <div v-if="group.title" class="label-sm mt-5 mb-1.5 px-3">{{ group.title }}</div>
       <RouterLink
         v-for="item in group.items" :key="item.to" :to="item.to"
         class="group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors duration-150 hover:bg-surface hover:text-text"

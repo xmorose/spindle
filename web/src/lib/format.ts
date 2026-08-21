@@ -17,7 +17,7 @@ export function formatNumber(n: number): string {
   return n.toLocaleString("en-US");
 }
 
-export const NO_VALUE = "—";
+export const NO_VALUE = "None";
 
 export function formatDate(unixSeconds: number | null): string {
   if (!unixSeconds) return NO_VALUE;
@@ -58,5 +58,5 @@ export function formatRangeLabel(from: number, to: number): string {
     d.toLocaleDateString("en-US", crossYear
       ? { month: "short", day: "numeric", year: "2-digit" }
       : { month: "short", day: "numeric" });
-  return `${fmt(a)} – ${fmt(b)}`;
+  return `${fmt(a)} - ${fmt(b)}`;
 }

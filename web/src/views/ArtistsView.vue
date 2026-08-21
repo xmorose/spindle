@@ -27,7 +27,7 @@ const { playArtist, busyId } = usePlayEntity();
   <div class="py-2">
     <div class="mb-7 flex flex-wrap items-center justify-between gap-4">
       <h1 class="text-3xl font-black tracking-tight">Artists</h1>
-      <SearchInput v-model="q" placeholder="Search artists…" />
+      <SearchInput v-model="q" class="max-w-xs" placeholder="Search artists…" />
     </div>
     <SkeletonGrid v-if="firstLoad" />
     <CoverGrid v-else :items="filtered" playable :busy-id="busyId" @play="(it) => playArtist(it.id)" />

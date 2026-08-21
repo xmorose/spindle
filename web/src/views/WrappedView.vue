@@ -318,7 +318,7 @@ async function download() {
   <div class="fixed inset-0 bg-bg text-text">
     <div v-if="loading" class="grid h-full place-items-center">
       <div class="text-center">
-        <div class="label" style="letter-spacing:0.14em">{{ year }}</div>
+        <div class="label-wide">{{ year }}</div>
         <div class="mt-4 text-sm text-faint">Counting your year…</div>
       </div>
     </div>
@@ -357,7 +357,7 @@ async function download() {
           <div class="absolute inset-0" style="background:radial-gradient(ellipse at center, oklch(0.14 0.02 50 / 0.62) 0%, oklch(0.13 0.02 50 / 0.9) 70%)" />
           <div class="intro-wash absolute inset-0" aria-hidden="true" />
           <div class="drift relative px-6 text-center">
-            <div class="label" style="letter-spacing:0.2em">{{ year }}</div>
+            <div class="label-wide">{{ year }}</div>
             <h1 class="mt-5 text-[clamp(2.5rem,7vw,5.5rem)] font-black leading-[0.95] tracking-tight">Your year in sound</h1>
             <p class="mx-auto mt-5 max-w-[38ch] text-sm text-muted sm:text-base">Twelve months, {{ formatNumber(totals?.distinctArtists ?? 0) }} artists, and one of them mattered more than the rest.</p>
             <div class="scroll-cue mt-16 inline-flex flex-col items-center gap-2 text-xs font-semibold text-faint">
@@ -380,7 +380,7 @@ async function download() {
             <div class="year-line mt-10 w-full">
               <LineArea :values="yearValues" :labels="yearLabels" :height="260" />
             </div>
-            <div class="mt-4 flex justify-between px-6 text-[11px] font-semibold uppercase tracking-wider text-faint sm:px-12">
+            <div class="mt-4 flex justify-between px-6 label-sm sm:px-12">
               <span>{{ yearLabels[0] }}</span>
               <span class="tabular">{{ formatNumber(totals?.plays ?? 0) }} plays across {{ yearValues.length }} days</span>
               <span>{{ yearLabels[yearLabels.length - 1] }}</span>
@@ -397,7 +397,7 @@ async function download() {
             <div v-for="(c, m) in monthCells" :key="m"
               class="tile group relative aspect-square overflow-hidden rounded-xl"
               :style="{ animationDelay: `${m * 0.04}s` }"
-              :title="c.future ? `${c.name} — still to come` : `${c.name} · ${formatNumber(c.plays)} ${c.plays === 1 ? 'play' : 'plays'}${c.artist ? ' · ' + cleanArtist(c.artist.name) : ''}`">
+              :title="c.future ? `${c.name}, still to come` : `${c.name} · ${formatNumber(c.plays)} ${c.plays === 1 ? 'play' : 'plays'}${c.artist ? ' · ' + cleanArtist(c.artist.name) : ''}`">
               <template v-if="c.future">
                 <div class="absolute inset-0 rounded-xl border border-dashed border-line/70" />
                 <div class="absolute inset-x-0 bottom-0 p-2.5">
@@ -508,7 +508,7 @@ async function download() {
                 <VinylHero :key="'art-' + countIdx" :id="countActive.coverArt" :name="cleanArtist(countActive.name)"
                   class="swap-art w-[46vw] max-w-[230px] flex-none sm:w-[26vh]" />
                 <div :key="'txt-' + countIdx" class="swap-txt min-w-0">
-                  <div class="label" style="color:oklch(0.97 0.02 80 / 0.75)">
+                  <div class="label label-over">
                     {{ countRank === 1 ? `Your artist of ${year}` : `No. ${countRank}` }}
                   </div>
                   <RouterLink :to="`/artists/${countActive.artistId}`"
@@ -520,18 +520,18 @@ async function download() {
                   <div class="mt-5 flex flex-wrap gap-x-7 gap-y-3">
                     <div>
                       <div class="tabular text-xl font-black" :style="{ color: 'var(--accent)' }">{{ shareOfYear(countActive.plays) }}</div>
-                      <div class="label mt-0.5 text-[10px]">of your year</div>
+                      <div class="label-sm label-over mt-0.5">of your year</div>
                     </div>
                     <div v-if="runOfListening(details[countActive.artistId])">
                       <div class="tabular text-xl font-black text-white">{{ runOfListening(details[countActive.artistId]) }}</div>
-                      <div class="label mt-0.5 text-[10px]">first to last play</div>
+                      <div class="label-sm label-over mt-0.5">first to last play</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div v-if="details[countActive.artistId]?.related?.length" :key="'trk-' + countIdx" class="swap-list min-w-0">
-                <div class="label mb-3" style="color:oklch(0.97 0.02 80 / 0.7)">Most played by {{ cleanArtist(countActive.name) }}</div>
+                <div class="label label-over mb-3">Most played by {{ cleanArtist(countActive.name) }}</div>
                 <div class="flex flex-col">
                   <button v-for="(r, ri) in details[countActive.artistId].related.slice(0, 5)" :key="r.id"
                     class="trk flex w-full items-center gap-3 rounded-lg border-b border-[oklch(0.97_0.02_80/0.12)] px-2 py-2.5 text-left transition-colors last:border-0 hover:bg-[oklch(0.97_0.02_80/0.1)]"
@@ -543,7 +543,7 @@ async function download() {
                   </button>
                 </div>
                 <div v-if="details[countActive.artistId].history?.length" class="mt-5">
-                  <div class="label mb-2 text-[10px]" style="color:oklch(0.97 0.02 80 / 0.55)">Across the year</div>
+                  <div class="label-sm label-over mb-2">Across the year</div>
                   <LineArea :values="details[countActive.artistId].history.map((h) => h.plays)" :height="70" />
                 </div>
               </div>
@@ -556,7 +556,7 @@ async function download() {
           <CoverBackdrop :id="heroCover" :tint="0.55" />
           <div class="drift relative flex flex-wrap items-center gap-x-16 gap-y-10">
             <div class="min-w-0 flex-1">
-              <div class="label" style="letter-spacing:0.14em">All of it, in the end</div>
+              <div class="label-wide">All of it, in the end</div>
               <div class="mt-4 text-[clamp(4rem,13vw,9rem)] font-black leading-[0.85] tracking-tight" :style="{ color: 'var(--accent)' }">
                 <Odometer :value="totals?.plays ?? 0" :format="formatNumber" :duration="1500" />
               </div>

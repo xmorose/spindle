@@ -24,7 +24,7 @@ async function logout() {
 </script>
 
 <template>
-  <div class="min-h-screen md:grid md:grid-cols-[210px_1fr]">
+  <div class="min-h-dvh md:grid md:grid-cols-[210px_1fr]">
     <ShareToast />
     <div v-if="navOpen" class="fixed inset-0 z-40 bg-[oklch(0.1_0.02_50/0.6)] md:hidden" @click="navOpen = false"></div>
     <aside

@@ -27,7 +27,6 @@
   inherits: true;
   initial-value: oklch(0.79 0.15 55);
 }
-/* Secondary hues pulled from the same cover, for multi-colour fields. */
 @property --accent-2 {
   syntax: "<color>";
   inherits: true;
@@ -70,6 +69,24 @@ body {
   text-transform: uppercase;
   color: var(--color-muted);
 }
+
+.label-sm {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+
+.label-wide {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.label-over { color: oklch(0.97 0.02 80 / 0.8); }
 
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }

@@ -46,7 +46,7 @@ function daySegments(s: Session): { left: string; width: string }[] {
   if (b >= a) return [seg(a, b)];
   return [seg(a, DAY), seg(0, b)];
 }
-function spanLabel(s: Session) { return `${formatTimeOfDay(s.startedAt)} – ${formatTimeOfDay(s.endedAt)}`; }
+function spanLabel(s: Session) { return `${formatTimeOfDay(s.startedAt)} - ${formatTimeOfDay(s.endedAt)}`; }
 
 const open = ref(new Set<number>());
 function toggle(startedAt: number) {
@@ -112,7 +112,7 @@ function isCurrent(t: SessionTrack) { return player.current?.id === t.id; }
                 <span class="tabular text-faint"> · {{ formatTimeOfDay(s.startedAt) }}</span>
               </div>
               <div v-if="s.tracks.length" class="mt-0.5 truncate text-xs text-faint">
-                kicked off with <span class="font-medium text-muted">{{ s.tracks[0].title }}</span>
+                Started with <span class="font-medium text-muted">{{ s.tracks[0].title }}</span>
               </div>
               <div class="mt-2 h-[3px] w-full max-w-[420px] rounded-full bg-surface-2">
                 <div class="h-full rounded-full" :style="{ width: barWidth(s.seconds, maxSeconds), background: 'var(--accent)', opacity: 0.85 }" />

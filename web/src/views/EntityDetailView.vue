@@ -80,10 +80,18 @@ const relatedRows = computed<RankedRow[]>(() =>
           <Skeleton class="mt-2.5 h-3 w-40 max-w-full" />
         </div>
       </div>
-      <div class="mb-9 flex flex-wrap gap-8 border-y border-line/50 py-4">
-        <div v-for="i in 4" :key="i">
+      <div class="mb-9 flex flex-wrap items-end gap-x-10 gap-y-6 border-y border-line/50 py-5">
+        <div>
+          <Skeleton class="h-9 w-28" />
+          <Skeleton class="mt-2.5 h-2.5 w-14" />
+        </div>
+        <div>
           <Skeleton class="h-6 w-20" />
-          <Skeleton class="mt-2 h-2.5 w-14" />
+          <Skeleton class="mt-2.5 h-2.5 w-24" />
+        </div>
+        <div v-for="i in 2" :key="i">
+          <Skeleton class="h-4 w-24" />
+          <Skeleton class="mt-2.5 h-2.5 w-16" />
         </div>
       </div>
       <SkeletonList :rows="6" />
@@ -102,7 +110,7 @@ const relatedRows = computed<RankedRow[]>(() =>
         </button>
         <CoverArt v-else :id="coverId" :name="data.name" :size="240" class="h-28 w-28 flex-none rounded-xl" />
         <div class="flex-1">
-          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-faint">{{ kind }}<span v-if="data.rank > 0"> · rank #{{ data.rank }}</span></div>
+          <div class="label-sm">{{ kind }}<span v-if="data.rank > 0"> · rank #{{ data.rank }}</span></div>
           <h1 class="text-4xl font-black tracking-tight">{{ kind === 'artist' ? cleanArtist(data.name) : data.name }}</h1>
           <RouterLink v-if="data.artist && kind !== 'artist' && data.artistId" :to="`/artists/${data.artistId}`"
             class="text-sm text-muted transition-colors hover:text-text hover:underline">{{ cleanArtist(data.artist) }}</RouterLink>
@@ -139,24 +147,39 @@ const relatedRows = computed<RankedRow[]>(() =>
       </header>
 
       <div class="mb-9">
-        <div class="flex flex-wrap gap-8 border-y border-line/50 py-4">
-          <div><div class="tabular text-2xl font-extrabold">{{ formatNumber(data.plays) }}</div><div class="text-[11px] text-faint">plays</div></div>
-          <div><div class="tabular text-2xl font-extrabold">{{ formatDuration(data.seconds) }}</div><div class="text-[11px] text-faint">listening time</div></div>
-          <div><div class="tabular text-2xl font-extrabold" :title="data.firstPlayedAt === null ? 'No timestamp — from baseline library history' : undefined">{{ formatDate(data.firstPlayedAt) }}</div><div class="text-[11px] text-faint">first play</div></div>
-          <div><div class="tabular text-2xl font-extrabold" :title="data.lastPlayedAt === null ? 'No timestamp — from baseline library history' : undefined">{{ formatDate(data.lastPlayedAt) }}</div><div class="text-[11px] text-faint">last play</div></div>
+        <div class="flex flex-wrap items-end gap-x-10 gap-y-6 border-y border-line/50 py-5">
+          <div class="flex-none">
+            <div class="tabular text-4xl font-black leading-none tracking-tight" :style="{ color: 'var(--accent)' }">{{ formatNumber(data.plays) }}</div>
+            <div class="label-sm mt-2">Plays</div>
+          </div>
+          <div class="flex-none">
+            <div class="tabular text-2xl font-black leading-none tracking-tight">{{ formatDuration(data.seconds) }}</div>
+            <div class="label-sm mt-2">Listening time</div>
+          </div>
+          <div class="flex gap-10 sm:border-l sm:border-line/60 sm:pl-10">
+            <div>
+              <div class="tabular text-base font-bold leading-none" :title="data.firstPlayedAt === null ? 'No timestamp. This comes from your baseline library history.' : undefined">{{ formatDate(data.firstPlayedAt) }}</div>
+              <div class="label-sm mt-2">First play</div>
+            </div>
+            <div>
+              <div class="tabular text-base font-bold leading-none" :title="data.lastPlayedAt === null ? 'No timestamp. This comes from your baseline library history.' : undefined">{{ formatDate(data.lastPlayedAt) }}</div>
+              <div class="label-sm mt-2">Last play</div>
+            </div>
+          </div>
         </div>
+
         <p v-if="noTimestamps" class="mt-2.5 text-xs text-faint">
           First and last play need a live or imported timestamp. This entity's plays come from your baseline library history, which has none.
         </p>
       </div>
 
       <section v-if="historyValues.length" class="mb-9">
-        <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">Plays over time</div>
+        <div class="mb-3 label-sm">Plays over time</div>
         <LineArea :values="historyValues" :labels="historyLabels" :height="140" zoomable />
       </section>
 
       <section v-if="relatedRows.length">
-        <div class="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-faint">{{ kind === 'track' ? 'Related' : 'Tracks' }}</div>
+        <div class="mb-3 label-sm">{{ kind === 'track' ? 'Related' : 'Tracks' }}</div>
         <RankedList :rows="relatedRows" playable />
       </section>
     </template>

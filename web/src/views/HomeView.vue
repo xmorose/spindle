@@ -101,7 +101,7 @@ useCoverAccent(() => heroCover.value);
           class="absolute inset-0 h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
         <div class="absolute inset-0" style="background:linear-gradient(110deg,oklch(0.14 0.02 50 / 0.85) 0%,transparent 55%,oklch(0.14 0.02 50 / 0.5) 100%)" />
         <div class="relative flex h-full flex-col justify-end p-8">
-          <div class="label" style="color:oklch(0.97 0.02 80 / 0.9)">Top artist</div>
+          <div class="label label-over">Top artist</div>
           <div class="mt-1 text-5xl font-black text-white" style="text-shadow:0 2px 24px oklch(0.1 0.02 40 / 0.5)">{{ cleanArtist(topArtist.name) }}</div>
           <div class="tabular mt-2 text-[15px] font-semibold" style="color:oklch(0.97 0.02 80 / 0.85)">{{ formatNumber(topArtist.plays) }} {{ topArtist.plays === 1 ? 'play' : 'plays' }} · {{ formatDuration(topArtist.seconds) }}</div>
         </div>

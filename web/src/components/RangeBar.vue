@@ -41,7 +41,7 @@ onBeforeUnmount(close);
 
 <template>
   <div ref="wrap" class="relative flex items-center gap-2.5">
-    <span class="label hidden sm:inline" style="font-size: 11px">Range</span>
+    <span class="label-sm hidden sm:inline">Range</span>
     <div class="inline-flex rounded-full border border-line bg-surface p-1">
       <button v-for="r in presets" :key="r.value" @click="pickPreset(r.value)"
         class="rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-200"

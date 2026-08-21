@@ -8,6 +8,7 @@ import type { RecentPlay } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
 import CoverArt from "@/components/CoverArt.vue";
 import SkeletonList from "@/components/ui/SkeletonList.vue";
+import EmptyState from "@/components/ui/EmptyState.vue";
 
 const player = usePlayerStore();
 const plays = ref<RecentPlay[]>([]);
@@ -47,9 +48,8 @@ function playFrom(i: number) {
 
     <SkeletonList v-if="loading" :rows="14" :bar="false" />
 
-    <div v-else-if="isEmpty" class="py-16 text-center text-sm text-faint">
-      No plays yet. Listening shows up here as soon as it lands.
-    </div>
+    <EmptyState v-else-if="isEmpty" title="No plays yet"
+      hint="Listening shows up here as soon as it lands." />
 
     <div v-else class="flex flex-col gap-8">
       <section v-for="g in groups" :key="g.label">
