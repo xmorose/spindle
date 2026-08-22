@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { storeToRefs } from "pinia";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { api, coverUrl } from "@/api/client";
 import { useUserStore } from "@/stores/user";
 import { usePlayerStore } from "@/stores/player";
@@ -20,11 +20,19 @@ import Odometer from "@/components/ui/Odometer.vue";
 const router = useRouter();
 const player = usePlayerStore();
 
-const year = new Date().getFullYear();
-const yearStart = Math.floor(new Date(year, 0, 1).getTime() / 1000);
+const route = useRoute();
 const nowTs = Math.floor(Date.now() / 1000);
-const P = { from: yearStart, to: nowTs };
-const curMonth = new Date().getMonth();
+const thisYear = new Date().getFullYear();
+const year = computed(() => {
+  const y = Number(route.params.year);
+  return Number.isInteger(y) && y >= 1970 && y <= thisYear ? y : thisYear;
+});
+const isThisYear = computed(() => year.value === thisYear);
+const yearStart = computed(() => Math.floor(new Date(year.value, 0, 1).getTime() / 1000));
+const yearEnd = computed(() => Math.min(nowTs, Math.floor(new Date(year.value + 1, 0, 1).getTime() / 1000)));
+const P = computed(() => ({ from: yearStart.value, to: yearEnd.value }));
+const curMonth = computed(() => (isThisYear.value ? new Date().getMonth() : 11));
+const availableYears = ref<number[]>([]);
 
 const totals = ref<Totals | null>(null);
 const artists = ref<ArtistTop[]>([]);
@@ -42,19 +50,20 @@ const { user } = storeToRefs(useUserStore());
 
 async function load() {
   loading.value = true;
-  const monthRanges = Array.from({ length: curMonth + 1 }, (_, m) => ({
-    from: Math.floor(new Date(year, m, 1).getTime() / 1000),
-    to: Math.min(Math.floor(new Date(year, m + 1, 1).getTime() / 1000), nowTs),
+  const p = P.value;
+  const monthRanges = Array.from({ length: curMonth.value + 1 }, (_, m) => ({
+    from: Math.floor(new Date(year.value, m, 1).getTime() / 1000),
+    to: Math.min(Math.floor(new Date(year.value, m + 1, 1).getTime() / 1000), nowTs),
   }));
   const [t, ar, tr, ge, ds, heat, se, al, ...months] = await Promise.all([
-    api.totals(P),
-    api.topArtists({ ...P, limit: 5 }),
-    api.topTracks({ ...P, limit: 5 }),
-    api.topGenres({ ...P, limit: 6 }),
-    api.timeseries({ ...P, bucket: "day" }),
-    api.heatmap(P),
-    api.sessions({ ...P, sort: "time", limit: 1 }),
-    api.topAlbums({ ...P, limit: 48 }),
+    api.totals(p),
+    api.topArtists({ ...p, limit: 5 }),
+    api.topTracks({ ...p, limit: 5 }),
+    api.topGenres({ ...p, limit: 6 }),
+    api.timeseries({ ...p, bucket: "day" }),
+    api.heatmap(p),
+    api.sessions({ ...p, sort: "time", limit: 1 }),
+    api.topAlbums({ ...p, limit: 48 }),
     ...monthRanges.map((r) => api.topArtists({ ...r, limit: 1 })),
   ]);
   totals.value = t; artists.value = ar; tracks.value = tr; genres.value = ge; days.value = ds;
@@ -76,12 +85,27 @@ async function loadArtistDetails() {
   const out: Record<string, EntityDetail> = {};
   await Promise.all(
     artists.value.map(async (a) => {
-      try { out[a.artistId] = await api.entity("artist", a.artistId, P); } catch {}
+      try { out[a.artistId] = await api.entity("artist", a.artistId, P.value); } catch {}
     }),
   );
   details.value = out;
 }
-watch(user, load, { immediate: true });
+async function loadYears() {
+  try {
+    const all = await api.timeseries({ range: "all", bucket: "day" });
+    const ys = new Set<number>([thisYear]);
+    for (const pt of all) if (pt.plays > 0) ys.add(new Date(pt.bucket * 86_400_000).getUTCFullYear());
+    availableYears.value = [...ys].sort((a, b) => b - a).slice(0, 6);
+  } catch {
+    availableYears.value = [thisYear];
+  }
+}
+function goYear(y: number) {
+  void router.push(y === thisYear ? "/wrapped" : `/wrapped/${y}`);
+}
+
+watch([user, year], load, { immediate: true });
+watch(user, loadYears, { immediate: true });
 
 const isEmpty = computed(() => !loading.value && (totals.value?.plays ?? 0) === 0);
 const topArtist = computed(() => artists.value[0] ?? null);
@@ -92,10 +116,10 @@ const activeCover = ref<string | null>(null);
 useCoverAccent(() => activeCover.value);
 
 const monthPlays = computed(() => {
-  const out = Array.from({ length: curMonth + 1 }, () => 0);
+  const out = Array.from({ length: curMonth.value + 1 }, () => 0);
   for (const p of days.value) {
     const d = new Date(p.bucket * 86_400_000);
-    if (d.getUTCFullYear() === year && d.getUTCMonth() <= curMonth) out[d.getUTCMonth()] += p.plays;
+    if (d.getUTCFullYear() === year.value && d.getUTCMonth() <= curMonth.value) out[d.getUTCMonth()] += p.plays;
   }
   return out;
 });
@@ -104,7 +128,7 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 const monthCells = computed(() =>
   MONTHS.map((name, m) => ({
     name,
-    future: m > curMonth,
+    future: m > curMonth.value,
     plays: monthPlays.value[m] ?? 0,
     artist: monthTops.value[m] ?? null,
   })),
@@ -293,7 +317,7 @@ async function makeCard() {
     const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "oklch(0.79 0.15 55)";
     const cover = topArtist.value?.coverArt ?? (topTrack.value?.hasCoverArt ? topTrack.value.id : null);
     card.value = await renderWrappedCard({
-      year,
+      year: year.value,
       plays: totals.value.plays,
       seconds: totals.value.seconds,
       distinctArtists: totals.value.distinctArtists,
@@ -310,7 +334,7 @@ async function makeCard() {
 }
 async function download() {
   if (!card.value) await makeCard();
-  if (card.value) downloadCard(card.value, year);
+  if (card.value) downloadCard(card.value, year.value);
 }
 </script>
 
@@ -326,17 +350,25 @@ async function download() {
     <div v-else-if="isEmpty" class="grid h-full place-items-center px-6 text-center">
       <div>
         <h1 class="text-3xl font-black tracking-tight">Wrapped</h1>
-        <p class="mx-auto mt-3 max-w-[42ch] text-sm text-muted">Not enough listening this year yet. Your year in review fills in as Spindle tracks more plays.</p>
+        <p class="mx-auto mt-3 max-w-[42ch] text-sm text-muted">{{ isThisYear ? "Not enough listening this year yet. Your year in review fills in as Spindle tracks more plays." : `No tracked listening in ${year}.` }}</p>
         <button class="mt-7 rounded-full border border-line px-5 py-2 text-sm font-semibold text-muted transition-colors hover:text-text" @click="router.push('/')">Back to Spindle</button>
       </div>
     </div>
 
     <template v-else>
-      <button
-        class="fixed right-5 top-5 z-30 grid h-10 w-10 place-items-center rounded-full border border-[oklch(0.97_0.02_80/0.25)] bg-[oklch(0.12_0.02_50/0.45)] text-white backdrop-blur transition-colors hover:bg-[oklch(0.12_0.02_50/0.75)]"
-        aria-label="Close Wrapped" @click="router.push('/')">
-        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-      </button>
+      <div class="fixed right-5 top-5 z-30 flex items-center gap-2">
+        <div v-if="availableYears.length > 1" class="flex items-center gap-0.5 rounded-full border border-[oklch(0.97_0.02_80/0.22)] bg-[oklch(0.12_0.02_50/0.5)] p-1 backdrop-blur">
+          <button v-for="y in availableYears" :key="y" @click="goYear(y)"
+            class="tabular rounded-full px-2.5 py-1 text-xs font-bold transition-colors"
+            :class="y === year ? '' : 'text-[oklch(0.97_0.02_80/0.6)] hover:text-white'"
+            :style="y === year ? { background: 'var(--accent)', color: 'oklch(0.22 0.03 55)' } : {}">{{ y }}</button>
+        </div>
+        <button
+          class="grid h-10 w-10 flex-none place-items-center rounded-full border border-[oklch(0.97_0.02_80/0.25)] bg-[oklch(0.12_0.02_50/0.45)] text-white backdrop-blur transition-colors hover:bg-[oklch(0.12_0.02_50/0.75)]"
+          aria-label="Close Wrapped" @click="router.push('/')">
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
 
       <nav class="fixed right-6 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-2.5 sm:flex" aria-label="Chapters">
         <button v-for="i in chapterCount" :key="i" class="h-2 w-2 rounded-full transition-all duration-300"

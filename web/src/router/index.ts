@@ -7,6 +7,7 @@ const routes: RouteRecordRaw[] = [
   { path: "/login", name: "login", component: () => import("@/views/LoginView.vue"), meta: { public: true } },
   { path: "/s/:token", name: "share", component: () => import("@/views/ShareView.vue"), meta: { public: true } },
   { path: "/wrapped", name: "wrapped", component: () => import("@/views/WrappedView.vue") },
+  { path: "/wrapped/:year", name: "wrapped-year", component: () => import("@/views/WrappedView.vue") },
   {
     path: "/",
     component: AppShell,
