@@ -141,7 +141,7 @@ function openYear(year: number) {
 
       <template v-if="hasHistory">
         <section class="mb-12">
-          <div class="label mb-1">Every month you have listened</div>
+          <div class="label mb-1">Your listening by month</div>
           <p class="mb-5 text-sm text-faint">Timestamped plays only. Baseline counts from before tracking have no dates, so they sit in the totals above but not on this line.</p>
           <LineArea :values="monthValues" :labels="monthLabels" :height="200" zoomable />
         </section>
@@ -151,7 +151,7 @@ function openYear(year: number) {
           <p class="mb-6 text-sm text-faint">Pick a year to open its Wrapped.</p>
           <div class="flex items-end gap-2 sm:gap-3">
             <button v-for="y in years" :key="y.year" @click="openYear(y.year)"
-              class="year-col group flex min-w-0 flex-1 flex-col items-center gap-2 rounded-lg pb-1 pt-1 transition-colors hover:bg-surface/70">
+              class="group flex min-w-0 flex-1 flex-col items-center gap-2 rounded-lg py-1 transition-colors hover:bg-surface/70">
               <span class="tabular text-[11px] font-bold" :class="y.year === bestYear.year ? 'text-text' : 'text-faint'">{{ formatNumber(y.plays) }}</span>
               <span class="w-full rounded-t-md rounded-b-sm transition-[height,opacity] duration-700 ease-out motion-reduce:transition-none"
                 :style="{ height: Math.max(4, (y.plays / yearMax) * 150) + 'px', background: 'var(--accent)', opacity: y.year === bestYear.year ? 1 : 0.42 }" />

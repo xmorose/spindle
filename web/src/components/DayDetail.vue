@@ -51,8 +51,8 @@ function toPlayerTrack(t: SessionTrack): PlayerTrack {
   return { id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null, artistId: t.artistId };
 }
 const dayQueue = computed<PlayerTrack[]>(() => sessions.value.flatMap((s) => s.tracks.map(toPlayerTrack)));
-function playFrom(s: Session, i: number) {
-  const before = sessions.value.slice(0, sessions.value.indexOf(s)).reduce((n, x) => n + x.tracks.length, 0);
+function playFrom(sessionIndex: number, i: number) {
+  const before = sessions.value.slice(0, sessionIndex).reduce((n, x) => n + x.tracks.length, 0);
   player.playQueue(dayQueue.value, before + i);
 }
 function isCurrent(t: SessionTrack) { return player.current?.id === t.id; }
@@ -68,7 +68,6 @@ const isEmpty = computed(() => !loading.value && sessions.value.length === 0);
       <aside class="day-panel relative flex h-full w-full max-w-md flex-col border-l border-line bg-bg shadow-2xl">
         <header class="flex flex-none items-start justify-between gap-4 border-b border-line/70 px-5 py-4">
           <div class="min-w-0">
-            <div class="label-sm">One day</div>
             <div class="mt-1 truncate text-xl font-black tracking-tight">{{ heading }}</div>
             <div v-if="totals" class="tabular mt-1 text-[13px] text-muted">
               {{ totals.plays }} {{ totals.plays === 1 ? 'play' : 'plays' }} · {{ formatDuration(totals.seconds) }}
@@ -100,7 +99,7 @@ const isEmpty = computed(() => !loading.value && sessions.value.length === 0);
             No timestamped plays on this day. The count comes from your baseline library history.
           </p>
 
-          <section v-for="s in sessions" :key="s.startedAt" class="mb-6 last:mb-0">
+          <section v-for="(s, si) in sessions" :key="s.startedAt" class="mb-6 last:mb-0">
             <div class="mb-2 flex items-baseline justify-between gap-3 border-b border-line/40 pb-1.5">
               <span class="tabular text-[12px] font-bold" :style="{ color: 'var(--accent)' }">{{ span(s) }}</span>
               <span class="tabular text-[11px] text-faint">{{ s.trackCount }} {{ s.trackCount === 1 ? 'track' : 'tracks' }} · {{ formatDuration(s.seconds) }}</span>
@@ -108,7 +107,7 @@ const isEmpty = computed(() => !loading.value && sessions.value.length === 0);
             <div class="flex flex-col">
               <div v-for="(t, i) in s.tracks" :key="`${s.startedAt}-${i}`"
                 class="group flex cursor-pointer items-center gap-3 rounded-lg px-1.5 py-1.5 transition-colors duration-150 hover:bg-surface"
-                @click="playFrom(s, i)">
+                @click="playFrom(si, i)">
                 <div class="relative h-9 w-9 flex-none">
                   <CoverArt :id="t.hasCoverArt ? t.id : null" :name="t.title" :size="80" class="h-9 w-9 rounded" />
                   <span class="absolute inset-0 grid place-items-center rounded bg-[oklch(0.12_0.02_50/0.55)] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
