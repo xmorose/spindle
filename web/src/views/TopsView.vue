@@ -144,7 +144,7 @@ const emptyLabel = computed(() => (q.value.trim() ? `No ${kind.value} match that
       </div>
 
       <ListActionBar v-if="kind === 'tracks'" :tracks="trackList" :count="filtered.length" />
-      <RankedList :rows="listRows" playable :kind="rowKind" :rank-offset="podium.length" :empty-label="emptyLabel" />
+      <RankedList :rows="listRows" playable :kind="rowKind" :rank-offset="podium.length" :max-value="filtered[0]?.value ?? null" :empty-label="emptyLabel" />
     </template>
   </div>
 </template>
