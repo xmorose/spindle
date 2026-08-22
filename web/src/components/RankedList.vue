@@ -19,8 +19,8 @@ export interface RankedRow {
 }
 
 const props = withDefaults(
-  defineProps<{ rows: RankedRow[]; playable?: boolean; kind?: "track" | "album" | "artist"; emptyLabel?: string }>(),
-  { playable: false, kind: "track", emptyLabel: "Nothing here yet." },
+  defineProps<{ rows: RankedRow[]; playable?: boolean; kind?: "track" | "album" | "artist"; emptyLabel?: string; rankOffset?: number }>(),
+  { playable: false, kind: "track", emptyLabel: "Nothing here yet.", rankOffset: 0 },
 );
 
 const player = usePlayerStore();
@@ -55,15 +55,16 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
 </script>
 
 <template>
-  <div v-if="rows.length" class="flex flex-col gap-0.5">
+  <TransitionGroup v-if="rows.length" name="rank" tag="div" class="relative flex flex-col gap-0.5">
     <div
       v-for="(row, i) in rows"
       :key="row.id"
       class="group relative flex items-center gap-3 rounded-lg px-2 py-2 transition-colors"
       :class="[playable ? 'cursor-pointer hover:bg-surface-2' : '', isCurrent(row) ? 'bg-[var(--accent-soft)]' : '']"
+      :style="{ '--i': Math.min(i, 14) }"
       @click="playable && play(row, i)"
     >
-      <span class="tabular w-6 flex-none text-right text-xs font-bold text-faint">{{ i + 1 }}</span>
+      <span class="tabular w-6 flex-none text-right text-xs font-bold text-faint">{{ rankOffset + i + 1 }}</span>
 
       <button
         v-if="playable"
@@ -92,7 +93,7 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
           class="block w-fit max-w-full truncate text-[11.5px] text-faint transition-colors hover:text-text hover:underline">{{ row.subtitle }}</RouterLink>
         <div v-else-if="row.subtitle" class="truncate text-[11.5px] text-faint">{{ row.subtitle }}</div>
         <div class="mt-1 h-1 rounded-full bg-surface-2">
-          <div data-bar class="h-1 rounded-full" :style="{ width: barWidth(row.value, max), background: 'var(--accent)' }" />
+          <div data-bar class="rank-bar h-1 rounded-full" :style="{ width: barWidth(row.value, max), background: 'var(--accent)' }" />
         </div>
       </div>
 
@@ -114,7 +115,22 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
         </template>
       </div>
     </div>
-  </div>
+  </TransitionGroup>
   <div v-else class="py-10 text-center text-sm text-faint">{{ emptyLabel }}</div>
   <div v-if="openIdx !== null" class="fixed inset-0 z-10" @click="openIdx = null"></div>
 </template>
+
+<style scoped>
+.rank-bar { transition: width 550ms var(--ease-out-quint); }
+.rank-move { transition: transform 520ms var(--ease-out-quint); }
+.rank-enter-active {
+  transition: opacity 380ms ease, transform 380ms var(--ease-out-quint);
+  transition-delay: calc(var(--i, 0) * 28ms);
+}
+.rank-enter-from { opacity: 0; transform: translateY(10px); }
+.rank-leave-active { position: absolute; width: 100%; transition: opacity 200ms ease; }
+.rank-leave-to { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .rank-bar, .rank-move, .rank-enter-active, .rank-leave-active { transition: none; }
+}
+</style>
