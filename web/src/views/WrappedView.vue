@@ -95,7 +95,7 @@ async function loadYears() {
     const all = await api.timeseries({ range: "all", bucket: "day" });
     const ys = new Set<number>([thisYear]);
     for (const pt of all) if (pt.plays > 0) ys.add(new Date(pt.bucket * 86_400_000).getUTCFullYear());
-    availableYears.value = [...ys].sort((a, b) => b - a).slice(0, 6);
+    availableYears.value = [...ys].sort((a, b) => b - a);
   } catch {
     availableYears.value = [thisYear];
   }
@@ -357,9 +357,9 @@ async function download() {
 
     <template v-else>
       <div class="fixed right-5 top-5 z-30 flex items-center gap-2">
-        <div v-if="availableYears.length > 1" class="flex items-center gap-0.5 rounded-full border border-[oklch(0.97_0.02_80/0.22)] bg-[oklch(0.12_0.02_50/0.5)] p-1 backdrop-blur">
+        <div v-if="availableYears.length > 1" class="year-pills flex max-w-[min(62vw,32rem)] items-center gap-0.5 overflow-x-auto rounded-full border border-[oklch(0.97_0.02_80/0.22)] bg-[oklch(0.12_0.02_50/0.5)] p-1 backdrop-blur">
           <button v-for="y in availableYears" :key="y" @click="goYear(y)"
-            class="tabular rounded-full px-2.5 py-1 text-xs font-bold transition-colors"
+            class="tabular flex-none rounded-full px-2.5 py-1 text-xs font-bold transition-colors"
             :class="y === year ? '' : 'text-[oklch(0.97_0.02_80/0.6)] hover:text-white'"
             :style="y === year ? { background: 'var(--accent)', color: 'oklch(0.22 0.03 55)' } : {}">{{ y }}</button>
         </div>
@@ -670,6 +670,9 @@ async function download() {
   from { transform: scale(1) translate3d(0, 0, 0); opacity: 0.32; }
   to   { transform: scale(1.25) translate3d(-4%, 3%, 0); opacity: 0.5; }
 }
+
+.year-pills { scrollbar-width: none; }
+.year-pills::-webkit-scrollbar { display: none; }
 
 .year-line :deep(svg) { width: 100%; }
 .seen .year-line { animation: fade 0.5s ease both; }
