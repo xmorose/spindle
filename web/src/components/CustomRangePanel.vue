@@ -147,6 +147,15 @@ function toToday() {
 }
 const atToday = computed(() => !picking.value && to.value.getTime() === todayTs);
 
+const viewMin = computed(() => new Date(dataStart.value.getFullYear(), dataStart.value.getMonth(), 1));
+const viewMax = computed(() => addM(new Date(today.getFullYear(), today.getMonth(), 1), -1));
+function stepView(n: number) {
+  const t = addM(view.value, n);
+  view.value = t < viewMin.value ? viewMin.value : t > viewMax.value ? viewMax.value : t;
+}
+const atViewMin = computed(() => view.value.getTime() <= viewMin.value.getTime());
+const atViewMax = computed(() => view.value.getTime() >= viewMax.value.getTime());
+
 const crpEl = ref<HTMLElement | null>(null);
 const tip = ref({ show: false, x: 0, y: 0, main: "", sub: "", hot: false });
 const playsText = (p: number) => (p ? `${formatNumber(p)} ${p === 1 ? "play" : "plays"}` : "No plays");
@@ -229,6 +238,7 @@ const hint = computed(() => (picking.value ? "Now pick the end day" : "Pick a ye
 const rangeLabel = computed(() => formatRangeLabel(Math.floor(from.value.getTime() / 1000), Math.floor(to.value.getTime() / 1000)));
 function apply() { emit("apply", { from: Math.floor(from.value.getTime() / 1000), to: Math.floor(to.value.getTime() / 1000) + 86399 }); }
 
+const NAV_BTN = "grid size-[30px] place-items-center rounded-[9px] border border-line bg-transparent transition-[background,color,transform] duration-150 ease-out-quint enabled:cursor-pointer enabled:text-muted enabled:hover:bg-surface-2 enabled:hover:text-text enabled:active:scale-90 disabled:cursor-default disabled:border-line/50 disabled:text-[oklch(0.42_0.01_60)]";
 const DAY_HEAT_ON = "absolute inset-0 rounded-[9px] bg-heat opacity-[var(--heat-o)] transition-opacity duration-150 ease-out-quint group-hover/day:opacity-[0.36]";
 const DAY_HEAT_OFF = "absolute inset-0 rounded-[9px] bg-heat opacity-0";
 const DAY_FILL = "absolute inset-0 z-[1] bg-[var(--accent)] transition-opacity duration-200 ease-out-quint";
@@ -357,16 +367,22 @@ const stripMonths = computed(() =>
         </div>
       </div>
 
-      <div class="flex items-center justify-between">
-        <button class="grid size-[30px] cursor-pointer place-items-center rounded-[9px] border border-line bg-transparent text-muted transition-[background,color,transform] duration-150 ease-out-quint hover:bg-surface-2 hover:text-text active:scale-90" aria-label="Previous month" @click="view = addM(view, -1)">
+      <div class="flex items-center justify-between gap-1">
+        <button :class="NAV_BTN" :disabled="atViewMin" aria-label="Previous year" @click="stepView(-12)">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18l-6-6 6-6M11 18l-6-6 6-6" /></svg>
+        </button>
+        <button :class="NAV_BTN" :disabled="atViewMin" aria-label="Previous month" @click="stepView(-1)">
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
         <div class="flex flex-1 justify-between gap-[26px] px-1">
           <span class="text-[15px] font-extrabold tracking-[-0.01em]">{{ title0 }}</span>
           <span class="text-[15px] font-extrabold tracking-[-0.01em]">{{ title1 }}</span>
         </div>
-        <button class="grid size-[30px] cursor-pointer place-items-center rounded-[9px] border border-line bg-transparent text-muted transition-[background,color,transform] duration-150 ease-out-quint hover:bg-surface-2 hover:text-text active:scale-90" aria-label="Next month" @click="view = addM(view, 1)">
+        <button :class="NAV_BTN" :disabled="atViewMax" aria-label="Next month" @click="stepView(1)">
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6" /></svg>
+        </button>
+        <button :class="NAV_BTN" :disabled="atViewMax" aria-label="Next year" @click="stepView(12)">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18l6-6-6-6M13 18l6-6-6-6" /></svg>
         </button>
       </div>
 

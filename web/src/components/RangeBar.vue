@@ -6,6 +6,7 @@ import type { Range } from "@/api/types";
 import type { DateWindow } from "@/lib/ranges";
 import { formatRangeLabel } from "@/lib/format";
 import CustomRangePanel from "@/components/CustomRangePanel.vue";
+import YearJump from "@/components/YearJump.vue";
 
 const store = useRangeStore();
 const { mode, preset, custom } = storeToRefs(store);
@@ -19,6 +20,7 @@ const presets: { value: Range; label: string; wide?: boolean }[] = [
 
 const open = ref(false);
 const menuOpen = ref(false);
+const yearsOpen = ref(false);
 const wrap = ref<HTMLElement | null>(null);
 const customLabel = computed(() => (custom.value ? formatRangeLabel(custom.value.from, custom.value.to) : "Custom"));
 const isCustom = computed(() => mode.value === "custom");
@@ -39,18 +41,28 @@ function attach() {
 function close() {
   open.value = false;
   menuOpen.value = false;
+  yearsOpen.value = false;
   detach();
 }
 function toggle() {
   if (open.value) { close(); return; }
   menuOpen.value = false;
+  yearsOpen.value = false;
   open.value = true;
   attach();
 }
 function toggleMenu() {
   if (menuOpen.value) { close(); return; }
   open.value = false;
+  yearsOpen.value = false;
   menuOpen.value = true;
+  attach();
+}
+function toggleYears() {
+  if (yearsOpen.value) { close(); return; }
+  open.value = false;
+  menuOpen.value = false;
+  yearsOpen.value = true;
   attach();
 }
 function pickPreset(r: Range) { store.setPreset(r); close(); }
@@ -82,6 +94,17 @@ onBeforeUnmount(close);
         ]"
         :style="!isCustom && preset === r.value ? { background: 'var(--accent)' } : {}">{{ r.label }}</button>
 
+      <button @click="toggleYears"
+        class="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-200"
+        :class="yearsOpen ? 'bg-surface-2 text-text' : 'text-muted hover:bg-surface-2 hover:text-text'"
+        aria-haspopup="menu" :aria-expanded="yearsOpen">
+        Years
+        <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-faint transition-transform duration-150" :class="yearsOpen ? 'rotate-180' : ''"
+          fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
       <button @click="toggle"
         class="tabular flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-200"
         :class="isCustom ? 'text-[oklch(0.22_0.03_55)] shadow-sm' : 'text-muted hover:bg-surface-2 hover:text-text'"
@@ -93,7 +116,7 @@ onBeforeUnmount(close);
       </button>
     </div>
 
-    <div v-if="menuOpen" class="rise absolute left-0 top-[calc(100%+8px)] z-30 w-48 rounded-xl border border-line bg-surface p-1 shadow-xl sm:hidden">
+    <div v-if="menuOpen" class="rise absolute left-0 top-[calc(100%+8px)] z-30 max-h-[70vh] w-56 overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-xl sm:hidden">
       <button v-for="r in presets" :key="r.value" @click="pickPreset(r.value)"
         class="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-semibold transition-colors"
         :class="!isCustom && preset === r.value ? 'text-text' : 'text-muted hover:bg-surface-2 hover:text-text'"
@@ -101,7 +124,14 @@ onBeforeUnmount(close);
       <button @click="toggle"
         class="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-semibold transition-colors"
         :class="isCustom ? 'text-text' : 'text-muted hover:bg-surface-2 hover:text-text'"
-        :style="isCustom ? { background: 'var(--accent-soft)' } : {}">{{ isCustom ? customLabel : 'Custom range' }}</button>
+        :style="isCustom ? { background: 'var(--accent-soft)' } : {}">{{ isCustom ? customLabel : 'Pick exact range' }}</button>
+      <div class="mt-1 border-t border-line pt-1">
+        <YearJump :active="custom" @pick="onApply" />
+      </div>
+    </div>
+
+    <div v-if="yearsOpen" class="rise absolute left-0 top-[calc(100%+8px)] z-30 max-h-[70vh] w-56 overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-xl">
+      <YearJump :active="custom" @pick="onApply" />
     </div>
 
     <div v-if="open" class="rise absolute left-0 top-[calc(100%+8px)] z-30">

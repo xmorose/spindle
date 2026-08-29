@@ -34,6 +34,12 @@ export function presetWindow(id: PresetId, now: Date = new Date()): DateWindow {
   }
 }
 
+export function yearWindow(y: number, sinceMode: boolean, now: Date = new Date()): DateWindow {
+  const from = sec(new Date(y, 0, 1));
+  if (sinceMode || y === now.getFullYear()) return { from, to: sec(now) };
+  return { from, to: sec(new Date(y, 11, 31, 23, 59, 59)) };
+}
+
 export function clampWindow(w: DateWindow, min: number, max: number): DateWindow {
   let from = Math.max(min, Math.min(w.from, max));
   let to = Math.max(min, Math.min(w.to, max));
