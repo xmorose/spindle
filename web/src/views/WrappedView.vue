@@ -94,13 +94,33 @@ async function loadYears() {
   try {
     const all = await api.timeseries({ range: "all", bucket: "day" });
     const ys = new Set<number>([thisYear]);
-    for (const pt of all) if (pt.plays > 0) ys.add(new Date(pt.bucket * 86_400_000).getUTCFullYear());
+    for (const pt of all) if (pt.plays > 0 && pt.bucket > 0) ys.add(new Date(pt.bucket * 86_400_000).getUTCFullYear());
     availableYears.value = [...ys].sort((a, b) => b - a);
   } catch {
     availableYears.value = [thisYear];
   }
 }
+const yearsOpen = ref(false);
+const yearsWrap = ref<HTMLElement | null>(null);
+function onYearsDocClick(e: MouseEvent) {
+  if (yearsWrap.value && !yearsWrap.value.contains(e.target as Node)) closeYears();
+}
+function onYearsKey(e: KeyboardEvent) {
+  if (e.key === "Escape") closeYears();
+}
+function closeYears() {
+  yearsOpen.value = false;
+  document.removeEventListener("mousedown", onYearsDocClick);
+  document.removeEventListener("keydown", onYearsKey);
+}
+function toggleYears() {
+  if (yearsOpen.value) { closeYears(); return; }
+  yearsOpen.value = true;
+  document.addEventListener("mousedown", onYearsDocClick);
+  document.addEventListener("keydown", onYearsKey);
+}
 function goYear(y: number) {
+  closeYears();
   void router.push(y === thisYear ? "/wrapped" : `/wrapped/${y}`);
 }
 
@@ -245,6 +265,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   observer?.disconnect();
   if (parallaxRaf) cancelAnimationFrame(parallaxRaf);
+  closeYears();
 });
 
 function observeChapters() {
@@ -357,11 +378,27 @@ async function download() {
 
     <template v-else>
       <div class="fixed right-5 top-5 z-30 flex items-center gap-2">
-        <div v-if="availableYears.length > 1" class="year-pills flex max-w-[min(62vw,32rem)] items-center gap-0.5 overflow-x-auto rounded-full border border-[oklch(0.97_0.02_80/0.22)] bg-[oklch(0.12_0.02_50/0.5)] p-1 backdrop-blur">
+        <div v-if="availableYears.length > 1" class="hidden items-center gap-0.5 rounded-full border border-[oklch(0.97_0.02_80/0.22)] bg-[oklch(0.12_0.02_50/0.5)] p-1 backdrop-blur lg:flex">
           <button v-for="y in availableYears" :key="y" @click="goYear(y)"
             class="tabular flex-none rounded-full px-2.5 py-1 text-xs font-bold transition-colors"
-            :class="y === year ? '' : 'text-[oklch(0.97_0.02_80/0.6)] hover:text-white'"
+            :class="y === year ? '' : 'text-[oklch(0.97_0.02_80/0.6)] hover:bg-[oklch(0.97_0.02_80/0.1)] hover:text-white'"
             :style="y === year ? { background: 'var(--accent)', color: 'oklch(0.22 0.03 55)' } : {}">{{ y }}</button>
+        </div>
+
+        <div v-if="availableYears.length > 1" ref="yearsWrap" class="relative lg:hidden">
+          <button
+            class="tabular flex h-10 items-center gap-1.5 rounded-full border border-[oklch(0.97_0.02_80/0.25)] bg-[oklch(0.12_0.02_50/0.45)] pl-4 pr-3 text-sm font-bold text-white backdrop-blur transition-colors hover:bg-[oklch(0.12_0.02_50/0.75)]"
+            aria-haspopup="menu" :aria-expanded="yearsOpen" @click="toggleYears">
+            {{ year }}
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-[oklch(0.97_0.02_80/0.65)] transition-transform duration-200" :class="yearsOpen ? 'rotate-180' : ''"
+              fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+          <div v-if="yearsOpen" class="year-pop absolute right-0 top-[calc(100%+8px)] grid grid-cols-3 gap-1 rounded-2xl border border-[oklch(0.97_0.02_80/0.2)] bg-[oklch(0.1_0.02_50/0.86)] p-1.5 shadow-2xl backdrop-blur-xl" role="menu">
+            <button v-for="y in availableYears" :key="y" role="menuitem" @click="goYear(y)"
+              class="tabular rounded-xl px-3 py-2 text-sm font-bold transition-colors"
+              :class="y === year ? '' : 'text-[oklch(0.97_0.02_80/0.62)] hover:bg-[oklch(0.97_0.02_80/0.1)] hover:text-white'"
+              :style="y === year ? { background: 'var(--accent)', color: 'oklch(0.22 0.03 55)' } : {}">{{ y }}</button>
+          </div>
         </div>
         <button
           class="grid h-10 w-10 flex-none place-items-center rounded-full border border-[oklch(0.97_0.02_80/0.25)] bg-[oklch(0.12_0.02_50/0.45)] text-white backdrop-blur transition-colors hover:bg-[oklch(0.12_0.02_50/0.75)]"
@@ -671,8 +708,11 @@ async function download() {
   to   { transform: scale(1.25) translate3d(-4%, 3%, 0); opacity: 0.5; }
 }
 
-.year-pills { scrollbar-width: none; }
-.year-pills::-webkit-scrollbar { display: none; }
+.year-pop { animation: year-pop 0.18s var(--ease-out-quint) both; transform-origin: top right; }
+@keyframes year-pop {
+  from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
 
 .year-line :deep(svg) { width: 100%; }
 .seen .year-line { animation: fade 0.5s ease both; }
@@ -715,6 +755,6 @@ async function download() {
   .seen .tile, .seen .record-row, .seen .trk { animation: none; }
   .art, .seen .art { transition: none; transform: none; }
   .drift { transform: none; }
-  .ghost-rank, .swap-art, .swap-txt, .swap-list, .seen .year-line { animation: none; }
+  .ghost-rank, .swap-art, .swap-txt, .swap-list, .seen .year-line, .year-pop { animation: none; }
 }
 </style>
