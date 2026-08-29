@@ -393,7 +393,7 @@ async function download() {
             <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-[oklch(0.97_0.02_80/0.65)] transition-transform duration-200" :class="yearsOpen ? 'rotate-180' : ''"
               fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
           </button>
-          <div v-if="yearsOpen" class="year-pop absolute right-0 top-[calc(100%+8px)] grid grid-cols-3 gap-1 rounded-2xl border border-[oklch(0.97_0.02_80/0.2)] bg-[oklch(0.1_0.02_50/0.86)] p-1.5 shadow-2xl backdrop-blur-xl" role="menu">
+          <div v-if="yearsOpen" class="year-pop absolute right-0 top-[calc(100%+8px)] grid max-h-[min(60vh,22rem)] w-52 grid-cols-3 gap-1 overflow-y-auto overscroll-contain rounded-2xl border border-[oklch(0.97_0.02_80/0.2)] bg-[oklch(0.1_0.02_50/0.86)] p-1.5 shadow-2xl backdrop-blur-xl" role="menu">
             <button v-for="y in availableYears" :key="y" role="menuitem" @click="goYear(y)"
               class="tabular rounded-xl px-3 py-2 text-sm font-bold transition-colors"
               :class="y === year ? '' : 'text-[oklch(0.97_0.02_80/0.62)] hover:bg-[oklch(0.97_0.02_80/0.1)] hover:text-white'"
