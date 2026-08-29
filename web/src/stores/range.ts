@@ -4,7 +4,7 @@ import type { Range, RangeParams } from "@/api/types";
 import type { DateWindow } from "@/lib/ranges";
 
 const KEY = "spindle.range";
-const PRESETS: Range[] = ["7d", "30d", "year", "all"];
+const PRESETS: Range[] = ["7d", "30d", "90d", "year", "all"];
 
 interface Persisted { mode: "preset" | "custom"; preset: Range; custom: DateWindow | null; }
 

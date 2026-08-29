@@ -11,14 +11,15 @@ function startOfWeekMonday(d: Date): Date {
   return x;
 }
 
-export type PresetId = "thisWeek" | "thisMonth" | "last90" | "ytd" | "lastYear";
+export type PresetId = "thisWeek" | "thisMonth" | "last90" | "last6m" | "ytd" | "allTime";
 
 export const PRESETS: { id: PresetId; label: string }[] = [
   { id: "thisWeek", label: "This week" },
   { id: "thisMonth", label: "This month" },
   { id: "last90", label: "Last 90 days" },
+  { id: "last6m", label: "Last 6 months" },
   { id: "ytd", label: "Year to date" },
-  { id: "lastYear", label: "Last year" },
+  { id: "allTime", label: "All time" },
 ];
 
 export function presetWindow(id: PresetId, now: Date = new Date()): DateWindow {
@@ -27,11 +28,9 @@ export function presetWindow(id: PresetId, now: Date = new Date()): DateWindow {
     case "thisWeek": return { from: sec(startOfWeekMonday(now)), to: nowSec };
     case "thisMonth": return { from: sec(new Date(now.getFullYear(), now.getMonth(), 1)), to: nowSec };
     case "last90": return { from: nowSec - 90 * DAY, to: nowSec };
+    case "last6m": return { from: sec(new Date(now.getFullYear(), now.getMonth() - 6, now.getDate())), to: nowSec };
     case "ytd": return { from: sec(new Date(now.getFullYear(), 0, 1)), to: nowSec };
-    case "lastYear": {
-      const y = now.getFullYear() - 1;
-      return { from: sec(new Date(y, 0, 1)), to: sec(new Date(y, 11, 31, 23, 59, 59)) };
-    }
+    case "allTime": return { from: 0, to: nowSec };
   }
 }
 

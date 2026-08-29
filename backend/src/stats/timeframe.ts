@@ -12,6 +12,7 @@ export interface TimeframeQuery {
 const RANGE_DAYS: Record<string, number | null> = {
   "7d": 7,
   "30d": 30,
+  "90d": 90,
   year: 365,
   all: null,
 };

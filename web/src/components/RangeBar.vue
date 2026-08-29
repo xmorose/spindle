@@ -9,9 +9,10 @@ import CustomRangePanel from "@/components/CustomRangePanel.vue";
 
 const store = useRangeStore();
 const { mode, preset, custom } = storeToRefs(store);
-const presets: { value: Range; label: string }[] = [
+const presets: { value: Range; label: string; wide?: boolean }[] = [
   { value: "7d", label: "7 days" },
   { value: "30d", label: "30 days" },
+  { value: "90d", label: "90 days", wide: true },
   { value: "year", label: "Year" },
   { value: "all", label: "All time" },
 ];
@@ -75,7 +76,10 @@ onBeforeUnmount(close);
     <div class="hidden rounded-full border border-line bg-surface p-1 sm:inline-flex">
       <button v-for="r in presets" :key="r.value" @click="pickPreset(r.value)"
         class="rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-200"
-        :class="!isCustom && preset === r.value ? 'text-[oklch(0.22_0.03_55)] shadow-sm' : 'text-muted hover:bg-surface-2 hover:text-text'"
+        :class="[
+          r.wide ? 'hidden lg:block' : '',
+          !isCustom && preset === r.value ? 'text-[oklch(0.22_0.03_55)] shadow-sm' : 'text-muted hover:bg-surface-2 hover:text-text',
+        ]"
         :style="!isCustom && preset === r.value ? { background: 'var(--accent)' } : {}">{{ r.label }}</button>
 
       <button @click="toggle"
@@ -85,7 +89,7 @@ onBeforeUnmount(close);
         <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
           <rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" />
         </svg>
-        {{ customLabel }}
+        <span class="truncate" :class="isCustom ? 'max-w-[8.5rem]' : 'hidden lg:inline'">{{ customLabel }}</span>
       </button>
     </div>
 

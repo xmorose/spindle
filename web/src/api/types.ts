@@ -1,4 +1,4 @@
-export type Range = "7d" | "30d" | "year" | "all";
+export type Range = "7d" | "30d" | "90d" | "year" | "all";
 export type Sort = "plays" | "time";
 
 export interface RangeParams { range?: Range; from?: number; to?: number; sort?: Sort; limit?: number; bucket?: "day" | "week" | "month"; }

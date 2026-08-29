@@ -124,10 +124,28 @@ const focusMonths = computed<Mo[]>(() => {
 const monthLabel = (o: { y: number; m: number }) => new Date(o.y, o.m, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 const legendStops = [0.12, 0.3, 0.5, 0.72, 0.95];
 
-function peakMonthOf(y: number) { let bm = 0, bp = -1; for (let m = 0; m < 12; m++) { const p = monthPlays(y, m); if (p > bp) { bp = p; bm = m; } } return bm; }
 function clampView(md: Date) { return md.getTime() >= lastMonthTs.value ? addM(new Date(today.getFullYear(), today.getMonth(), 1), -1) : md; }
-function clickYear(yr: Yr) { view.value = clampView(new Date(yr.y, yr.plays ? peakMonthOf(yr.y) : 0, 1)); }
-function jumpToMonth(mo: Mo) { if (!mo.bad) view.value = clampView(new Date(mo.y, mo.m, 1)); }
+function selectSpan(a: Date, b: Date) {
+  activePreset.value = null;
+  picking.value = false; pendingStart.value = null; previewEnd.value = null; selecting = false;
+  const x = clamp(a), y = clamp(b);
+  from.value = x <= y ? x : y;
+  to.value = x <= y ? y : x;
+}
+function clickYear(yr: Yr) {
+  selectSpan(new Date(yr.y, 0, 1), new Date(yr.y, 11, 31));
+  view.value = clampView(new Date(from.value.getFullYear(), from.value.getMonth(), 1));
+}
+function jumpToMonth(mo: Mo) {
+  if (mo.bad) return;
+  selectSpan(new Date(mo.y, mo.m, 1), new Date(mo.y, mo.m + 1, 0));
+  view.value = clampView(new Date(mo.y, mo.m, 1));
+}
+function toToday() {
+  selectSpan(picking.value && pendingStart.value ? pendingStart.value : from.value, today);
+  view.value = clampView(new Date(today.getFullYear(), today.getMonth(), 1));
+}
+const atToday = computed(() => !picking.value && to.value.getTime() === todayTs);
 
 const crpEl = ref<HTMLElement | null>(null);
 const tip = ref({ show: false, x: 0, y: 0, main: "", sub: "", hot: false });
@@ -207,7 +225,7 @@ watch(() => stats.value.plays, (target) => {
 
 const startChip = computed(() => (picking.value && pendingStart.value ? shortDate(pendingStart.value) : shortDate(from.value)));
 const endChip = computed(() => (picking.value ? (previewEnd.value && previewEnd.value.getTime() !== pendingStart.value?.getTime() ? shortDate(shown.value.b) : "Pick end") : shortDate(to.value)));
-const hint = computed(() => (picking.value ? "Now pick the end day" : "Click a start day, then an end. Or drag across."));
+const hint = computed(() => (picking.value ? "Now pick the end day" : "Pick a year, a month, or drag across days"));
 const rangeLabel = computed(() => formatRangeLabel(Math.floor(from.value.getTime() / 1000), Math.floor(to.value.getTime() / 1000)));
 function apply() { emit("apply", { from: Math.floor(from.value.getTime() / 1000), to: Math.floor(to.value.getTime() / 1000) + 86399 }); }
 
@@ -305,6 +323,14 @@ const stripMonths = computed(() =>
             <span class="text-[10px] font-bold uppercase tracking-[0.06em]" :class="picking ? 'text-[var(--accent)]' : 'text-faint'">End</span>
             <span class="text-[13px] font-bold tabular-nums tracking-[-0.01em] text-text">{{ endChip }}</span>
           </span>
+          <button
+            class="inline-flex items-center gap-1 rounded-full border border-line bg-bg px-[10px] py-[6px] text-[10px] font-bold uppercase tracking-[0.06em] transition-[background,color,transform] duration-150 ease-out-quint enabled:cursor-pointer enabled:text-muted enabled:hover:border-[var(--accent)] enabled:hover:bg-[var(--accent-soft)] enabled:hover:text-text enabled:active:scale-95 disabled:cursor-default disabled:text-[oklch(0.5_0.012_60)]"
+            :disabled="atToday"
+            @click="toToday"
+          >
+            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5l7 7-7 7M4 12h16" /></svg>
+            To today
+          </button>
         </div>
         <span class="text-[12px] font-semibold" :class="picking ? 'text-[var(--accent)]' : 'text-faint'">{{ hint }}</span>
       </div>
