@@ -1,9 +1,10 @@
+import { startOfDay } from "@/lib/calendar";
+
 export interface DateWindow { from: number; to: number }
 
 const DAY = 86400;
 const sec = (d: Date) => Math.floor(d.getTime() / 1000);
 
-function startOfDay(d: Date): Date { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
 function startOfWeekMonday(d: Date): Date {
   const x = startOfDay(d);
   const dow = (x.getDay() + 6) % 7;
