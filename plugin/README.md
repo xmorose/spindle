@@ -13,12 +13,16 @@ Set in the Navidrome web UI under Settings → Plugins → Spindle Collector:
 
 ## Building
 
+Collector 0.1.1 uses Navidrome's host HTTP service. Collector 0.1.0 uses Extism's built-in HTTP, which Navidrome 0.64.0 disabled, so upgrading the backend Docker image alone will not restore scrobbling. Replace the collector plugin as described below.
+
+The manifest's `requiredHosts: ["*"]` permits a configurable backend, including Docker and LAN addresses. If you restrict it on Navidrome 0.64.0, include the backend's IP or CIDR for private addresses; a hostname alone is insufficient.
+
 It builds against Navidrome's Rust plugin SDK (`nd-pdk`), which isn't published to crates.io. It lives inside the Navidrome repo at `plugins/pdk/rust/nd-pdk`, and `Cargo.toml` here points at it with the relative path Navidrome expects (`../../pdk/rust/nd-pdk`). Easiest is to build from inside a Navidrome checkout:
 
 ```bash
-git clone https://github.com/navidrome/navidrome
-cp -r spindle/plugin navidrome/plugins/spindle-collector
-cd navidrome/plugins/spindle-collector
+git clone --branch v0.64.0 --depth 1 https://github.com/navidrome/navidrome
+cp -r spindle/plugin navidrome/plugins/examples/spindle-collector
+cd navidrome/plugins/examples/spindle-collector
 
 rustup target add wasm32-wasip1
 cargo build --release --target wasm32-wasip1
@@ -31,7 +35,10 @@ That gives you `target/wasm32-wasip1/release/spindle_collector.wasm`.
 A Navidrome plugin is an `.ndp` file, which is just a zip of the manifest plus the wasm:
 
 ```bash
-zip -j spindle-collector.ndp manifest.json target/wasm32-wasip1/release/spindle_collector.wasm
+cp target/wasm32-wasip1/release/spindle_collector.wasm plugin.wasm
+zip -j spindle-collector.ndp manifest.json plugin.wasm
 ```
 
 Drop `spindle-collector.ndp` into the folder set as `Folder` under `[Plugins]` in your `navidrome.toml`, make sure plugins are enabled, and restart Navidrome. Then set `backend_url` and `shared_secret` in the UI and you're collecting plays.
+
+When upgrading, replace the existing collector `.ndp` rather than installing a second copy, then restart Navidrome and confirm the plugin is enabled and assigned to your users. Play a track and check the Spindle backend for a new `[ingest]` log entry.

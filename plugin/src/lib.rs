@@ -1,6 +1,7 @@
-use extism_pdk::{config, error, http, info, warn, HttpRequest};
+use extism_pdk::{config, error, info, warn};
+use nd_pdk::host::http::{self, HTTPRequest};
 use nd_pdk::scrobbler::{
-    Error, IsAuthorizedRequest, NowPlayingRequest, ScrobbleRequest, Scrobbler,
+    Error, IsAuthorizedRequest, NowPlayingRequest, PlaybackReportRequest, ScrobbleRequest, Scrobbler,
 };
 use serde_json::json;
 
@@ -15,6 +16,10 @@ impl Scrobbler for SpindleCollector {
     }
 
     fn now_playing(&self, _req: NowPlayingRequest) -> Result<(), Error> {
+        Ok(())
+    }
+
+    fn playback_report(&self, _req: PlaybackReportRequest) -> Result<(), Error> {
         Ok(())
     }
 
@@ -36,20 +41,29 @@ impl Scrobbler for SpindleCollector {
         .to_string();
 
         let url = format!("{}/ingest", backend_url.trim_end_matches('/'));
-        let http_req = HttpRequest::new(&url)
-            .with_method("POST")
-            .with_header("Content-Type", "application/json")
-            .with_header("X-Spindle-Secret", &secret);
+        let http_req = HTTPRequest {
+            url,
+            method: "POST".into(),
+            headers: [
+                ("Content-Type".into(), "application/json".into()),
+                ("X-Spindle-Secret".into(), secret),
+            ]
+            .into(),
+            body: body.into_bytes(),
+            timeout_ms: 15_000,
+            no_follow_redirects: false,
+        };
 
-        match http::request::<String>(&http_req, Some(body)) {
-            Ok(res) => {
-                let status = res.status_code();
+        match http::send(http_req) {
+            Ok(Some(res)) => {
+                let status = res.status_code;
                 if (200..300).contains(&status) {
                     info!("spindle: ingested track {} (status {})", req.track.id, status);
                 } else {
                     warn!("spindle: backend returned status {}", status);
                 }
             }
+            Ok(None) => error!("spindle: ingest POST returned no response"),
             Err(e) => error!("spindle: ingest POST failed: {:?}", e),
         }
         Ok(())

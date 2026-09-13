@@ -1,7 +1,7 @@
 {
   "name": "Spindle Collector",
   "author": "morose",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Forwards Navidrome scrobbles to the Spindle stats backend",
   "config": {
     "schema": {
