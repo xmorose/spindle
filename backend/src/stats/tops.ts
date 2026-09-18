@@ -30,7 +30,7 @@ export function topArtists(agg: PlayAggregate, sort: Sort, limit: number): Artis
     const m = meta.get(p.nd_track_id);
     if (!m) continue;
     let cur = acc.get(m.artistId);
-    if (!cur) { cur = { artistId: m.artistId, name: m.artist, plays: 0, seconds: 0, coverArt: null, _coverPlays: -1 }; acc.set(m.artistId, cur); }
+    if (!cur) { cur = { artistId: m.artistId, name: m.artistName, plays: 0, seconds: 0, coverArt: null, _coverPlays: -1 }; acc.set(m.artistId, cur); }
     cur.plays += p.plays;
     cur.seconds += p.plays * m.duration;
     if (m.hasCoverArt && p.plays > cur._coverPlays) { cur._coverPlays = p.plays; cur.coverArt = m.id; }

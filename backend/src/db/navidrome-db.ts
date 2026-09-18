@@ -8,6 +8,7 @@ export interface TrackMeta {
   id: string;
   title: string;
   artist: string;
+  artistName: string;
   artistId: string;
   album: string;
   albumId: string;
@@ -38,6 +39,7 @@ export class NavidromeReader {
       id: r.id,
       title: r.title,
       artist: r.artist,
+      artistName: r.artist_name ?? r.artist,
       artistId: r.artist_id,
       album: r.album,
       albumId: r.album_id,
@@ -51,8 +53,10 @@ export class NavidromeReader {
     const cached = this.metaStmts.get(count);
     if (cached) return cached;
     const stmt = this.db.prepare(
-      `SELECT id,title,artist,artist_id,album,album_id,duration,genre,has_cover_art
-       FROM media_file WHERE id IN (${new Array(count).fill("?").join(",")})`,
+      `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
+              COALESCE(a.name, mf.artist) AS artist_name
+       FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
+       WHERE mf.id IN (${new Array(count).fill("?").join(",")})`,
     );
     this.metaStmts.set(count, stmt);
     return stmt;
@@ -71,8 +75,10 @@ export class NavidromeReader {
   albumTrackMetas(albumId: string): TrackMeta[] {
     const rows = this.db
       .prepare(
-        `SELECT id,title,artist,artist_id,album,album_id,duration,genre,has_cover_art
-         FROM media_file WHERE album_id=? ORDER BY disc_number, track_number, title`,
+        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
+                COALESCE(a.name, mf.artist) AS artist_name
+         FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
+         WHERE mf.album_id=? ORDER BY mf.disc_number, mf.track_number, mf.title`,
       )
       .all(albumId) as any[];
     return this.mapTrackRows(rows);
@@ -81,8 +87,10 @@ export class NavidromeReader {
   artistTrackMetas(artistId: string): TrackMeta[] {
     const rows = this.db
       .prepare(
-        `SELECT id,title,artist,artist_id,album,album_id,duration,genre,has_cover_art
-         FROM media_file WHERE artist_id=? ORDER BY album, disc_number, track_number, title`,
+        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
+                COALESCE(a.name, mf.artist) AS artist_name
+         FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
+         WHERE mf.artist_id=? ORDER BY mf.album, mf.disc_number, mf.track_number, mf.title`,
       )
       .all(artistId) as any[];
     return this.mapTrackRows(rows);
@@ -107,7 +115,7 @@ export class NavidromeReader {
   } {
     const like = `%${q.replace(/[\\%_]/g, (m) => "\\" + m)}%`;
     const artists = this.db
-      .prepare("SELECT DISTINCT artist_id AS id, artist AS name FROM media_file WHERE artist<>'' AND artist LIKE ? ESCAPE '\\' ORDER BY artist LIMIT ?")
+      .prepare("SELECT id, name FROM artist WHERE name<>'' AND name LIKE ? ESCAPE '\\' ORDER BY name LIMIT ?")
       .all(like, perKind) as { id: string; name: string }[];
     const albums = this.db
       .prepare("SELECT DISTINCT album_id AS id, album AS name, artist, artist_id AS artistId FROM media_file WHERE album<>'' AND album LIKE ? ESCAPE '\\' ORDER BY album LIMIT ?")
@@ -162,6 +170,7 @@ export class NavidromeReader {
         has_cover_art INTEGER DEFAULT 0, duration REAL DEFAULT 0,
         genre TEXT DEFAULT '', year INTEGER DEFAULT 0
       );
+      CREATE TABLE IF NOT EXISTS artist (id TEXT PRIMARY KEY, name TEXT);
       CREATE TABLE IF NOT EXISTS annotation (
         user_id TEXT, item_id TEXT, item_type TEXT,
         play_count INTEGER DEFAULT 0, play_date TEXT

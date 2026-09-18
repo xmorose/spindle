@@ -80,7 +80,7 @@ function catalogDetail(
   if (kind === "artist") related.sort((a, b) => b.plays - a.plays);
 
   const sample = catalog[0];
-  const name = kind === "artist" ? sample.artist : sample.album;
+  const name = kind === "artist" ? sample.artistName : sample.album;
 
   const idx = kind === "artist"
     ? topArtists(agg(), "plays", 100000).findIndex((a) => a.artistId === id)
