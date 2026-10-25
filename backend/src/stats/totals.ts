@@ -21,7 +21,7 @@ export function computeTotals(db: Database, agg: PlayAggregate, tf: Timeframe, u
     if (!m) continue;
     plays += r.plays;
     seconds += r.plays * m.duration;
-    trackSet.add(m.id); artists.add(m.artistId); albums.add(m.albumId);
+    trackSet.add(m.id); for (const a of m.artists) artists.add(a.id); albums.add(m.albumId);
   }
 
   const activeDays = (
