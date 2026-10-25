@@ -40,8 +40,6 @@ export class NavidromeReader {
         : source;
   }
 
-  // Every artist credited on each track (role 'artist'), in Navidrome's order.
-  // Falls back to the single primary artist if the table cannot be read.
   private artistsForTracks(ids: string[]): Map<string, ArtistRef[]> {
     const out = new Map<string, ArtistRef[]>();
     try {

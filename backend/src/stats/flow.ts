@@ -150,7 +150,6 @@ export function computeFlow(db: Database, reader: NavidromeReader, timeframe: Ti
   const meta = reader.tracksById([...new Set(rows.map((r) => r.nd_track_id))]);
   const groups = new Map<string, Aggregate>();
 
-  // A play on a multi-artist track is credited to every artist on it. Totals count it once.
   const items: { row: Row; artist?: { id: string; name: string }; extra: boolean }[] = [];
   for (const row of rows) {
     const credited = group === "artist" ? meta.get(row.nd_track_id)?.artists ?? [] : [];
