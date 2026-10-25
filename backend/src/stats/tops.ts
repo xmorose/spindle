@@ -29,11 +29,13 @@ export function topArtists(agg: PlayAggregate, sort: Sort, limit: number): Artis
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);
     if (!m) continue;
-    let cur = acc.get(m.artistId);
-    if (!cur) { cur = { artistId: m.artistId, name: m.artistName, plays: 0, seconds: 0, coverArt: null, _coverPlays: -1 }; acc.set(m.artistId, cur); }
-    cur.plays += p.plays;
-    cur.seconds += p.plays * m.duration;
-    if (m.hasCoverArt && p.plays > cur._coverPlays) { cur._coverPlays = p.plays; cur.coverArt = m.id; }
+    for (const a of m.artists) {
+      let cur = acc.get(a.id);
+      if (!cur) { cur = { artistId: a.id, name: a.name, plays: 0, seconds: 0, coverArt: null, _coverPlays: -1 }; acc.set(a.id, cur); }
+      cur.plays += p.plays;
+      cur.seconds += p.plays * m.duration;
+      if (m.hasCoverArt && p.plays > cur._coverPlays) { cur._coverPlays = p.plays; cur.coverArt = m.id; }
+    }
   }
   return sortRows([...acc.values()], sort, limit).map(({ _coverPlays, ...rest }) => rest);
 }

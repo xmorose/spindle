@@ -4,12 +4,18 @@ import { canonicalId } from "./id-heal.js";
 
 const ID_CHUNK = 500;
 
+export interface ArtistRef {
+  id: string;
+  name: string;
+}
+
 export interface TrackMeta {
   id: string;
   title: string;
   artist: string;
   artistName: string;
   artistId: string;
+  artists: ArtistRef[];
   album: string;
   albumId: string;
   duration: number;
@@ -34,13 +40,40 @@ export class NavidromeReader {
         : source;
   }
 
+  // Every artist credited on each track (role 'artist'), in Navidrome's order.
+  // Falls back to the single primary artist if the table cannot be read.
+  private artistsForTracks(ids: string[]): Map<string, ArtistRef[]> {
+    const out = new Map<string, ArtistRef[]>();
+    try {
+      for (let i = 0; i < ids.length; i += ID_CHUNK) {
+        const chunk = ids.slice(i, i + ID_CHUNK);
+        const rows = this.db
+          .prepare(
+            `SELECT mfa.media_file_id AS track_id, a.id AS id, a.name AS name
+             FROM media_file_artists mfa JOIN artist a ON a.id=mfa.artist_id
+             WHERE mfa.role='artist' AND mfa.media_file_id IN (${chunk.map(() => "?").join(",")})
+             ORDER BY mfa.rowid`,
+          )
+          .all(...chunk) as { track_id: string; id: string; name: string }[];
+        for (const r of rows) {
+          const list = out.get(r.track_id) ?? [];
+          if (!list.some((x) => x.id === r.id)) list.push({ id: r.id, name: r.name });
+          out.set(r.track_id, list);
+        }
+      }
+    } catch {}
+    return out;
+  }
+
   private mapTrackRows(rows: any[]): TrackMeta[] {
+    const credited = this.artistsForTracks(rows.map((r) => r.id));
     return rows.map((r) => ({
       id: r.id,
       title: r.title,
       artist: r.artist,
       artistName: r.artist_name ?? r.artist,
       artistId: r.artist_id,
+      artists: credited.get(r.id) ?? [{ id: r.artist_id, name: r.artist_name ?? r.artist }],
       album: r.album,
       albumId: r.album_id,
       duration: r.duration,
@@ -90,9 +123,9 @@ export class NavidromeReader {
         `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
                 COALESCE(a.name, mf.artist) AS artist_name
          FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
-         WHERE mf.artist_id=? ORDER BY mf.album, mf.disc_number, mf.track_number, mf.title`,
+         WHERE (mf.artist_id=? OR mf.id IN (SELECT media_file_id FROM media_file_artists WHERE artist_id=? AND role='artist')) ORDER BY mf.album, mf.disc_number, mf.track_number, mf.title`,
       )
-      .all(artistId) as any[];
+      .all(artistId, artistId) as any[];
     return this.mapTrackRows(rows);
   }
 
@@ -171,6 +204,9 @@ export class NavidromeReader {
         genre TEXT DEFAULT '', year INTEGER DEFAULT 0
       );
       CREATE TABLE IF NOT EXISTS artist (id TEXT PRIMARY KEY, name TEXT);
+      CREATE TABLE IF NOT EXISTS media_file_artists (
+        media_file_id TEXT, artist_id TEXT, role TEXT DEFAULT '', sub_role TEXT DEFAULT ''
+      );
       CREATE TABLE IF NOT EXISTS annotation (
         user_id TEXT, item_id TEXT, item_type TEXT,
         play_count INTEGER DEFAULT 0, play_date TEXT

@@ -150,21 +150,31 @@ export function computeFlow(db: Database, reader: NavidromeReader, timeframe: Ti
   const meta = reader.tracksById([...new Set(rows.map((r) => r.nd_track_id))]);
   const groups = new Map<string, Aggregate>();
 
+  // A play on a multi-artist track is credited to every artist on it. Totals count it once.
+  const items: { row: Row; artist?: { id: string; name: string }; extra: boolean }[] = [];
   for (const row of rows) {
+    const credited = group === "artist" ? meta.get(row.nd_track_id)?.artists ?? [] : [];
+    if (credited.length === 0) { items.push({ row, extra: false }); continue; }
+    credited.forEach((artist, i) => items.push({ row, artist, extra: i > 0 }));
+  }
+
+  for (const { row, artist, extra } of items) {
     const track = meta.get(row.nd_track_id);
     const seconds = row.plays * Math.max(0, track?.duration ?? 0);
-    const key = track && spec.key(track);
+    const key = artist ? artist.id : track && spec.key(track);
     const id = key || UNKNOWN_ID;
-    result.totalPlays += row.plays;
-    result.totalSeconds += seconds;
-    if (!key) result.unassignedPlays += row.plays;
+    if (!extra) {
+      result.totalPlays += row.plays;
+      result.totalSeconds += seconds;
+      if (!key) result.unassignedPlays += row.plays;
+    }
 
     let agg = groups.get(id);
     if (!agg) {
       agg = {
         series: {
           id,
-          name: (track && spec.name(track)) || spec.unknown,
+          name: (artist ? artist.name : track && spec.name(track)) || spec.unknown,
           subtitle: track ? spec.subtitle(track) : "",
           coverArt: null,
           href: key && spec.href ? spec.href(key) : null,
