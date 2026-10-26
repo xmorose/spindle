@@ -2,8 +2,8 @@
 import { computed, ref, useId, watch } from "vue";
 import type { FlowData } from "@/api/types";
 import { coverUrl } from "@/api/client";
-import { FLOW_W as W, FLOW_H as H, streamGeometry, fallbackFlowColor, type FlowMetric } from "@/lib/flow";
-import { cleanArtist, formatDate, formatDuration, formatNumber } from "@/lib/format";
+import { FLOW_W as W, FLOW_H as H, streamGeometry, fallbackFlowColor, formatFlowPlays, type FlowMetric } from "@/lib/flow";
+import { cleanArtist, formatDate, formatDuration } from "@/lib/format";
 
 const props = defineProps<{
   flow: FlowData;
@@ -163,7 +163,7 @@ function cancel() {
       >
         <div class="truncate font-bold">{{ flow.group === "artist" ? cleanArtist(tooltip.name) : tooltip.name }}</div>
         <div class="mt-1 text-muted">
-          {{ metric === "time" ? formatDuration(tooltip.seconds[hover.index] ?? 0) : `${formatNumber(tooltip.plays[hover.index] ?? 0)} plays` }}
+          {{ metric === "time" ? formatDuration(tooltip.seconds[hover.index] ?? 0) : formatFlowPlays(tooltip.plays[hover.index] ?? 0) }}
         </div>
         <div class="mt-1 text-[10px] text-faint">
           {{ formatDate(bucketStart(hover.index)) }}<template v-if="flow.bucket !== 'day'"> – {{ formatDate(bucketEnd(hover.index)) }}</template>

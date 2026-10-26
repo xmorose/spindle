@@ -8,7 +8,7 @@ import { useUserStore } from "@/stores/user";
 import { useCoverAccent } from "@/composables/useCoverAccent";
 import { useFlowColors } from "@/composables/useFlowColors";
 import { cleanArtist, formatDate, formatDuration, formatNumber } from "@/lib/format";
-import { fallbackFlowColor, GROUP_LABELS, type FlowMetric } from "@/lib/flow";
+import { fallbackFlowColor, formatFlowPlays, GROUP_LABELS, type FlowMetric } from "@/lib/flow";
 import FlowStream from "@/components/charts/FlowStream.vue";
 import CoverArt from "@/components/CoverArt.vue";
 import EmptyState from "@/components/ui/EmptyState.vue";
@@ -72,7 +72,7 @@ useCoverAccent(() => feature.value?.coverArt);
 const color = (id: string) => colors.value[id] ?? fallbackFlowColor(id);
 const name = (s: FlowSeries) => (group.value === "artist" ? cleanArtist(s.name) : s.name);
 const total = (s: FlowSeries) => (metric.value === "time" ? s.totalSeconds : s.totalPlays);
-const amount = (n: number) => (metric.value === "time" ? formatDuration(n) : `${formatNumber(n)} plays`);
+const amount = (n: number) => (metric.value === "time" ? formatDuration(n) : formatFlowPlays(n));
 
 async function load() {
   controller?.abort();

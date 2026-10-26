@@ -1,4 +1,5 @@
 import type { FlowData, FlowGroup, FlowSeries } from "@/api/types";
+import { formatNumber } from "@/lib/format";
 
 export type FlowMetric = "plays" | "time";
 
@@ -14,6 +15,10 @@ export interface FlowLayer {
   series: FlowSeries;
   path: string;
   topPath: string;
+}
+
+export function formatFlowPlays(n: number): string {
+  return `${formatNumber(Math.round(n * 10) / 10)} plays`;
 }
 
 export function flowValues(series: FlowSeries, metric: FlowMetric): number[] {

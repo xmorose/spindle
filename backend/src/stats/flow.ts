@@ -1,5 +1,5 @@
 import type { Database } from "better-sqlite3";
-import type { NavidromeReader, TrackMeta } from "../db/navidrome-db.js";
+import type { ArtistRef, NavidromeReader, TrackMeta } from "../db/navidrome-db.js";
 import type { Timeframe } from "./timeframe.js";
 import type { Bucketing } from "./timeseries.js";
 
@@ -150,21 +150,23 @@ export function computeFlow(db: Database, reader: NavidromeReader, timeframe: Ti
   const meta = reader.tracksById([...new Set(rows.map((r) => r.nd_track_id))]);
   const groups = new Map<string, Aggregate>();
 
-  const items: { row: Row; artist?: { id: string; name: string }; extra: boolean }[] = [];
+  const items: { row: Row; artist?: ArtistRef; share: number; extra: boolean }[] = [];
   for (const row of rows) {
     const credited = group === "artist" ? meta.get(row.nd_track_id)?.artists ?? [] : [];
-    if (credited.length === 0) { items.push({ row, extra: false }); continue; }
-    credited.forEach((artist, i) => items.push({ row, artist, extra: i > 0 }));
+    if (credited.length === 0) { items.push({ row, share: 1, extra: false }); continue; }
+    credited.forEach((artist, i) => items.push({ row, artist, share: 1 / credited.length, extra: i > 0 }));
   }
 
-  for (const { row, artist, extra } of items) {
+  for (const { row, artist, share, extra } of items) {
     const track = meta.get(row.nd_track_id);
-    const seconds = row.plays * Math.max(0, track?.duration ?? 0);
+    const duration = Math.max(0, track?.duration ?? 0);
+    const plays = row.plays * share;
+    const seconds = plays * duration;
     const key = artist ? artist.id : track && spec.key(track);
     const id = key || UNKNOWN_ID;
     if (!extra) {
       result.totalPlays += row.plays;
-      result.totalSeconds += seconds;
+      result.totalSeconds += row.plays * duration;
       if (!key) result.unassignedPlays += row.plays;
     }
 
@@ -187,12 +189,12 @@ export function computeFlow(db: Database, reader: NavidromeReader, timeframe: Ti
     }
     const at = flowBucketStart(row.day * DAY - offset, bucket, offset);
     const point = agg.points.get(at) ?? { plays: 0, seconds: 0 };
-    point.plays += row.plays;
+    point.plays += plays;
     point.seconds += seconds;
     agg.points.set(at, point);
-    agg.series.totalPlays += row.plays;
+    agg.series.totalPlays += plays;
     agg.series.totalSeconds += seconds;
-    if (track?.hasCoverArt) agg.covers.set(track.id, (agg.covers.get(track.id) ?? 0) + row.plays);
+    if (track?.hasCoverArt) agg.covers.set(track.id, (agg.covers.get(track.id) ?? 0) + plays);
   }
 
   const weight = (a: Aggregate) => sort === "time" ? a.series.totalSeconds : a.series.totalPlays;
