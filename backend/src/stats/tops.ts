@@ -1,10 +1,11 @@
 ﻿import type { PlayAggregate } from "./aggregate.js";
+import type { ArtistRef } from "../db/navidrome-db.js";
 
 export type Sort = "plays" | "time";
 
 export interface ArtistTop { artistId: string; name: string; plays: number; seconds: number; coverArt: string | null; }
 export interface AlbumTop { albumId: string; name: string; artist: string; artistId: string; plays: number; seconds: number; }
-export interface TrackTop { id: string; title: string; artist: string; artistId: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
+export interface TrackTop { id: string; title: string; artist: string; artistId: string; artists: ArtistRef[]; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface GenreTop { genre: string; plays: number; seconds: number; }
 
 function sortRows<T extends { plays: number; seconds: number }>(rows: T[], sort: Sort, limit: number): T[] {
@@ -18,7 +19,7 @@ export function topTracks(agg: PlayAggregate, sort: Sort, limit: number): TrackT
   for (const p of plays) {
     const m = meta.get(p.nd_track_id);
     if (!m) continue;
-    rows.push({ id: m.id, title: m.title, artist: m.artist, artistId: m.artistId, album: m.album, plays: p.plays, seconds: p.plays * m.duration, hasCoverArt: m.hasCoverArt });
+    rows.push({ id: m.id, title: m.title, artist: m.artist, artistId: m.artistId, artists: m.artists, album: m.album, plays: p.plays, seconds: p.plays * m.duration, hasCoverArt: m.hasCoverArt });
   }
   return sortRows(rows, sort, limit);
 }

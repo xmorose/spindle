@@ -1,5 +1,5 @@
 import type { Database } from "better-sqlite3";
-import type { NavidromeReader } from "../db/navidrome-db.js";
+import type { ArtistRef, NavidromeReader } from "../db/navidrome-db.js";
 
 export interface RecentPlay {
   playedAt: number;
@@ -8,6 +8,7 @@ export interface RecentPlay {
   artist: string;
   album: string;
   artistId: string;
+  artists: ArtistRef[];
   albumId: string;
   hasCoverArt: boolean;
 }
@@ -32,7 +33,7 @@ export function recentPlays(db: Database, reader: NavidromeReader, user: string,
     out.push({
       playedAt: r.played_at,
       id: m.id, title: m.title, artist: m.artist, album: m.album,
-      artistId: m.artistId, albumId: m.albumId, hasCoverArt: m.hasCoverArt,
+      artistId: m.artistId, artists: m.artists, albumId: m.albumId, hasCoverArt: m.hasCoverArt,
     });
   }
   return out;

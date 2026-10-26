@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed, watch } from "vue";
 import { api, streamUrl, coverUrl } from "@/api/client";
+import type { ArtistRef } from "@/api/types";
 
 export type RepeatMode = "off" | "all" | "one";
 
@@ -11,7 +12,7 @@ function writeLS(k: string, v: string) {
   try { if (typeof localStorage !== "undefined") localStorage.setItem(k, v); } catch {  }
 }
 
-export interface PlayerTrack { id: string; title: string; artist: string; coverId: string | null; artistId?: string | null; }
+export interface PlayerTrack { id: string; title: string; artist: string; coverId: string | null; artistId?: string | null; artists?: ArtistRef[] | null; }
 
 let audio: HTMLAudioElement | null = null;
 function el(): HTMLAudioElement | null {

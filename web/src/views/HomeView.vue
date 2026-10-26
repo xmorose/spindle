@@ -32,6 +32,7 @@ const trackRows = computed<RankedRow[]>(() =>
     coverId: t.hasCoverArt ? t.id : null,
     to: `/tracks/${t.id}`,
     artistId: t.artistId,
+    artists: t.artists,
   })),
 );
 const playValues = computed(() => (series.data.value ?? []).map((p) => p.plays));

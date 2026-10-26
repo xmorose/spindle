@@ -3,6 +3,7 @@ import { computed, ref, onMounted, onUnmounted } from "vue";
 import { usePlayerStore } from "@/stores/player";
 import { createShareLink } from "@/composables/useShare";
 import { cleanArtist, formatClock } from "@/lib/format";
+import ArtistLinks from "@/components/ArtistLinks.vue";
 import VinylRecord from "@/components/VinylRecord.vue";
 import NowPlayingBars from "@/components/NowPlayingBars.vue";
 
@@ -72,8 +73,8 @@ function shareQueue() {
         </RouterLink>
         <div class="min-w-0 w-28 flex-none sm:w-48">
           <RouterLink :to="`/tracks/${p.current.id}`" class="block truncate text-sm font-semibold transition-colors hover:underline">{{ p.current.title }}</RouterLink>
-          <component :is="p.current.artistId ? 'RouterLink' : 'span'" :to="p.current.artistId ? `/artists/${p.current.artistId}` : undefined"
-            class="block truncate text-xs text-faint" :class="p.current.artistId ? 'transition-colors hover:text-text hover:underline' : ''">{{ cleanArtist(p.current.artist) }}</component>
+          <ArtistLinks :text="cleanArtist(p.current.artist)" :artist-id="p.current.artistId" :artists="p.current.artists"
+            class="block truncate text-xs text-faint" />
         </div>
 
         <button

@@ -3,10 +3,11 @@ export type Sort = "plays" | "time";
 
 export interface RangeParams { range?: Range; from?: number; to?: number; sort?: Sort; limit?: number; bucket?: "day" | "week" | "month"; }
 
+export interface ArtistRef { id: string; name: string; }
 export interface Totals { plays: number; seconds: number; distinctTracks: number; distinctArtists: number; distinctAlbums: number; avgPlaysPerActiveDay: number; }
 export interface ArtistTop { artistId: string; name: string; plays: number; seconds: number; coverArt: string | null; }
 export interface AlbumTop { albumId: string; name: string; artist: string; artistId: string; plays: number; seconds: number; }
-export interface TrackTop { id: string; title: string; artist: string; artistId: string; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
+export interface TrackTop { id: string; title: string; artist: string; artistId: string; artists: ArtistRef[]; album: string; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface GenreTop { genre: string; plays: number; seconds: number; }
 export interface HeatCell { weekday: number; hour: number; plays: number; }
 export interface TimePoint { bucket: number; plays: number; seconds: number; }
@@ -22,17 +23,17 @@ export interface FlowData {
 export interface FlowParams extends Omit<RangeParams, "bucket"> {
   group?: FlowGroup; bucket?: "auto" | "day" | "week" | "month"; compact?: boolean; focus?: string;
 }
-export interface SessionTrack { id: string; title: string; artist: string; artistId: string; albumId: string; hasCoverArt: boolean; duration: number; plays: number; }
+export interface SessionTrack { id: string; title: string; artist: string; artistId: string; artists: ArtistRef[]; albumId: string; hasCoverArt: boolean; duration: number; plays: number; }
 export interface Session { startedAt: number; endedAt: number; trackCount: number; seconds: number; tracks: SessionTrack[]; }
-export interface RecentPlay { playedAt: number; id: string; title: string; artist: string; album: string; artistId: string; albumId: string; hasCoverArt: boolean; }
+export interface RecentPlay { playedAt: number; id: string; title: string; artist: string; album: string; artistId: string; artists: ArtistRef[]; albumId: string; hasCoverArt: boolean; }
 export interface SearchResult {
   artists: { id: string; name: string }[];
   albums: { id: string; name: string; artist: string; artistId: string }[];
-  tracks: { id: string; title: string; artist: string; artistId: string; hasCoverArt: boolean }[];
+  tracks: { id: string; title: string; artist: string; artistId: string; artists: ArtistRef[]; hasCoverArt: boolean }[];
 }
-export interface RelatedTrack { id: string; title: string; artist: string; artistId: string; plays: number; seconds: number; hasCoverArt: boolean; }
+export interface RelatedTrack { id: string; title: string; artist: string; artistId: string; artists: ArtistRef[]; plays: number; seconds: number; hasCoverArt: boolean; }
 export interface EntityDetail {
-  kind: "artist" | "album" | "track"; id: string; name: string; artist?: string; artistId?: string; album?: string;
+  kind: "artist" | "album" | "track"; id: string; name: string; artist?: string; artistId?: string; artists?: ArtistRef[]; album?: string;
   plays: number; seconds: number; rank: number; firstPlayedAt: number | null; lastPlayedAt: number | null;
   coverArt: string | null;
   history: { day: number; plays: number }[]; related: RelatedTrack[];

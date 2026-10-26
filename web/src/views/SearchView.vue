@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import { api } from "@/api/client";
 import { cleanArtist } from "@/lib/format";
 import type { SearchResult } from "@/api/types";
+import ArtistLinks from "@/components/ArtistLinks.vue";
 import CoverArt from "@/components/CoverArt.vue";
 import SearchInput from "@/components/SearchInput.vue";
 import Spinner from "@/components/ui/Spinner.vue";
@@ -70,7 +71,7 @@ const empty = computed(() => !!res.value && !res.value.artists.length && !res.va
           </RouterLink>
           <div class="min-w-0">
             <RouterLink :to="`/tracks/${t.id}`" class="block truncate text-sm font-semibold hover:underline">{{ t.title }}</RouterLink>
-            <RouterLink :to="`/artists/${t.artistId}`" class="block truncate text-xs text-faint transition-colors hover:text-text hover:underline">{{ cleanArtist(t.artist) }}</RouterLink>
+            <ArtistLinks :text="cleanArtist(t.artist)" :artist-id="t.artistId" :artists="t.artists" class="block truncate text-xs text-faint" />
           </div>
         </div>
       </section>

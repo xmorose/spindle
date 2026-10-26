@@ -10,6 +10,7 @@ import { formatNumber, formatDuration, formatDate, cleanArtist } from "@/lib/for
 import type { EntityDetail, RelatedTrack } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
 import { createShareLink } from "@/composables/useShare";
+import ArtistLinks from "@/components/ArtistLinks.vue";
 import CoverBackdrop from "@/components/CoverBackdrop.vue";
 import VinylHero from "@/components/VinylHero.vue";
 import LineArea from "@/components/charts/LineArea.vue";
@@ -72,7 +73,7 @@ function pickDay(i: number) {
 
 const relatedRows = computed<RankedRow[]>(() =>
   (data.value?.related ?? []).map((r: RelatedTrack) => ({
-    id: r.id, title: r.title, subtitle: cleanArtist(r.artist), value: r.plays, coverId: r.hasCoverArt ? r.id : null, to: `/tracks/${r.id}`, artistId: r.artistId,
+    id: r.id, title: r.title, subtitle: cleanArtist(r.artist), value: r.plays, coverId: r.hasCoverArt ? r.id : null, to: `/tracks/${r.id}`, artistId: r.artistId, artists: r.artists,
   })),
 );
 </script>
@@ -129,8 +130,8 @@ const relatedRows = computed<RankedRow[]>(() =>
           <div class="min-w-0 flex-1">
             <div class="label-sm label-over">{{ kind }}<span v-if="data.rank > 0"> · rank #{{ data.rank }}</span></div>
             <h1 class="mt-1.5 text-4xl font-black leading-[0.95] tracking-tight sm:text-6xl">{{ kind === 'artist' ? cleanArtist(data.name) : data.name }}</h1>
-            <RouterLink v-if="data.artist && kind !== 'artist' && data.artistId" :to="`/artists/${data.artistId}`"
-              class="mt-2 inline-block text-[15px] text-muted transition-colors hover:text-text hover:underline">{{ cleanArtist(data.artist) }}</RouterLink>
+            <ArtistLinks v-if="data.artist && kind !== 'artist' && data.artistId" :text="cleanArtist(data.artist)" :artist-id="data.artistId" :artists="data.artists"
+              class="mt-2 inline-block text-[15px] text-muted" />
             <div v-else-if="data.artist && kind !== 'artist'" class="mt-2 text-[15px] text-muted">{{ cleanArtist(data.artist) }}</div>
 
             <div class="mt-7 flex flex-wrap items-end gap-x-10 gap-y-6">

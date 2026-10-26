@@ -1,5 +1,5 @@
 import type { Database } from "better-sqlite3";
-import type { NavidromeReader } from "../db/navidrome-db.js";
+import type { ArtistRef, NavidromeReader } from "../db/navidrome-db.js";
 import type { Timeframe } from "./timeframe.js";
 import type { PlayAggregate } from "./aggregate.js";
 import { topArtists, topAlbums, topTracks } from "./tops.js";
@@ -9,10 +9,10 @@ export type AggregateSource = () => PlayAggregate;
 export type EntityKind = "artist" | "album" | "track";
 
 export interface RelatedTrack {
-  id: string; title: string; artist: string; artistId: string; plays: number; seconds: number; hasCoverArt: boolean;
+  id: string; title: string; artist: string; artistId: string; artists: ArtistRef[]; plays: number; seconds: number; hasCoverArt: boolean;
 }
 export interface EntityDetail {
-  kind: EntityKind; id: string; name: string; artist?: string; artistId?: string; album?: string;
+  kind: EntityKind; id: string; name: string; artist?: string; artistId?: string; artists?: ArtistRef[]; album?: string;
   plays: number; seconds: number; rank: number;
   firstPlayedAt: number | null; lastPlayedAt: number | null;
   coverArt: string | null;
@@ -75,7 +75,7 @@ function catalogDetail(
     const plays = playMap.get(m.id) ?? 0;
     totalPlays += plays;
     totalSeconds += plays * m.duration;
-    return { id: m.id, title: m.title, artist: m.artist, artistId: m.artistId, plays, seconds: plays * m.duration, hasCoverArt: m.hasCoverArt };
+    return { id: m.id, title: m.title, artist: m.artist, artistId: m.artistId, artists: m.artists, plays, seconds: plays * m.duration, hasCoverArt: m.hasCoverArt };
   });
   if (kind === "artist") related.sort((a, b) => b.plays - a.plays);
 
@@ -114,11 +114,11 @@ function trackDetail(
   const { first, last } = span(db, tf, user, [id]);
   return {
     kind: "track", id, name: meta.title,
-    artist: meta.artist, artistId: meta.artistId, album: meta.album,
+    artist: meta.artist, artistId: meta.artistId, artists: meta.artists, album: meta.album,
     plays, seconds: plays * meta.duration, rank,
     firstPlayedAt: first ?? null, lastPlayedAt: last ?? null,
     coverArt: meta.hasCoverArt ? meta.id : null,
     history: dailyHistory(db, tf, user, [id]),
-    related: [{ id: meta.id, title: meta.title, artist: meta.artist, artistId: meta.artistId, plays, seconds: plays * meta.duration, hasCoverArt: meta.hasCoverArt }],
+    related: [{ id: meta.id, title: meta.title, artist: meta.artist, artistId: meta.artistId, artists: meta.artists, plays, seconds: plays * meta.duration, hasCoverArt: meta.hasCoverArt }],
   };
 }

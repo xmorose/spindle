@@ -316,14 +316,14 @@ function playArtistTrack(artistId: string, i: number) {
   const rel = details.value[artistId]?.related ?? [];
   if (!rel.length) return;
   player.playQueue(
-    rel.map((r) => ({ id: r.id, title: r.title, artist: r.artist, coverId: r.hasCoverArt ? r.id : null, artistId: r.artistId })),
+    rel.map((r) => ({ id: r.id, title: r.title, artist: r.artist, coverId: r.hasCoverArt ? r.id : null, artistId: r.artistId, artists: r.artists })),
     i,
   );
 }
 function playYear() {
   if (!tracks.value.length) return;
   player.playQueue(
-    tracks.value.map((t) => ({ id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null, artistId: t.artistId })),
+    tracks.value.map((t) => ({ id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null, artistId: t.artistId, artists: t.artists })),
     0,
   );
 }

@@ -34,7 +34,7 @@ async function load() {
     ]);
     totals.value = t;
     artistRows.value = ar.map((a) => ({ id: a.artistId, title: cleanArtist(a.name), value: a.plays, coverId: a.coverArt, to: `/artists/${a.artistId}` }));
-    trackRows.value = tr.map((x) => ({ id: x.id, title: x.title, subtitle: cleanArtist(x.artist), value: x.plays, coverId: x.hasCoverArt ? x.id : null, to: `/tracks/${x.id}`, artistId: x.artistId }));
+    trackRows.value = tr.map((x) => ({ id: x.id, title: x.title, subtitle: cleanArtist(x.artist), value: x.plays, coverId: x.hasCoverArt ? x.id : null, to: `/tracks/${x.id}`, artistId: x.artistId, artists: x.artists }));
     daily.value = ds;
   } finally {
     loading.value = false;

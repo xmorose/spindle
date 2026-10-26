@@ -1,5 +1,5 @@
 import type { Database } from "better-sqlite3";
-import type { NavidromeReader } from "../db/navidrome-db.js";
+import type { ArtistRef, NavidromeReader } from "../db/navidrome-db.js";
 import type { Timeframe } from "./timeframe.js";
 
 export interface SessionTrack {
@@ -7,6 +7,7 @@ export interface SessionTrack {
   title: string;
   artist: string;
   artistId: string;
+  artists: ArtistRef[];
   albumId: string;
   hasCoverArt: boolean;
   duration: number;
@@ -58,7 +59,7 @@ export function computeSessions(
     if (m) {
       const last = cur.tracks[cur.tracks.length - 1];
       if (last && last.id === m.id) last.plays += 1;
-      else cur.tracks.push({ id: m.id, title: m.title, artist: m.artist, artistId: m.artistId, albumId: m.albumId, hasCoverArt: m.hasCoverArt, duration: m.duration, plays: 1 });
+      else cur.tracks.push({ id: m.id, title: m.title, artist: m.artist, artistId: m.artistId, artists: m.artists, albumId: m.albumId, hasCoverArt: m.hasCoverArt, duration: m.duration, plays: 1 });
     }
     lastTs = r.played_at;
   }

@@ -6,6 +6,7 @@ import { useUserStore } from "@/stores/user";
 import { cleanArtist, formatTimeOfDay, formatDayLabel } from "@/lib/format";
 import type { RecentPlay } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
+import ArtistLinks from "@/components/ArtistLinks.vue";
 import CoverArt from "@/components/CoverArt.vue";
 import VinylRecord from "@/components/VinylRecord.vue";
 import NowPlayingBars from "@/components/NowPlayingBars.vue";
@@ -55,7 +56,7 @@ function sinceLabel(unixSeconds: number): string {
 }
 
 function toTrack(p: RecentPlay): PlayerTrack {
-  return { id: p.id, title: p.title, artist: p.artist, coverId: p.hasCoverArt ? p.id : null, artistId: p.artistId };
+  return { id: p.id, title: p.title, artist: p.artist, coverId: p.hasCoverArt ? p.id : null, artistId: p.artistId, artists: p.artists };
 }
 function playFrom(i: number) {
   player.playQueue(plays.value.map(toTrack), i);
@@ -92,9 +93,8 @@ function isCurrent(p: RecentPlay) { return player.current?.id === p.id; }
           <div class="label">Last played</div>
           <RouterLink :to="`/tracks/${latest.id}`"
             class="mt-2 block truncate text-3xl font-black leading-[0.95] tracking-tight hover:underline sm:text-5xl">{{ latest.title }}</RouterLink>
-          <component :is="latest.artistId ? 'RouterLink' : 'span'" :to="latest.artistId ? `/artists/${latest.artistId}` : undefined"
-            class="mt-2 block truncate text-[15px] text-muted"
-            :class="latest.artistId ? 'transition-colors hover:text-text hover:underline' : ''">{{ cleanArtist(latest.artist) }}</component>
+          <ArtistLinks :text="cleanArtist(latest.artist)" :artist-id="latest.artistId" :artists="latest.artists"
+            class="mt-2 block truncate text-[15px] text-muted" />
           <div class="tabular mt-3 text-[13px] font-semibold" :style="{ color: 'var(--accent)' }">{{ sinceLabel(latest.playedAt) }}</div>
         </div>
       </section>
@@ -126,8 +126,8 @@ function isCurrent(p: RecentPlay) { return player.current?.id === p.id; }
                     :style="isCurrent(item.play) ? { color: 'var(--accent)' } : undefined">{{ item.play.title }}</RouterLink>
                   <NowPlayingBars v-if="isCurrent(item.play) && player.playing" class="flex-none text-[var(--accent)]" />
                 </div>
-                <component :is="item.play.artistId ? 'RouterLink' : 'span'" :to="item.play.artistId ? `/artists/${item.play.artistId}` : undefined" @click.stop
-                  class="block w-fit max-w-full truncate text-xs text-faint" :class="item.play.artistId ? 'transition-colors hover:text-text hover:underline' : ''">{{ cleanArtist(item.play.artist) }}</component>
+                <ArtistLinks :text="cleanArtist(item.play.artist)" :artist-id="item.play.artistId" :artists="item.play.artists"
+                  class="block w-fit max-w-full truncate text-xs text-faint" />
               </div>
             </div>
           </div>

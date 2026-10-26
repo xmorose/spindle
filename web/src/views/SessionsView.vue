@@ -6,6 +6,7 @@ import { formatDuration, formatClock, formatDayLabel, formatTimeOfDay, cleanArti
 import { barWidth } from "@/lib/chart";
 import type { Session, SessionTrack } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
+import ArtistLinks from "@/components/ArtistLinks.vue";
 import CoverArt from "@/components/CoverArt.vue";
 import NowPlayingBars from "@/components/NowPlayingBars.vue";
 import Skeleton from "@/components/ui/Skeleton.vue";
@@ -60,7 +61,7 @@ function toggle(startedAt: number) {
 
 const player = usePlayerStore();
 function toPlayerTrack(t: SessionTrack): PlayerTrack {
-  return { id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null, artistId: t.artistId };
+  return { id: t.id, title: t.title, artist: t.artist, coverId: t.hasCoverArt ? t.id : null, artistId: t.artistId, artists: t.artists };
 }
 function playSession(s: Session, start = 0) { player.playQueue(s.tracks.map(toPlayerTrack), start); }
 function shuffleSession(s: Session) { player.playShuffled(s.tracks.map(toPlayerTrack)); }
@@ -180,8 +181,8 @@ function isCurrent(t: SessionTrack) { return player.current?.id === t.id; }
                         :style="isCurrent(t) ? { color: 'var(--accent)' } : undefined">{{ t.title }}</RouterLink>
                       <NowPlayingBars v-if="isCurrent(t) && player.playing" class="flex-none text-[var(--accent)]" />
                     </span>
-                    <RouterLink :to="`/artists/${t.artistId}`" @click.stop
-                      class="block w-fit max-w-full truncate text-[11px] text-faint transition-colors hover:text-text hover:underline">{{ cleanArtist(t.artist) }}</RouterLink>
+                    <ArtistLinks :text="cleanArtist(t.artist)" :artist-id="t.artistId" :artists="t.artists"
+                      class="block w-fit max-w-full truncate text-[11px] text-faint" />
                   </span>
                   <span v-if="t.plays > 1"
                     class="tabular flex-none rounded-full px-1.5 py-px text-[10px] font-bold"

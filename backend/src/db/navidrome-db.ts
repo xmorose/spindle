@@ -142,7 +142,7 @@ export class NavidromeReader {
   search(q: string, perKind: number): {
     artists: { id: string; name: string }[];
     albums: { id: string; name: string; artist: string; artistId: string }[];
-    tracks: { id: string; title: string; artist: string; artistId: string; hasCoverArt: boolean }[];
+    tracks: { id: string; title: string; artist: string; artistId: string; artists: ArtistRef[]; hasCoverArt: boolean }[];
   } {
     const like = `%${q.replace(/[\\%_]/g, (m) => "\\" + m)}%`;
     const artists = this.db
@@ -154,7 +154,11 @@ export class NavidromeReader {
     const trackRows = this.db
       .prepare("SELECT id, title, artist, artist_id, has_cover_art FROM media_file WHERE title LIKE ? ESCAPE '\\' ORDER BY title LIMIT ?")
       .all(like, perKind) as any[];
-    const tracks = trackRows.map((r) => ({ id: r.id, title: r.title, artist: r.artist, artistId: r.artist_id, hasCoverArt: !!r.has_cover_art }));
+    const credited = this.artistsForTracks(trackRows.map((r) => r.id));
+    const tracks = trackRows.map((r) => ({
+      id: r.id, title: r.title, artist: r.artist, artistId: r.artist_id,
+      artists: credited.get(r.id) ?? [{ id: r.artist_id, name: r.artist }], hasCoverArt: !!r.has_cover_art,
+    }));
     return { artists, albums, tracks };
   }
 

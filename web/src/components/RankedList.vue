@@ -2,6 +2,8 @@
 import { ref, computed } from "vue";
 import CoverArt from "./CoverArt.vue";
 import NowPlayingBars from "./NowPlayingBars.vue";
+import ArtistLinks from "./ArtistLinks.vue";
+import type { ArtistRef } from "@/api/types";
 import { usePlayerStore, type PlayerTrack } from "@/stores/player";
 import { usePlayEntity } from "@/composables/usePlayEntity";
 import { createShareLink } from "@/composables/useShare";
@@ -16,6 +18,7 @@ export interface RankedRow {
   coverId?: string | null;
   to?: string;
   artistId?: string | null;
+  artists?: ArtistRef[] | null;
 }
 
 const props = withDefaults(
@@ -35,7 +38,7 @@ const entity = usePlayEntity();
 
 const max = computed(() => props.maxValue ?? Math.max(...props.rows.map((r) => r.value), 1));
 
-const trackOf = (r: RankedRow): PlayerTrack => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null, artistId: r.artistId ?? null });
+const trackOf = (r: RankedRow): PlayerTrack => ({ id: r.id, title: r.title, artist: r.subtitle ?? "", coverId: r.coverId ?? null, artistId: r.artistId ?? null, artists: r.artists ?? null });
 
 const isTrack = computed(() => props.kind === "track");
 function isCurrent(r: RankedRow) { return isTrack.value && player.current?.id === r.id; }
@@ -112,8 +115,8 @@ function playNextRow(r: RankedRow) { player.playNext([trackOf(r)]); openIdx.valu
               :style="isCurrent(row) ? { color: 'var(--accent)' } : undefined">{{ row.title }}</component>
             <NowPlayingBars v-if="isCurrent(row) && player.playing" class="flex-none text-[var(--accent)]" />
           </div>
-          <RouterLink v-if="row.subtitle && row.artistId" :to="`/artists/${row.artistId}`" @click.stop
-            class="block w-fit max-w-full truncate text-[11.5px] text-faint transition-colors hover:text-text hover:underline">{{ row.subtitle }}</RouterLink>
+          <ArtistLinks v-if="row.subtitle && row.artistId" :text="row.subtitle" :artist-id="row.artistId" :artists="row.artists"
+            class="block w-fit max-w-full truncate text-[11.5px] text-faint" />
           <div v-else-if="row.subtitle" class="truncate text-[11.5px] text-faint">{{ row.subtitle }}</div>
         </div>
 
