@@ -3,6 +3,7 @@ import type { Database as DB, Statement } from "better-sqlite3";
 import { canonicalId } from "./id-heal.js";
 
 const ID_CHUNK = 500;
+const IDLE_CLOSE_MS = 1000;
 
 export interface ArtistRef {
   id: string;
@@ -30,14 +31,30 @@ export interface BaselineRow {
 }
 
 export class NavidromeReader {
-  private readonly db: DB;
+  private readonly path: string | null;
+  private conn: DB | null;
+  private idleTimer: NodeJS.Timeout | null = null;
   private readonly metaStmts = new Map<number, Statement>();
 
   constructor(source: string | DB) {
-    this.db =
-      typeof source === "string"
-        ? new Database(source, { readonly: true, fileMustExist: true })
-        : source;
+    this.path = typeof source === "string" ? source : null;
+    this.conn = typeof source === "string" ? null : source;
+    if (this.path) this.db();
+  }
+
+  private db(): DB {
+    if (!this.path) return this.conn!;
+    this.conn ??= new Database(this.path, { readonly: true, fileMustExist: true });
+    this.idleTimer ??= setTimeout(() => this.release(), IDLE_CLOSE_MS).unref();
+    this.idleTimer.refresh();
+    return this.conn;
+  }
+
+  private release(): void {
+    this.idleTimer = null;
+    this.metaStmts.clear();
+    this.conn?.close();
+    this.conn = null;
   }
 
   private artistsForTracks(ids: string[]): Map<string, ArtistRef[]> {
@@ -45,7 +62,7 @@ export class NavidromeReader {
     try {
       for (let i = 0; i < ids.length; i += ID_CHUNK) {
         const chunk = ids.slice(i, i + ID_CHUNK);
-        const rows = this.db
+        const rows = this.db()
           .prepare(
             `SELECT mfa.media_file_id AS track_id, a.id AS id, a.name AS name
              FROM media_file_artists mfa JOIN artist a ON a.id=mfa.artist_id
@@ -83,7 +100,7 @@ export class NavidromeReader {
   private metaStmt(count: number): Statement {
     const cached = this.metaStmts.get(count);
     if (cached) return cached;
-    const stmt = this.db.prepare(
+    const stmt = this.db().prepare(
       `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
               COALESCE(a.name, mf.artist) AS artist_name
        FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
@@ -104,7 +121,7 @@ export class NavidromeReader {
   }
 
   albumTrackMetas(albumId: string): TrackMeta[] {
-    const rows = this.db
+    const rows = this.db()
       .prepare(
         `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
                 COALESCE(a.name, mf.artist) AS artist_name
@@ -116,7 +133,7 @@ export class NavidromeReader {
   }
 
   artistTrackMetas(artistId: string): TrackMeta[] {
-    const rows = this.db
+    const rows = this.db()
       .prepare(
         `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
                 COALESCE(a.name, mf.artist) AS artist_name
@@ -128,7 +145,7 @@ export class NavidromeReader {
   }
 
   albumTracks(albumId: string): { id: string; title: string; artist: string; duration: number; hasCover: boolean }[] {
-    const rows = this.db
+    const rows = this.db()
       .prepare(
         `SELECT id,title,artist,duration,has_cover_art
          FROM media_file WHERE album_id=? ORDER BY disc_number, track_number, title`,
@@ -145,13 +162,13 @@ export class NavidromeReader {
     tracks: { id: string; title: string; artist: string; artistId: string; artists: ArtistRef[]; hasCoverArt: boolean }[];
   } {
     const like = `%${q.replace(/[\\%_]/g, (m) => "\\" + m)}%`;
-    const artists = this.db
+    const artists = this.db()
       .prepare("SELECT id, name FROM artist WHERE name<>'' AND name LIKE ? ESCAPE '\\' ORDER BY name LIMIT ?")
       .all(like, perKind) as { id: string; name: string }[];
-    const albums = this.db
+    const albums = this.db()
       .prepare("SELECT DISTINCT album_id AS id, album AS name, artist, artist_id AS artistId FROM media_file WHERE album<>'' AND album LIKE ? ESCAPE '\\' ORDER BY album LIMIT ?")
       .all(like, perKind) as { id: string; name: string; artist: string; artistId: string }[];
-    const trackRows = this.db
+    const trackRows = this.db()
       .prepare("SELECT id, title, artist, artist_id, has_cover_art FROM media_file WHERE title LIKE ? ESCAPE '\\' ORDER BY title LIMIT ?")
       .all(like, perKind) as any[];
     const credited = this.artistsForTracks(trackRows.map((r) => r.id));
@@ -166,7 +183,7 @@ export class NavidromeReader {
     const found = new Set<string>();
     for (let i = 0; i < ids.length; i += 500) {
       const chunk = ids.slice(i, i + 500);
-      const rows = this.db
+      const rows = this.db()
         .prepare(`SELECT id FROM media_file WHERE id IN (${chunk.map(() => "?").join(",")})`)
         .all(...chunk) as { id: string }[];
       for (const r of rows) found.add(r.id);
@@ -176,17 +193,17 @@ export class NavidromeReader {
 
   idsMigrated(): boolean {
     try {
-      const applied = this.db
+      const applied = this.db()
         .prepare("SELECT 1 AS ok FROM goose_db_version WHERE version_id=? AND is_applied=1")
         .get(20260720015443) as { ok: number } | undefined;
       if (applied) return true;
     } catch {}
-    const rows = this.db.prepare("SELECT id FROM media_file").all() as { id: string }[];
+    const rows = this.db().prepare("SELECT id FROM media_file").all() as { id: string }[];
     return rows.length > 0 && !rows.some((r) => canonicalId(r.id) !== r.id);
   }
 
   baselinePlayCounts(): BaselineRow[] {
-    return this.db
+    return this.db()
       .prepare(
         `SELECT u.user_name AS user, a.item_id AS nd_track_id, a.play_count AS play_count
          FROM annotation a
