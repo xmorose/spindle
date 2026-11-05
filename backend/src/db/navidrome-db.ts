@@ -101,7 +101,7 @@ export class NavidromeReader {
     const cached = this.metaStmts.get(count);
     if (cached) return cached;
     const stmt = this.db().prepare(
-      `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
+      `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,mf.has_cover_art,
               COALESCE(a.name, mf.artist) AS artist_name
        FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
        WHERE mf.id IN (${new Array(count).fill("?").join(",")})`,
@@ -123,7 +123,7 @@ export class NavidromeReader {
   albumTrackMetas(albumId: string): TrackMeta[] {
     const rows = this.db()
       .prepare(
-        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
+        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,mf.has_cover_art,
                 COALESCE(a.name, mf.artist) AS artist_name
          FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
          WHERE mf.album_id=? ORDER BY mf.disc_number, mf.track_number, mf.title`,
@@ -135,7 +135,7 @@ export class NavidromeReader {
   artistTrackMetas(artistId: string): TrackMeta[] {
     const rows = this.db()
       .prepare(
-        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,mf.genre,mf.has_cover_art,
+        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,mf.has_cover_art,
                 COALESCE(a.name, mf.artist) AS artist_name
          FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
          WHERE (mf.artist_id=? OR mf.id IN (SELECT media_file_id FROM media_file_artists WHERE artist_id=? AND role='artist')) ORDER BY mf.album, mf.disc_number, mf.track_number, mf.title`,
@@ -220,7 +220,7 @@ export class NavidromeReader {
         id TEXT PRIMARY KEY, title TEXT, album TEXT, artist TEXT,
         artist_id TEXT, album_artist TEXT, album_id TEXT,
         has_cover_art INTEGER DEFAULT 0, duration REAL DEFAULT 0,
-        genre TEXT DEFAULT '', year INTEGER DEFAULT 0
+        tags TEXT DEFAULT '{}', year INTEGER DEFAULT 0
       );
       CREATE TABLE IF NOT EXISTS artist (id TEXT PRIMARY KEY, name TEXT);
       CREATE TABLE IF NOT EXISTS media_file_artists (
