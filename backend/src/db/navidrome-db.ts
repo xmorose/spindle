@@ -24,6 +24,11 @@ export interface TrackMeta {
   hasCoverArt: boolean;
 }
 
+interface CoverSql {
+  select: string;
+  join: string;
+}
+
 export interface BaselineRow {
   user: string;
   nd_track_id: string;
@@ -35,6 +40,7 @@ export class NavidromeReader {
   private conn: DB | null;
   private idleTimer: NodeJS.Timeout | null = null;
   private readonly metaStmts = new Map<number, Statement>();
+  private coverSqlCache: CoverSql | null = null;
 
   constructor(source: string | DB) {
     this.path = typeof source === "string" ? source : null;
@@ -55,6 +61,54 @@ export class NavidromeReader {
     this.metaStmts.clear();
     this.conn?.close();
     this.conn = null;
+  }
+
+  // has_cover_art only means "embedded art in this file". For a track without it, Navidrome's
+  // getCoverArt still returns the album's artwork, which includes folder images (cover.jpg
+  // etc.). So a track has a cover when the file, its folder or its album has art. Which tables
+  // exist depends on the Navidrome version, so they are probed once; with none of them this
+  // falls back to embedded-only.
+  private coverSql(): CoverSql {
+    if (this.coverSqlCache) return this.coverSqlCache;
+    const cols = (table: string): string[] => {
+      try {
+        return (this.db().prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
+      } catch {
+        return [];
+      }
+    };
+    const mf = cols("media_file");
+    const conds = ["mf.has_cover_art=1"];
+    const joins: string[] = [];
+    const ia = cols("item_artwork");
+    if (ia.includes("item_kind") && ia.includes("hash")) {
+      // Navidrome >= 0.64: resolved album artwork (folder image, sibling track, external). An
+      // empty hash means Navidrome found nothing usable, even if the folder has image files.
+      conds.push("EXISTS (SELECT 1 FROM item_artwork ia WHERE ia.item_kind='al' AND ia.item_id=mf.album_id AND ia.hash<>'')");
+    } else if (mf.includes("folder_id") && cols("folder").includes("image_files")) {
+      // Navidrome 0.55 - 0.63: image files are tracked per folder
+      joins.push("LEFT JOIN folder cf ON cf.id=mf.folder_id");
+      conds.push("COALESCE(cf.image_files,'[]') NOT IN ('','[]')");
+    }
+    // Older Navidrome: image paths on the album row
+    const al = cols("album").filter((c) => c === "image_files" || c === "embed_art_path");
+    if (al.length) {
+      joins.push("LEFT JOIN album cal ON cal.id=mf.album_id");
+      for (const c of al) conds.push(`COALESCE(cal.${c},'')<>''`);
+    }
+    this.coverSqlCache = {
+      select: conds.length > 1 ? `(${conds.join(" OR ")}) AS has_cover_art` : "mf.has_cover_art",
+      join: joins.map((j) => ` ${j}`).join(""),
+    };
+    return this.coverSqlCache;
+  }
+
+  private coverSelect(): string {
+    return this.coverSql().select;
+  }
+
+  private coverJoin(): string {
+    return this.coverSql().join;
   }
 
   private artistsForTracks(ids: string[]): Map<string, ArtistRef[]> {
@@ -101,9 +155,9 @@ export class NavidromeReader {
     const cached = this.metaStmts.get(count);
     if (cached) return cached;
     const stmt = this.db().prepare(
-      `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,mf.has_cover_art,
+      `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,${this.coverSelect()},
               COALESCE(a.name, mf.artist) AS artist_name
-       FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
+       FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id${this.coverJoin()}
        WHERE mf.id IN (${new Array(count).fill("?").join(",")})`,
     );
     this.metaStmts.set(count, stmt);
@@ -123,9 +177,9 @@ export class NavidromeReader {
   albumTrackMetas(albumId: string): TrackMeta[] {
     const rows = this.db()
       .prepare(
-        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,mf.has_cover_art,
+        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,${this.coverSelect()},
                 COALESCE(a.name, mf.artist) AS artist_name
-         FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
+         FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id${this.coverJoin()}
          WHERE mf.album_id=? ORDER BY mf.disc_number, mf.track_number, mf.title`,
       )
       .all(albumId) as any[];
@@ -135,9 +189,9 @@ export class NavidromeReader {
   artistTrackMetas(artistId: string): TrackMeta[] {
     const rows = this.db()
       .prepare(
-        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,mf.has_cover_art,
+        `SELECT mf.id,mf.title,mf.artist,mf.artist_id,mf.album,mf.album_id,mf.duration,COALESCE(json_extract(mf.tags,'$.genre[0].value'),'') AS genre,${this.coverSelect()},
                 COALESCE(a.name, mf.artist) AS artist_name
-         FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id
+         FROM media_file mf LEFT JOIN artist a ON a.id=mf.artist_id${this.coverJoin()}
          WHERE (mf.artist_id=? OR mf.id IN (SELECT media_file_id FROM media_file_artists WHERE artist_id=? AND role='artist')) ORDER BY mf.album, mf.disc_number, mf.track_number, mf.title`,
       )
       .all(artistId, artistId) as any[];
@@ -147,8 +201,8 @@ export class NavidromeReader {
   albumTracks(albumId: string): { id: string; title: string; artist: string; duration: number; hasCover: boolean }[] {
     const rows = this.db()
       .prepare(
-        `SELECT id,title,artist,duration,has_cover_art
-         FROM media_file WHERE album_id=? ORDER BY disc_number, track_number, title`,
+        `SELECT mf.id,mf.title,mf.artist,mf.duration,${this.coverSelect()}
+         FROM media_file mf${this.coverJoin()} WHERE mf.album_id=? ORDER BY mf.disc_number, mf.track_number, mf.title`,
       )
       .all(albumId) as any[];
     return rows.map((r) => ({
@@ -169,7 +223,7 @@ export class NavidromeReader {
       .prepare("SELECT DISTINCT album_id AS id, album AS name, artist, artist_id AS artistId FROM media_file WHERE album<>'' AND album LIKE ? ESCAPE '\\' ORDER BY album LIMIT ?")
       .all(like, perKind) as { id: string; name: string; artist: string; artistId: string }[];
     const trackRows = this.db()
-      .prepare("SELECT id, title, artist, artist_id, has_cover_art FROM media_file WHERE title LIKE ? ESCAPE '\\' ORDER BY title LIMIT ?")
+      .prepare(`SELECT mf.id, mf.title, mf.artist, mf.artist_id, ${this.coverSelect()} FROM media_file mf${this.coverJoin()} WHERE mf.title LIKE ? ESCAPE '\\' ORDER BY mf.title LIMIT ?`)
       .all(like, perKind) as any[];
     const credited = this.artistsForTracks(trackRows.map((r) => r.id));
     const tracks = trackRows.map((r) => ({
